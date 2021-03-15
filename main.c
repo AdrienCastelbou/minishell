@@ -7,6 +7,9 @@
 #include <string.h>
 #include <errno.h>
 
+
+extern char	**environ;
+
 int		ft_strcmp(char *s1, char *s2)
 {
 	while (*s1 && *s2)
@@ -37,6 +40,19 @@ int		exit_minishell(char	**splited_inputs, char *input)
 	return (1);
 }
 
+int		env_builtin(void)
+{
+	char	**s;
+
+	s = environ;
+	while (*s)
+	{
+		printf("%s\n", *s);
+		s++;
+	}
+	return (1);
+}
+
 int		run_builtins(char	**splited_inputs, char *input)
 {
 	int		status;
@@ -54,6 +70,8 @@ int		run_builtins(char	**splited_inputs, char *input)
 	}
 	else if (ft_strcmp(splited_inputs[0], "exit") == 0)
 		status = exit_minishell(splited_inputs, input);
+	else if (ft_strcmp(splited_inputs[0], "env") == 0)
+		status = env_builtin();
 	else
 		return (0);
 	if (status < 0 || buff_copy == NULL)
