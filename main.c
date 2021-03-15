@@ -21,11 +21,11 @@ int main(int argc, char **argv)
 		tmp = input;
 		input = ft_strjoin(tmp, buffer);
 	}
-
+	if (ft_strchr(input, '\n'))
+		*(ft_strchr(input, '\n')) = 0;
 	splited_inputs = ft_split(input, ' ');
 	if (!ft_strchr(splited_inputs[0], '/'))
 	{
-		splited_inputs[0][3] = 0;
 		tmp = splited_inputs[0];
 		splited_inputs[0] = ft_strjoin("/bin/", tmp);
 		free(tmp);
