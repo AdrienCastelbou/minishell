@@ -40,7 +40,27 @@ int		exit_minishell(char	**splited_inputs, char *input)
 	return (1);
 }
 
-int		env_builtin(void)
+int		echo_builtin(char	**splited_inputs, char *input)
+{
+	int	i;
+	int	is_flag;
+	i = 0;
+	is_flag = 0;
+	if (ft_strcmp(splited_inputs[1], "-n") == 0)
+		is_flag = 1;
+	i += is_flag;
+	while (splited_inputs[++i])
+	{
+		ft_putstr_fd(splited_inputs[i], 1);
+		if (splited_inputs[i + 1])
+			write(1, " ", 1);
+	}
+	if (!is_flag)
+		write(1, "\n", 1);
+	return (1);
+}
+
+int		env_builtin(char	**splited_inputs, char *input)
 {
 	char	**s;
 
@@ -62,6 +82,8 @@ int		run_builtins(char	**splited_inputs, char *input)
 	status = 0;
 	ft_bzero(buff, 128);
 	if (ft_strcmp(splited_inputs[0], "cd") == 0)
+		status = echo_builtin(splited_inputs, input);
+	else if (ft_strcmp(splited_inputs[0], "cd") == 0)
 		status = chdir(splited_inputs[1]);
 	else if (ft_strcmp(splited_inputs[0], "pwd") == 0)
 	{
@@ -71,7 +93,7 @@ int		run_builtins(char	**splited_inputs, char *input)
 	else if (ft_strcmp(splited_inputs[0], "exit") == 0)
 		status = exit_minishell(splited_inputs, input);
 	else if (ft_strcmp(splited_inputs[0], "env") == 0)
-		status = env_builtin();
+		status = env_builtin(splited_inputs, input);
 	else
 		return (0);
 	if (status < 0 || buff_copy == NULL)
