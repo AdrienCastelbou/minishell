@@ -30,7 +30,39 @@ void	ft_free_inputs(char **splited_inputs, char *input)
 
 }
 
-int ft_get_input(void)
+int		exit_minishell(char	**splited_inputs, char *input)
+{
+	ft_free_inputs(splited_inputs, input);
+	exit(1);
+	return (1);
+}
+
+int		run_builtins(char	**splited_inputs, char *input)
+{
+	int		status;
+	char	buff[128];
+	char	*buff_copy;
+
+	status = 0;
+	ft_bzero(buff, 128);
+	if (ft_strcmp(splited_inputs[0], "cd") == 0)
+		status = chdir(splited_inputs[1]);
+	else if (ft_strcmp(splited_inputs[0], "pwd") == 0)
+	{
+		if ((buff_copy = getcwd(buff, 128)) != NULL)
+			printf("%s\n", buff_copy);
+	}
+	else if (ft_strcmp(splited_inputs[0], "exit") == 0)
+		status = exit_minishell(splited_inputs, input);
+	else
+		return (0);
+	if (status < 0 || buff_copy == NULL)
+		printf("%s: %s: %s\n",splited_inputs[0], strerror(errno), splited_inputs[1]);
+	ft_free_inputs(splited_inputs, input);
+	return (1);
+}
+
+int		ft_get_input(void)
 {
 	char	buffer[4];
 	char	*tmp;
@@ -52,14 +84,8 @@ int ft_get_input(void)
 	if (ft_strchr(input, '\n'))
 		*(ft_strchr(input, '\n')) = 0;
 	splited_inputs = ft_split(input, ' ');
-	if (ft_strcmp(splited_inputs[0], "cd") == 0)
-	{
-		status = chdir(splited_inputs[1]);
-		if (status < 0)
-			printf("%s: %s: %s\n",splited_inputs[0], strerror(errno), splited_inputs[1]);
-		ft_free_inputs(splited_inputs, input);
+	if (run_builtins(splited_inputs, input))
 		return (1);
-	}
 	if (!ft_strchr(splited_inputs[0], '/'))
 	{
 		tmp = splited_inputs[0];
