@@ -100,6 +100,181 @@ int		run_builtins(char	**splited_inputs, char *input, t_list *env)
 	return (1);
 }
 
+static int		ft_word_size(const char *s, char c)
+{
+	int		len;
+
+	len = 0;
+	while (s[len] != c && s[len])
+	{
+		if (s[len] == '\"')
+		{
+			len += 1;
+			while (s[len] != '\"' && s[len])
+				len++;
+		}
+		else if (s[len] == '\'')
+		{
+			len += 1;
+			while (s[len] != '\'' && s[len])
+				len++;
+		}
+		else
+			len++;
+	}
+	printf("%d\n", len);
+	return (len);
+}
+
+static int		ft_words_count(char const *s, char c)
+{
+	int		count;
+	int		len;
+
+	count = 0;
+	while (*s)
+	{
+		while (*s == c)
+			s++;
+		if ((len = ft_word_size(s, c)))
+		{
+			s += len;
+			count++;
+		}
+	}
+	return (count);
+}
+
+int				get_env_size(const char *s, t_list *env)
+{
+	int		i;
+	int		size;
+	char	*variable;
+
+	i = -1;
+	size = 0;
+	while (s[++i] && !ft_strchr("\"\' ", s[i + 1]))
+		;
+	if (!(variable = ft_strndup((char *)s, i)))
+		return (-1);
+	while (env)
+	{
+		if (ft_strnstr((char *)env->content, variable, i) == env->content
+				&& *(char *)(env->content + i + 1) == '=')
+		{
+			size = ft_strlen(env->content + i + 2);
+			break;
+		}
+		env = env->next;
+	}
+	printf(" %d\n",  size);
+	free(variable);
+	return (size);
+}
+
+int				get_real_input_size(const char *s, t_list *env)
+{
+	int		i;
+	int		size;
+	int		to_sub;
+
+	i = 0;
+	size = 0;
+	while (s[i] != ' ' && s[i])
+	{
+		if (s[i] == '$' && s[i + 1] && !ft_strchr("\"\' ", s[i + 1]))
+		{
+			to_sub = 0;
+			size += get_env_size(&s[i + 1], env);
+			while (s[++i] && !ft_strchr("\"\' ", s[i + 1]))
+				to_sub += 1;
+			size -= to_sub;
+		}
+		else if (s[i] == '\"')
+		{
+			size -= 2;
+			i += 1;
+			while (s[i] != '\"' && s[i])
+			{
+				if (s[i] == '$' && s[i + 1] && !ft_strchr("\"\' ", s[i + 1]))
+				{
+					to_sub = 0;
+					size += get_env_size(&s[i + 1], env);
+					while (s[++i] && !ft_strchr("\"\' ", s[i + 1]))
+						to_sub += 1;
+					size -= to_sub;
+				}
+				else
+					i++;
+			}
+		}
+		else if (s[i] == '\'')
+		{
+			size -= 2;
+			i += 1;
+			while (s[i] != '\'' && s[i])
+				i++;
+		}
+		else
+			i++;
+	}
+	printf("size = %d\n", size);
+	size += i;
+	printf("i = %d\n", i);
+	return (size);
+}
+
+static char		*ft_create_w(const char *s, int len, t_list *env)
+{
+	char	*str;
+
+	if (!(str = (char *)malloc(sizeof(char) * (len + 1))))
+		return (NULL);
+	str[len] = '\0';
+	while (len--)
+		str[len] = s[len];
+	return (str);
+}
+
+static void		ft_free_tab(char **splited, int size)
+{
+	int i;
+
+	i = -1;
+	while (++i < size)
+		free(splited[i]);
+	free(splited);
+}
+
+char			**ft_split_input(char const *s, char c, t_list *env)
+{
+	int		words_nb;
+	char	**splited;
+	int		i;
+	int		len;
+
+	if (!s)
+		return (NULL);
+	words_nb = ft_words_count(s, c);
+	if (!(splited = (char **)malloc(sizeof(char *) * (words_nb + 1))))
+		return (NULL);
+	i = -1;
+	while (++i < words_nb)
+	{
+		while (*s == c && *s)
+			s++;
+		len = ft_word_size(s, c);
+		if (!(splited[i] = ft_create_w(s, len, env)))
+		{
+			ft_free_tab(splited, i);
+			return (NULL);
+		}
+		s += len;
+	}
+	splited[i] = NULL;
+	return (splited);
+}
+
 int		ft_get_input(t_list *envrmt)
 {
 	char	buffer[4];
@@ -122,6 +297,7 @@ int		ft_get_input(t_list *envrmt)
 	}
 	if (ft_strchr(input, '\n'))
 		*(ft_strchr(input, '\n')) = 0;
+	printf("%d\n", get_real_input_size(input, env));
 	splited_inputs = ft_split(input, ' ');
 	if (!splited_inputs[0])
 		return (1);
