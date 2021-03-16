@@ -79,7 +79,7 @@ int		run_builtins(char	**splited_inputs, char *input, t_list *env)
 
 	status = 0;
 	ft_bzero(buff, 128);
-	if (ft_strcmp(splited_inputs[0], "cd") == 0)
+	if (ft_strcmp(splited_inputs[0], "echo") == 0)
 		status = echo_builtin(splited_inputs, input);
 	else if (ft_strcmp(splited_inputs[0], "cd") == 0)
 		status = chdir(splited_inputs[1]);
