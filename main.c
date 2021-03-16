@@ -33,9 +33,10 @@ void	ft_free_inputs(char **splited_inputs, char *input)
 
 }
 
-int		exit_minishell(char	**splited_inputs, char *input)
+int		exit_minishell(char	**splited_inputs, char *input, t_list *env)
 {
 	ft_free_inputs(splited_inputs, input);
+	ft_lstclear(&env, free);
 	exit(1);
 	return (1);
 }
@@ -60,20 +61,17 @@ int		echo_builtin(char	**splited_inputs, char *input)
 	return (1);
 }
 
-int		env_builtin(char	**splited_inputs, char *input)
+int		env_builtin(t_list *env)
 {
-	char	**s;
-
-	s = environ;
-	while (*s)
+	while (env)
 	{
-		printf("%s\n", *s);
-		s++;
+		printf("%s\n", (char *)(env->content));
+		env = env->next;
 	}
 	return (1);
 }
 
-int		run_builtins(char	**splited_inputs, char *input)
+int		run_builtins(char	**splited_inputs, char *input, t_list *env)
 {
 	int		status;
 	char	buff[128];
@@ -91,9 +89,9 @@ int		run_builtins(char	**splited_inputs, char *input)
 			printf("%s\n", buff_copy);
 	}
 	else if (ft_strcmp(splited_inputs[0], "exit") == 0)
-		status = exit_minishell(splited_inputs, input);
+		status = exit_minishell(splited_inputs, input, env);
 	else if (ft_strcmp(splited_inputs[0], "env") == 0)
-		status = env_builtin(splited_inputs, input);
+		status = env_builtin(env);
 	else
 		return (0);
 	if (status < 0 || buff_copy == NULL)
@@ -102,7 +100,7 @@ int		run_builtins(char	**splited_inputs, char *input)
 	return (1);
 }
 
-int		ft_get_input(void)
+int		ft_get_input(t_list *envrmt)
 {
 	char	buffer[4];
 	char	*tmp;
@@ -114,6 +112,7 @@ int		ft_get_input(void)
 
 	input = malloc(1);
 	*input = 0;
+	t_list *env = envrmt;
 	ft_putstr_fd("\033[0;34mminishell> \033[0m", 1);
 	while ( !ft_strchr(input, '\n') && (size = read(STDIN_FILENO, buffer, 4)) > 0)
 	{
@@ -124,7 +123,9 @@ int		ft_get_input(void)
 	if (ft_strchr(input, '\n'))
 		*(ft_strchr(input, '\n')) = 0;
 	splited_inputs = ft_split(input, ' ');
-	if (run_builtins(splited_inputs, input))
+	if (!splited_inputs[0])
+		return (1);
+	if (run_builtins(splited_inputs, input, env))
 		return (1);
 	if (!ft_strchr(splited_inputs[0], '/'))
 	{
@@ -141,8 +142,29 @@ int		ft_get_input(void)
 	return (1);
 }
 
-int main(int argc, char **argv)
+t_list	*copy_env(void)
 {
+	t_list	*env;
+	t_list	*elem;
+	char	**extern_env;
+
+	env = NULL;
+	elem = NULL;
+	extern_env = environ;
+	while (*extern_env)
+	{
+		elem = ft_lstnew(ft_strdup(*extern_env));
+		ft_lstadd_back(&env, elem);
+		extern_env++;
+	}
+	return (env);
+}
+
+int		main(int argc, char **argv)
+{
+	t_list *env;
+
+	env = copy_env();
 	while (1)
-		ft_get_input();
+		ft_get_input(env);
 }
