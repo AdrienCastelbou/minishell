@@ -37,7 +37,7 @@ int		exit_minishell(char	**splited_inputs, char *input, t_list *env)
 {
 	ft_free_inputs(splited_inputs, input);
 	ft_lstclear(&env, free);
-	exit(1);
+	exit(0);
 	return (1);
 }
 
