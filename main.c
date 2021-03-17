@@ -94,7 +94,7 @@ int		run_builtins(char	**splited_inputs, char *input, t_list *env)
 		status = env_builtin(env);
 	else
 		return (0);
-	if (status < 0 || buff_copy == NULL)
+	if (status < 0 && buff_copy == NULL)
 		printf("%s: %s: %s\n",splited_inputs[0], strerror(errno), splited_inputs[1]);
 	ft_free_inputs(splited_inputs, input);
 	return (1);
@@ -112,17 +112,18 @@ static int		ft_word_size(const char *s, char c)
 			len += 1;
 			while (s[len] != '\"' && s[len])
 				len++;
+			len += 1;
 		}
 		else if (s[len] == '\'')
 		{
 			len += 1;
 			while (s[len] != '\'' && s[len])
 				len++;
+			len += 1;
 		}
 		else
 			len++;
 	}
-	printf("%d\n", len);
 	return (len);
 }
 
@@ -314,7 +315,7 @@ char			**ft_split_input(char const *s, char c, t_list *env)
 		while (*s == c && *s)
 			s++;
 		len = ft_word_size(s, c);
-		if (!(splited[i] = ft_create_w(s, len, env)))
+		if (!(splited[i] = get_real_input((char *)s, env)))
 		{
 			ft_free_tab(splited, i);
 			return (NULL);
@@ -347,11 +348,7 @@ int		ft_get_input(t_list *envrmt)
 	}
 	if (ft_strchr(input, '\n'))
 		*(ft_strchr(input, '\n')) = 0;
-	char *test;
-	test = get_real_input(input, env);
-	printf("%s\n", test);
-	free(test);
-	splited_inputs = ft_split(input, ' ');
+	splited_inputs = ft_split_input(input,  ' ', env);
 	if (!splited_inputs[0])
 		return (1);
 	if (run_builtins(splited_inputs, input, env))
