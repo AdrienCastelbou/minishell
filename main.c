@@ -227,7 +227,7 @@ char			*update_input_with_big_quotes(char **s, char *new, int *i, t_list *env)
 		else
 			*i += 1;
 	}
-	s = &str;
+	*s = str;
 	new = join_input_parts(*s, new, *i);
 	*s = *s + *i;
 	if (**s)
@@ -269,7 +269,7 @@ char			*get_real_input(char *s, t_list *env)
 		else if (s[i] == '\"')
 			new = update_input_with_big_quotes(&s, new, &i, env);
 		else if (s[i] == '\'')
-			new = update_input_with_big_quotes(&s, new, &i, env);
+			new = update_input_with_lil_quotes(&s, new, &i, env);
 		else
 			i++;
 	}
