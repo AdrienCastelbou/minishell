@@ -172,12 +172,36 @@ char			*get_env_var(const char *s, t_list *env)
 	return (str);
 }
 
+char			*join_input_parts(char *s, char *new, int i)
+{
+	char	*dup_s;
+	char	*tmp;
+
+	dup_s = ft_strndup(s, i);
+	tmp = new;
+	new = ft_strjoin(tmp, dup_s);
+	free(dup_s);
+	free(tmp);
+	return (new);
+}
+
+char			*get_var_value(char *s, char *new, int i, t_list *env)
+{
+	char	*var;
+	char	*tmp;
+
+	new = join_input_parts(s, new, i);
+	var = get_env_var(&s[i + 1], env);
+	tmp = new;
+	new = ft_strjoin(tmp, var);
+	free(tmp);
+	free(var);
+	return (new);
+}
+
 char			*get_real_input(char *s, t_list *env)
 {
 	int		i;
-	char	*tmp;
-	char	*dup_s;
-	char	*var;
 	char	*new;
 
 	new = malloc(sizeof(char) * 1);
@@ -187,16 +211,7 @@ char			*get_real_input(char *s, t_list *env)
 	{
 		if (s[i] == '$' && s[i + 1] && !ft_strchr("\"\' ", s[i + 1]))
 		{
-			dup_s = ft_strndup(s, i);
-			var = get_env_var(&s[i + 1], env);
-			tmp = new;
-			new = ft_strjoin(tmp, dup_s);
-			free(dup_s);
-			free(tmp);
-			tmp = new;
-			new = ft_strjoin(tmp, var);
-			free(tmp);
-			free(var);
+			new = get_var_value(s, new, i, env);
 			while (s[++i] && !ft_strchr("\"\' ", s[i]))
 				;
 			s = s + i;
@@ -204,26 +219,14 @@ char			*get_real_input(char *s, t_list *env)
 		}
 		else if (s[i] == '\"')
 		{
-			dup_s = ft_strndup(s, i);
-			tmp = new;
-			new = ft_strjoin(tmp, dup_s);
-			free(tmp);
+			new = join_input_parts(s, new, i);
 			s = s + i + 1;
 			i = 0;
 			while (s[i] != '\"' && s[i])
 			{
 				if (s[i] == '$' && s[i + 1] && !ft_strchr("\"\' ", s[i + 1]))
 				{
-					dup_s = ft_strndup(s, i);
-					var = get_env_var(&s[i + 1], env);
-					tmp = new;
-					new = ft_strjoin(tmp, dup_s);
-					free(dup_s);
-					free(tmp);
-					tmp = new;
-					new = ft_strjoin(tmp, var);
-					free(tmp);
-					free(var);
+					new = get_var_value(s, new, i, env);
 					while (s[++i] && !ft_strchr("\"\' ", s[i]))
 						;
 					s = s + i;
@@ -232,11 +235,7 @@ char			*get_real_input(char *s, t_list *env)
 				else
 					i++;
 			}
-			dup_s = ft_strndup(s, i);
-			tmp = new;
-			new = ft_strjoin(tmp, dup_s);
-			free(tmp);
-			free(dup_s);
+			new = join_input_parts(s, new, i);
 			s = s + i;
 			if (*s)
 				s++;
@@ -244,34 +243,21 @@ char			*get_real_input(char *s, t_list *env)
 		}
 		else if (s[i] == '\'')
 		{
-			dup_s = ft_strndup(s, i);
-			tmp = new;
-			new = ft_strjoin(tmp, dup_s);
-			free(tmp);
-			free(dup_s);
+			new = join_input_parts(s, new, i);
 			s = s + i + 1;
 			i = 0;
 			while (s[i] != '\'' && s[i])
 				i++;
-			dup_s = ft_strndup(s, i);
-			tmp = new;
-			new = ft_strjoin(tmp, dup_s);
-			free(tmp);
-			free(dup_s);
+			new = join_input_parts(s, new, i);
 			s = s + i;
 			if (*s)
 				s++;
 			i = 0;
-
 		}
 		else
 			i++;
 	}
-	dup_s = ft_strndup(s, i);
-	tmp = new;
-	new = ft_strjoin(tmp, dup_s);
-	free(tmp);
-	free(dup_s);
+	new = join_input_parts(s, new, i);
 	return (new);
 }
 
