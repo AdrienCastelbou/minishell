@@ -365,7 +365,10 @@ int		ft_get_input(t_list *envrmt)
 	if (pid)
 		wait(&status);
 	else
+	{
 		status = execve(splited_inputs[0], splited_inputs, NULL);
+		exit(0);
+	}
 	ft_free_inputs(splited_inputs, input);
 	return (1);
 }
