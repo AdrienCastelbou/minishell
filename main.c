@@ -195,6 +195,7 @@ char			*get_real_input(char *s, t_list *env)
 			tmp = new;
 			new = ft_strjoin(tmp, var);
 			free(tmp);
+			free(var);
 			while (s[++i] && !ft_strchr("\"\' ", s[i]))
 				;
 			s = s + i;
@@ -202,20 +203,65 @@ char			*get_real_input(char *s, t_list *env)
 		}
 		else if (s[i] == '\"')
 		{
+			dup_s = ft_strndup(s, i);
+			tmp = new;
+			new = ft_strjoin(tmp, dup_s);
+			free(tmp);
+			s = s + i + 1;
+			i = 0;
 			while (s[i] != '\"' && s[i])
 			{
 				if (s[i] == '$' && s[i + 1] && !ft_strchr("\"\' ", s[i + 1]))
 				{
-					i++;
+					dup_s = ft_strndup(s, i);
+					var = get_env_var(&s[i + 1], env);
+					tmp = new;
+					new = ft_strjoin(tmp, dup_s);
+					free(dup_s);
+					free(tmp);
+					tmp = new;
+					new = ft_strjoin(tmp, var);
+					free(tmp);
+					free(var);
+					while (s[++i] && !ft_strchr("\"\' ", s[i]))
+						;
+					s = s + i;
+					i = 0;
 				}
 				else
 					i++;
 			}
-			i++;
+			dup_s = ft_strndup(s, i);
+			tmp = new;
+			new = ft_strjoin(tmp, dup_s);
+			free(tmp);
+			free(dup_s);
+			s = s + i;
+			if (*s)
+				s++;
+			i = 0;
 		}
 		else if (s[i] == '\'')
 		{
-			i++;
+			dup_s = ft_strndup(s, i);
+			tmp = new;
+			new = ft_strjoin(tmp, dup_s);
+			free(tmp);
+			free(dup_s);
+			s = s + i + 1;
+			i = 0;
+			while (s[i] != '\'' && s[i])
+				i++;
+			dup_s = ft_strndup(s, i);
+			tmp = new;
+			new = ft_strjoin(tmp, dup_s);
+			free(tmp);
+			free(dup_s);
+			s = s + i;
+			if (*s)
+				s++;
+			i = 0;
+
 		}
 		else
 			i++;
