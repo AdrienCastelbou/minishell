@@ -145,83 +145,87 @@ static int		ft_words_count(char const *s, char c)
 	return (count);
 }
 
-int				get_env_size(const char *s, t_list *env)
+char			*get_env_var(const char *s, t_list *env)
 {
 	int		i;
-	int		size;
 	char	*variable;
+	char	*str;
 
 	i = -1;
-	size = 0;
-	while (s[++i] && !ft_strchr("\"\' ", s[i + 1]))
+	str = ft_strdup("");
+	while (s[++i] && !ft_strchr("\"\' ", s[i]))
 		;
 	if (!(variable = ft_strndup((char *)s, i)))
-		return (-1);
+		return (NULL);
 	while (env)
 	{
 		if (ft_strnstr((char *)env->content, variable, i) == env->content
-				&& *(char *)(env->content + i + 1) == '=')
+				&& *(char *)(env->content + i) == '=')
 		{
-			size = ft_strlen(env->content + i + 2);
+			str = ft_strdup(env->content + i + 1);
 			break;
 		}
 		env = env->next;
 	}
-	printf(" %d\n",  size);
 	free(variable);
-	return (size);
+	return (str);
 }
 
-int				get_real_input_size(const char *s, t_list *env)
+char			*get_real_input(char *s, t_list *env)
 {
 	int		i;
-	int		size;
-	int		to_sub;
+	char	*tmp;
+	char	*dup_s;
+	char	*var;
+	char	*new;
 
+	new = malloc(sizeof(char) * 1);
+	*new = 0;
 	i = 0;
-	size = 0;
 	while (s[i] != ' ' && s[i])
 	{
 		if (s[i] == '$' && s[i + 1] && !ft_strchr("\"\' ", s[i + 1]))
 		{
-			to_sub = 0;
-			size += get_env_size(&s[i + 1], env);
-			while (s[++i] && !ft_strchr("\"\' ", s[i + 1]))
-				to_sub += 1;
-			size -= to_sub;
+			dup_s = ft_strndup(s, i);
+			var = get_env_var(&s[i + 1], env);
+			tmp = new;
+			new = ft_strjoin(tmp, dup_s);
+			free(dup_s);
+			free(tmp);
+			tmp = new;
+			new = ft_strjoin(tmp, var);
+			free(tmp);
+			while (s[++i] && !ft_strchr("\"\' ", s[i]))
+				;
+			s = s + i;
+			i = 0;
 		}
 		else if (s[i] == '\"')
 		{
-			size -= 2;
-			i += 1;
 			while (s[i] != '\"' && s[i])
 			{
 				if (s[i] == '$' && s[i + 1] && !ft_strchr("\"\' ", s[i + 1]))
 				{
-					to_sub = 0;
-					size += get_env_size(&s[i + 1], env);
-					while (s[++i] && !ft_strchr("\"\' ", s[i + 1]))
-						to_sub += 1;
-					size -= to_sub;
+					i++;
 				}
 				else
 					i++;
 			}
+			i++;
 		}
 		else if (s[i] == '\'')
 		{
-			size -= 2;
-			i += 1;
-			while (s[i] != '\'' && s[i])
-				i++;
+			i++;
 		}
 		else
 			i++;
 	}
-	printf("size = %d\n", size);
-	size += i;
-	printf("i = %d\n", i);
-	return (size);
+	dup_s = ft_strndup(s, i);
+	tmp = new;
+	new = ft_strjoin(tmp, dup_s);
+	free(tmp);
+	free(dup_s);
+	return (new);
 }
 
 static char		*ft_create_w(const char *s, int len, t_list *env)
@@ -297,7 +301,10 @@ int		ft_get_input(t_list *envrmt)
 	}
 	if (ft_strchr(input, '\n'))
 		*(ft_strchr(input, '\n')) = 0;
-	printf("%d\n", get_real_input_size(input, env));
+	char *test;
+	test = get_real_input(input, env);
+	printf("%s\n", test);
+	free(test);
 	splited_inputs = ft_split(input, ' ');
 	if (!splited_inputs[0])
 		return (1);
