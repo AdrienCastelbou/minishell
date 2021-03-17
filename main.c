@@ -199,6 +199,61 @@ char			*get_var_value(char *s, char *new, int i, t_list *env)
 	return (new);
 }
 
+char			*update_input_with_var(char **s, char *new, int *i, t_list *env)
+{
+	char	*str;
+
+	str = *s;
+	new = get_var_value(*s, new, *i, env);
+	while (str[++(*i)] && !ft_strchr("\"\' ", str[*i]))
+		;
+	*s = *s + *i;
+	*i = 0;
+	return (new);
+}
+
+char			*update_input_with_big_quotes(char **s, char *new, int *i, t_list *env)
+{
+	char *str;
+
+	new = join_input_parts(*s, new, *i);
+	*s = *s + *i + 1;
+	str = *s;
+	*i = 0;
+	while (str[*i] != '\"' && str[*i])
+	{
+		if (str[*i] == '$' && str[*i + 1] && !ft_strchr("\"\' ", str[*i + 1]))
+			new = update_input_with_var(&str, new, i, env);
+		else
+			*i += 1;
+	}
+	s = &str;
+	new = join_input_parts(*s, new, *i);
+	*s = *s + *i;
+	if (**s)
+		*s += 1;
+	*i = 0;
+	return (new);
+}
+
+char			*update_input_with_lil_quotes(char **s, char *new, int *i, t_list *env)
+{
+	char *str;
+
+	new = join_input_parts(*s, new, *i);
+	*s = *s + *i + 1;
+	str = *s;
+	*i = 0;
+	while (str[*i] != '\'' && str[*i])
+		*i +=1;
+	new = join_input_parts(*s, new, *i);
+	*s = *s + *i;
+	if (**s)
+		*s += 1;
+	*i = 0;
+	return (new);
+}
+
 char			*get_real_input(char *s, t_list *env)
 {
 	int		i;
@@ -210,50 +265,11 @@ char			*get_real_input(char *s, t_list *env)
 	while (s[i] != ' ' && s[i])
 	{
 		if (s[i] == '$' && s[i + 1] && !ft_strchr("\"\' ", s[i + 1]))
-		{
-			new = get_var_value(s, new, i, env);
-			while (s[++i] && !ft_strchr("\"\' ", s[i]))
-				;
-			s = s + i;
-			i = 0;
-		}
+			new = update_input_with_var(&s, new, &i, env);
 		else if (s[i] == '\"')
-		{
-			new = join_input_parts(s, new, i);
-			s = s + i + 1;
-			i = 0;
-			while (s[i] != '\"' && s[i])
-			{
-				if (s[i] == '$' && s[i + 1] && !ft_strchr("\"\' ", s[i + 1]))
-				{
-					new = get_var_value(s, new, i, env);
-					while (s[++i] && !ft_strchr("\"\' ", s[i]))
-						;
-					s = s + i;
-					i = 0;
-				}
-				else
-					i++;
-			}
-			new = join_input_parts(s, new, i);
-			s = s + i;
-			if (*s)
-				s++;
-			i = 0;
-		}
+			new = update_input_with_big_quotes(&s, new, &i, env);
 		else if (s[i] == '\'')
-		{
-			new = join_input_parts(s, new, i);
-			s = s + i + 1;
-			i = 0;
-			while (s[i] != '\'' && s[i])
-				i++;
-			new = join_input_parts(s, new, i);
-			s = s + i;
-			if (*s)
-				s++;
-			i = 0;
-		}
+			new = update_input_with_big_quotes(&s, new, &i, env);
 		else
 			i++;
 	}
@@ -314,7 +330,7 @@ char			**ft_split_input(char const *s, char c, t_list *env)
 
 int		ft_get_input(t_list *envrmt)
 {
-	char	buffer[4];
+	char	buffer[128];
 	char	*tmp;
 	char	*input;
 	char	**splited_inputs;
@@ -326,7 +342,7 @@ int		ft_get_input(t_list *envrmt)
 	*input = 0;
 	t_list *env = envrmt;
 	ft_putstr_fd("\033[0;34mminishell> \033[0m", 1);
-	while ( !ft_strchr(input, '\n') && (size = read(STDIN_FILENO, buffer, 4)) > 0)
+	while ( !ft_strchr(input, '\n') && (size = read(STDIN_FILENO, buffer, 128)) > 0)
 	{
 		buffer[size] = 0;
 		tmp = input;
