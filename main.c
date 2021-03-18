@@ -202,7 +202,7 @@ int		run_builtins(char	**splited_inputs, char *input, t_list *env)
 		return (0);
 	if (status < 0 && buff_copy == NULL)
 		printf("%s: %s: %s\n",splited_inputs[0], strerror(errno), splited_inputs[1]);
-	ft_free_inputs(splited_inputs, input);
+	ft_free_inputs(splited_inputs, NULL);
 	return (1);
 }
 
@@ -434,14 +434,60 @@ char			**ft_split_input(char const *s, char c, t_list *env)
 	return (splited);
 }
 
+int		cmd_count(char *input)
+{
+	int	i;
+	int	count;
+
+	count = 1;
+	i = -1;
+	while (input[++i])
+	{
+		if (input[i] == '\"')
+			while (input[++i] && input[i] != '\"')
+				;
+		else if (input[i] == '\'')
+		while (input[++i] && input[i] != '\'')
+			;
+		else if (input[i] == ';')
+			count += 1;
+	}
+	return (count);
+}
+
+char		***ft_split_cmds(char *s, t_list *env)
+{
+	int		cmd_nb;
+	char	***cmds;
+	int		i;
+	int		len;
+
+	if (!s)
+		return (NULL);
+	cmd_nb = cmd_count(s);
+	if (!(cmds = (char ***)malloc(sizeof(char **) * (cmd_nb + 1))))
+		return (NULL);
+	i = 0;
+	while (i < cmd_nb)
+	{
+		len = ft_word_size(s, ';');
+		cmds[i] = ft_split_input(ft_strndup(s, len), ' ', env);
+		s += len + 1;
+		i++;
+	}
+	cmds[i] = NULL;
+	return (cmds);
+}
+
 int		ft_get_input(t_list *envrmt)
 {
 	char	buffer[128];
 	char	*tmp;
 	char	*input;
-	char	**splited_inputs;
+	char	***cmds;
 	int		size;
 	int		status;
+	int		i;
 	pid_t	pid;
 
 	input = malloc(1);
@@ -456,26 +502,33 @@ int		ft_get_input(t_list *envrmt)
 	}
 	if (ft_strchr(input, '\n'))
 		*(ft_strchr(input, '\n')) = 0;
-	splited_inputs = ft_split_input(input,  ' ', env);
-	if (!splited_inputs[0])
-		return (1);
-	if (run_builtins(splited_inputs, input, env))
-		return (1);
-	if (!ft_strchr(splited_inputs[0], '/'))
+	cmds = ft_split_cmds(input, env);
+	i = 0;
+	while (cmds[i])
 	{
-		tmp = splited_inputs[0];
-		splited_inputs[0] = ft_strjoin("/bin/", tmp);
-		free(tmp);
+		if (run_builtins(cmds[i], input, env))
+			;
+		else
+		{
+			if (!ft_strchr(cmds[i][0], '/'))
+			{
+				tmp = cmds[i][0];
+				cmds[i][0] = ft_strjoin("/bin/", tmp);
+				free(tmp);
+			}
+			pid = fork();
+			if (pid)
+				wait(&status);
+			else
+			{
+				status = execve(cmds[i][0], cmds[i], NULL);
+				exit(0);
+			}
+			ft_free_inputs(cmds[i], input);
+		}
+			i++;
 	}
-	pid = fork();
-	if (pid)
-		wait(&status);
-	else
-	{
-		status = execve(splited_inputs[0], splited_inputs, NULL);
-		exit(0);
-	}
-	ft_free_inputs(splited_inputs, input);
+	free(cmds);
 	return (1);
 }
 
