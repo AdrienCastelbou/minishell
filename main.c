@@ -118,6 +118,61 @@ int		export_builtin(char	**splited_inputs, char *input, t_list *env)
 		return (1);
 }
 
+
+void	delete_env_var(char *key, t_list **env)
+{
+	t_list	*previous;
+	t_list	*current;
+	int		key_len;
+
+	key_len = ft_strlen(key);
+	previous = NULL;
+	current = *env;
+	while (current)
+	{
+		if (ft_strnstr((char *)current->content, key, key_len) == current->content
+				&& *(char *)(current->content + key_len) == '=')
+		{
+			if (!previous)
+				*env = current->next;
+			else
+				previous->next = current->next;
+			ft_lstdelone(current, free);
+			if (previous)
+				current = previous->next;
+			else
+				current = *env;
+		}
+		else
+		{
+			previous = current;
+			current = previous->next;
+		}
+	}
+}
+
+int		unset_builtin(char	**splited_inputs, char *input, t_list *env)
+{
+	int	i;
+	int	j;
+
+	i = -1;
+	while (splited_inputs[++i])
+	{
+		j = -1;
+		while (splited_inputs[i][++j] && splited_inputs[i][j] != '=')
+		{
+			if (splited_inputs[i][j] == ' ')
+				break;
+		}
+		if (!splited_inputs[i][j])
+			delete_env_var(splited_inputs[i], &env);
+		else
+			printf("export: \'%s\': not a valid identifier\n", splited_inputs[i]);
+	}
+		return (1);
+}
+
 int		run_builtins(char	**splited_inputs, char *input, t_list *env)
 {
 	int		status;
@@ -137,6 +192,8 @@ int		run_builtins(char	**splited_inputs, char *input, t_list *env)
 	}
 	else if (ft_strcmp(splited_inputs[0], "export") == 0)
 			status = export_builtin(&splited_inputs[1], input, env);
+	else if (ft_strcmp(splited_inputs[0], "unset") == 0)
+			status = unset_builtin(&splited_inputs[1], input, env);
 	else if (ft_strcmp(splited_inputs[0], "exit") == 0)
 		status = exit_minishell(splited_inputs, input, env);
 	else if (ft_strcmp(splited_inputs[0], "env") == 0)
