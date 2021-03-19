@@ -41,7 +41,7 @@ int		exit_minishell(char	**splited_inputs, char *input, t_list *env)
 	return (1);
 }
 
-int		echo_builtin(char	**splited_inputs, char *input)
+int		echo_builtin(char	**splited_inputs)
 {
 	int	i;
 	int	is_flag;
@@ -96,7 +96,7 @@ void	add_env_var(char *env_var, t_list *env, char *key)
 	free(key);
 }
 
-int		export_builtin(char	**splited_inputs, char *input, t_list *env)
+int		export_builtin(char	**splited_inputs, t_list *env)
 {
 	int	i;
 	int	j;
@@ -151,7 +151,7 @@ void	delete_env_var(char *key, t_list **env)
 	}
 }
 
-int		unset_builtin(char	**splited_inputs, char *input, t_list *env)
+int		unset_builtin(char	**splited_inputs, t_list *env)
 {
 	int	i;
 	int	j;
@@ -182,7 +182,7 @@ int		run_builtins(char	**splited_inputs, char *input, t_list *env)
 	status = 0;
 	ft_bzero(buff, 128);
 	if (ft_strcmp(splited_inputs[0], "echo") == 0)
-		status = echo_builtin(splited_inputs, input);
+		status = echo_builtin(splited_inputs);
 	else if (ft_strcmp(splited_inputs[0], "cd") == 0)
 		status = chdir(splited_inputs[1]);
 	else if (ft_strcmp(splited_inputs[0], "pwd") == 0)
@@ -191,9 +191,9 @@ int		run_builtins(char	**splited_inputs, char *input, t_list *env)
 			printf("%s\n", buff_copy);
 	}
 	else if (ft_strcmp(splited_inputs[0], "export") == 0)
-			status = export_builtin(&splited_inputs[1], input, env);
+			status = export_builtin(&splited_inputs[1], env);
 	else if (ft_strcmp(splited_inputs[0], "unset") == 0)
-			status = unset_builtin(&splited_inputs[1], input, env);
+			status = unset_builtin(&splited_inputs[1], env);
 	else if (ft_strcmp(splited_inputs[0], "exit") == 0)
 		status = exit_minishell(splited_inputs, input, env);
 	else if (ft_strcmp(splited_inputs[0], "env") == 0)
