@@ -54,7 +54,7 @@ int		exit_minishell(char	**splited_inputs, t_mini *mini)
 		ft_free_splited(mini->envp);
 	free(mini);
 	exit(0);
-	return (1);
+	return (0);
 }
 
 int		echo_builtin(char	**splited_inputs)
@@ -74,7 +74,7 @@ int		echo_builtin(char	**splited_inputs)
 	}
 	if (!is_flag)
 		write(1, "\n", 1);
-	return (1);
+	return (0);
 }
 
 int		env_builtin(t_list *env)
@@ -84,7 +84,7 @@ int		env_builtin(t_list *env)
 		printf("%s\n", (char *)(env->content));
 		env = env->next;
 	}
-	return (1);
+	return (0);
 }
 
 void	add_env_var(char *env_var, t_list *env, char *key)
@@ -131,7 +131,7 @@ int		export_builtin(char	**splited_inputs, t_list *env)
 		else
 			printf("export: \'%s\': not a valid identifier\n", splited_inputs[i]);
 	}
-		return (1);
+		return (0);
 }
 
 
@@ -186,7 +186,7 @@ int		unset_builtin(char	**splited_inputs, t_list *env)
 		else
 			printf("export: \'%s\': not a valid identifier\n", splited_inputs[i]);
 	}
-		return (1);
+		return (0);
 }
 
 int		pwd_builtin(void)
@@ -227,8 +227,7 @@ int		run_builtins(char	**splited_inputs, t_mini *mini)
 		status = env_builtin(mini->env);
 	else
 		return (0);
-	printf("%d\n", status);
-	if (status < 0)
+	if (status != 0)
 		printf("%s: %s: %s\n",splited_inputs[0], strerror(errno), splited_inputs[1]);
 	return (1);
 }
