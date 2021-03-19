@@ -189,25 +189,34 @@ int		unset_builtin(char	**splited_inputs, t_list *env)
 		return (1);
 }
 
+int		pwd_builtin(void)
+{
+	char	buff[128];
+	char	*buff_copy;
+	int		status;
+
+	status = 0;
+	ft_bzero(buff, 128);
+	if ((buff_copy = getcwd(buff, 128)) != NULL)
+		printf("%s\n", buff_copy);
+	else
+		status = 1;
+	return (status);
+}
+
 int		run_builtins(char	**splited_inputs, t_mini *mini)
 {
 	int		status;
-	char	buff[128];
-	char	*buff_copy;
 
 	if (!splited_inputs || !(*splited_inputs))
 		return (0);
 	status = 0;
-	ft_bzero(buff, 128);
 	if (ft_strcmp(splited_inputs[0], "echo") == 0)
 		status = echo_builtin(splited_inputs);
 	else if (ft_strcmp(splited_inputs[0], "cd") == 0)
 		status = chdir(splited_inputs[1]);
 	else if (ft_strcmp(splited_inputs[0], "pwd") == 0)
-	{
-		if ((buff_copy = getcwd(buff, 128)) != NULL)
-			printf("%s\n", buff_copy);
-	}
+		status = pwd_builtin();
 	else if (ft_strcmp(splited_inputs[0], "export") == 0)
 			status = export_builtin(&splited_inputs[1], mini->env);
 	else if (ft_strcmp(splited_inputs[0], "unset") == 0)
@@ -218,7 +227,8 @@ int		run_builtins(char	**splited_inputs, t_mini *mini)
 		status = env_builtin(mini->env);
 	else
 		return (0);
-	if (status < 0 && buff_copy == NULL)
+	printf("%d\n", status);
+	if (status < 0)
 		printf("%s: %s: %s\n",splited_inputs[0], strerror(errno), splited_inputs[1]);
 	return (1);
 }
