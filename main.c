@@ -179,6 +179,8 @@ int		run_builtins(char	**splited_inputs, char *input, t_list *env)
 	char	buff[128];
 	char	*buff_copy;
 
+	if (!splited_inputs || !(*splited_inputs))
+		return (0);
 	status = 0;
 	ft_bzero(buff, 128);
 	if (ft_strcmp(splited_inputs[0], "echo") == 0)
@@ -522,12 +524,14 @@ int		ft_get_input(t_list *envrmt)
 		input = ft_strjoin(tmp, buffer);
 	}
 	if (ft_strchr(input, '\n'))
-		*(ft_strchr(input, '\n')) = 0;
+		*(ft_strchr(input, '\n')) = '\0';
 	cmds = ft_split_cmds(input, env);
 	i = 0;
 	while (cmds[i])
 	{
-		if (run_builtins(cmds[i], input, env))
+		if (!*cmds[i])
+			;
+		else if (run_builtins(cmds[i], input, env))
 			;
 		else
 		{
