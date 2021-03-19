@@ -26,21 +26,33 @@ int		ft_strcmp(char *s1, char *s2)
 	return (*s1 - *s2);
 }
 
-void	ft_free_inputs(char **splited_inputs, char *input)
+void	ft_free_splited(char **splited_inputs)
 {
 	int i;
 	i = -1;
 	while (splited_inputs[++i])
 		free(splited_inputs[i]);
 	free(splited_inputs);
-	free(input);
-
 }
 
-int		exit_minishell(char	**splited_inputs, char *input, t_list *env)
+void	free_inputs(t_mini *mini)
 {
-	ft_free_inputs(splited_inputs, input);
-	ft_lstclear(&env, free);
+	int	i;
+
+	i = -1;
+	while (mini->cmds[++i])
+		ft_free_splited(mini->cmds[i]);
+	if (mini->input)
+		free(mini->input);
+}
+
+int		exit_minishell(char	**splited_inputs, t_mini *mini)
+{
+	free_inputs(mini);
+	ft_lstclear(&mini->env, free);
+	if (mini->envp)
+		ft_free_splited(mini->envp);
+	free(mini);
 	exit(0);
 	return (1);
 }
@@ -201,14 +213,13 @@ int		run_builtins(char	**splited_inputs, t_mini *mini)
 	else if (ft_strcmp(splited_inputs[0], "unset") == 0)
 			status = unset_builtin(&splited_inputs[1], mini->env);
 	else if (ft_strcmp(splited_inputs[0], "exit") == 0)
-		status = exit_minishell(splited_inputs, mini->input, mini->env);
+		status = exit_minishell(splited_inputs, mini);
 	else if (ft_strcmp(splited_inputs[0], "env") == 0)
 		status = env_builtin(mini->env);
 	else
 		return (0);
 	if (status < 0 && buff_copy == NULL)
 		printf("%s: %s: %s\n",splited_inputs[0], strerror(errno), splited_inputs[1]);
-	ft_free_inputs(splited_inputs, NULL);
 	return (1);
 }
 
@@ -556,11 +567,10 @@ int		ft_get_input(t_mini *mini)
 				exit(0);
 				free(mini->envp);
 			}
-			ft_free_inputs(mini->cmds[i], mini->input);
 		}
 			i++;
 	}
-	free(mini->cmds);
+	free_inputs(mini);
 	set_mini(mini);
 	return (1);
 }
