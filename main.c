@@ -479,17 +479,38 @@ char		***ft_split_cmds(char *s, t_list *env)
 	return (cmds);
 }
 
+char	**transform_env_lst_in_tab(t_list *env)
+{
+	char	**envp;
+	int		i;
+	int		size;
+
+	size = ft_lstsize(env);
+	if (!(envp = malloc(sizeof(char *) * (size + 1))))
+		return (NULL);
+	i = -1;
+	while (++i < size)
+	{
+		envp[i] = ft_strdup((char *)env->content);
+		env = env->next;
+	}
+	envp[i] = NULL;
+	return (envp);
+}
+
 int		ft_get_input(t_list *envrmt)
 {
 	char	buffer[128];
 	char	*tmp;
 	char	*input;
 	char	***cmds;
+	char	**envp;
 	int		size;
 	int		status;
 	int		i;
 	pid_t	pid;
 
+	envp = NULL;
 	input = malloc(1);
 	*input = 0;
 	t_list *env = envrmt;
@@ -521,8 +542,10 @@ int		ft_get_input(t_list *envrmt)
 				wait(&status);
 			else
 			{
-				status = execve(cmds[i][0], cmds[i], NULL);
+				envp = transform_env_lst_in_tab(env);
+				status = execve(cmds[i][0], cmds[i], envp);
 				exit(0);
+				free(envp);
 			}
 			ft_free_inputs(cmds[i], input);
 		}
@@ -532,29 +555,28 @@ int		ft_get_input(t_list *envrmt)
 	return (1);
 }
 
-t_list	*copy_env(void)
+t_list	*copy_env(char **envp)
 {
 	t_list	*env;
 	t_list	*elem;
-	char	**extern_env;
 
 	env = NULL;
 	elem = NULL;
-	extern_env = environ;
-	while (*extern_env)
+	while (*envp)
 	{
-		elem = ft_lstnew(ft_strdup(*extern_env));
+		elem = ft_lstnew(ft_strdup(*envp));
 		ft_lstadd_back(&env, elem);
-		extern_env++;
+		envp++;
 	}
 	return (env);
 }
 
-int		main(int argc, char **argv)
+int		main(int argc, char **argv, char **envp)
 {
 	t_list *env;
 
-	env = copy_env();
+	env = NULL;
+	env = copy_env(envp);
 	while (1)
 		ft_get_input(env);
 }
