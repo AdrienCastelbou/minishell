@@ -7,8 +7,12 @@
 #include <string.h>
 #include <errno.h>
 
-
-extern char	**environ;
+typedef struct	s_mini {
+		char	***cmds;
+		char	**envp;
+		char	*input;
+		t_list	*env;
+}				t_mini;
 
 int		ft_strcmp(char *s1, char *s2)
 {
@@ -500,45 +504,47 @@ char	**transform_env_lst_in_tab(t_list *env)
 	return (envp);
 }
 
-int		ft_get_input(t_list *envrmt)
+void	set_mini(t_mini *mini)
+{
+	mini->cmds = NULL;
+	mini->input = malloc(sizeof(char) * 1);
+	*(mini->input) = 0;
+	mini->envp = NULL;
+
+}
+
+int		ft_get_input(t_mini *mini)
 {
 	char	buffer[128];
 	char	*tmp;
-	char	*input;
-	char	***cmds;
-	char	**envp;
 	int		size;
 	int		status;
 	int		i;
 	pid_t	pid;
 
-	envp = NULL;
-	input = malloc(1);
-	*input = 0;
-	t_list *env = envrmt;
 	ft_putstr_fd("\033[0;34mminishell> \033[0m", 1);
-	while ( !ft_strchr(input, '\n') && (size = read(STDIN_FILENO, buffer, 128)) > 0)
+	while ( !ft_strchr(mini->input, '\n') && (size = read(STDIN_FILENO, buffer, 128)) > 0)
 	{
 		buffer[size] = 0;
-		tmp = input;
-		input = ft_strjoin(tmp, buffer);
+		tmp = mini->input;
+		mini->input = ft_strjoin(tmp, buffer);
 	}
-	if (ft_strchr(input, '\n'))
-		*(ft_strchr(input, '\n')) = '\0';
-	cmds = ft_split_cmds(input, env);
+	if (ft_strchr(mini->input, '\n'))
+		*(ft_strchr(mini->input, '\n')) = '\0';
+	mini->cmds = ft_split_cmds(mini->input, mini->env);
 	i = 0;
-	while (cmds[i])
+	while (mini->cmds[i])
 	{
-		if (!*cmds[i])
+		if (!*mini->cmds[i])
 			;
-		else if (run_builtins(cmds[i], input, env))
+		else if (run_builtins(mini->cmds[i], mini->input, mini->env))
 			;
 		else
 		{
-			if (!ft_strchr(cmds[i][0], '/'))
+			if (!ft_strchr(mini->cmds[i][0], '/'))
 			{
-				tmp = cmds[i][0];
-				cmds[i][0] = ft_strjoin("/bin/", tmp);
+				tmp = mini->cmds[i][0];
+				mini->cmds[i][0] = ft_strjoin("/bin/", tmp);
 				free(tmp);
 			}
 			pid = fork();
@@ -546,16 +552,17 @@ int		ft_get_input(t_list *envrmt)
 				wait(&status);
 			else
 			{
-				envp = transform_env_lst_in_tab(env);
-				status = execve(cmds[i][0], cmds[i], envp);
+				mini->envp = transform_env_lst_in_tab(mini->env);
+				status = execve(mini->cmds[i][0], mini->cmds[i], mini->envp);
 				exit(0);
-				free(envp);
+				free(mini->envp);
 			}
-			ft_free_inputs(cmds[i], input);
+			ft_free_inputs(mini->cmds[i], mini->input);
 		}
 			i++;
 	}
-	free(cmds);
+	free(mini->cmds);
+	set_mini(mini);
 	return (1);
 }
 
@@ -575,12 +582,22 @@ t_list	*copy_env(char **envp)
 	return (env);
 }
 
+t_mini	*init_mini(char **envp_tocpy)
+{
+	t_mini	*mini;
+
+	if (!(mini = malloc(sizeof(t_mini))))
+		return (NULL);
+	mini->env = copy_env(envp_tocpy);
+	set_mini(mini);
+	return (mini);
+}
+
 int		main(int argc, char **argv, char **envp)
 {
-	t_list *env;
+	t_mini *mini;
 
-	env = NULL;
-	env = copy_env(envp);
+	mini = init_mini(envp);
 	while (1)
-		ft_get_input(env);
+		ft_get_input(mini);
 }
