@@ -130,6 +130,7 @@ int		export_builtin(char	**splited_inputs, t_list *env)
 			add_env_var(splited_inputs[i], env, ft_strndup(splited_inputs[i], j));
 		else
 			printf("export: \'%s\': not a valid identifier\n", splited_inputs[i]);
+		return (1);
 	}
 		return (0);
 }
@@ -204,6 +205,25 @@ int		pwd_builtin(void)
 	return (status);
 }
 
+int		cd_builtin(t_mini *mini, char *mov)
+{
+	int		status;
+	char	buff[128];
+	char	*pwd[2];
+
+	ft_bzero(buff, 128);
+	status = chdir(mov);
+	if (!status)
+	{
+		getcwd(buff, 128);
+		pwd[0] = ft_strjoin("PWD=", buff);
+		pwd[1] = NULL;
+		export_builtin(pwd, mini->env);
+		free(pwd[0]);
+	}
+	return (status);
+}
+
 int		run_builtins(char	**splited_inputs, t_mini *mini)
 {
 	int		status;
@@ -214,7 +234,8 @@ int		run_builtins(char	**splited_inputs, t_mini *mini)
 	if (ft_strcmp(splited_inputs[0], "echo") == 0)
 		status = echo_builtin(splited_inputs);
 	else if (ft_strcmp(splited_inputs[0], "cd") == 0)
-		status = chdir(splited_inputs[1]);
+		status = cd_builtin(mini, splited_inputs[1]);
+		//status = chdir(splited_inputs[1]);
 	else if (ft_strcmp(splited_inputs[0], "pwd") == 0)
 		status = pwd_builtin();
 	else if (ft_strcmp(splited_inputs[0], "export") == 0)
