@@ -177,7 +177,7 @@ int		unset_builtin(char	**splited_inputs, t_list *env)
 		return (1);
 }
 
-int		run_builtins(char	**splited_inputs, char *input, t_list *env)
+int		run_builtins(char	**splited_inputs, t_mini *mini)
 {
 	int		status;
 	char	buff[128];
@@ -197,13 +197,13 @@ int		run_builtins(char	**splited_inputs, char *input, t_list *env)
 			printf("%s\n", buff_copy);
 	}
 	else if (ft_strcmp(splited_inputs[0], "export") == 0)
-			status = export_builtin(&splited_inputs[1], env);
+			status = export_builtin(&splited_inputs[1], mini->env);
 	else if (ft_strcmp(splited_inputs[0], "unset") == 0)
-			status = unset_builtin(&splited_inputs[1], env);
+			status = unset_builtin(&splited_inputs[1], mini->env);
 	else if (ft_strcmp(splited_inputs[0], "exit") == 0)
-		status = exit_minishell(splited_inputs, input, env);
+		status = exit_minishell(splited_inputs, mini->input, mini->env);
 	else if (ft_strcmp(splited_inputs[0], "env") == 0)
-		status = env_builtin(env);
+		status = env_builtin(mini->env);
 	else
 		return (0);
 	if (status < 0 && buff_copy == NULL)
@@ -510,7 +510,6 @@ void	set_mini(t_mini *mini)
 	mini->input = malloc(sizeof(char) * 1);
 	*(mini->input) = 0;
 	mini->envp = NULL;
-
 }
 
 int		ft_get_input(t_mini *mini)
@@ -537,7 +536,7 @@ int		ft_get_input(t_mini *mini)
 	{
 		if (!*mini->cmds[i])
 			;
-		else if (run_builtins(mini->cmds[i], mini->input, mini->env))
+		else if (run_builtins(mini->cmds[i], mini))
 			;
 		else
 		{
