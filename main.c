@@ -458,6 +458,26 @@ t_list	*ft_lst_input(char *s, char c, t_list *env)
 	return (cmd);
 }
 
+char		**get_cmd_tab(t_list *cmd)
+{
+	char	**cmd_tab;
+	int		size;
+	int		i;
+	t_list	*elem;
+
+	size = ft_lstsize(cmd);
+	cmd_tab = malloc(sizeof(char *) * (size + 1));
+	elem = cmd;
+	i = -1;
+	while (++i > -1 && elem)
+	{
+		cmd_tab[i] = ft_strdup((char *)elem->content);
+		elem = elem->next;
+	}
+	cmd_tab[i] = NULL;
+	return (cmd_tab);
+}
+
 t_list		**ft_lst_cmds(t_mini *mini, char *s, t_list *env)
 {
 	int		cmd_nb;
@@ -475,6 +495,7 @@ t_list		**ft_lst_cmds(t_mini *mini, char *s, t_list *env)
 	{
 		len = ft_word_size(s, ';');
 		cmds[i] = ft_lst_input(ft_strndup(s, len), ' ', env);
+		run_cmd(mini, get_cmd_tab(cmds[i]));
 		s += len + 1;
 		i++;
 	}
@@ -589,7 +610,6 @@ int		ft_get_input(t_mini *mini)
 	char	buffer[128];
 	char	*tmp;
 	int		size;
-	int		i;
 
 	ft_putstr_fd("\033[0;34mminishell> \033[0m", 1);
 	while ( !ft_strchr(mini->input, '\n') && (size = read(STDIN_FILENO, buffer, 128)) > 0)
@@ -602,12 +622,6 @@ int		ft_get_input(t_mini *mini)
 		*(ft_strchr(mini->input, '\n')) = '\0';
 	mini->cmmds = ft_lst_cmds(mini, mini->input, mini->env);
 	get_cmds_tab(mini);
-	i = 0;
-	while (mini->cmds_tab[i])
-	{
-		run_cmd(mini, mini->cmds_tab[i]);
-		i++;
-	}
 	free_cmds(mini);
 	return (1);
 }
