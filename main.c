@@ -23,11 +23,12 @@ void	ft_free_splited(char **splited_inputs)
 
 void	free_inputs(t_mini *mini)
 {
-	int	i;
+	int i;
 
 	i = -1;
-	while (mini->cmds_tab[++i])
-		ft_free_splited(mini->cmds_tab[i]);
+	while (mini->cmd[++i])
+		free(mini->cmd[i]);
+	free(mini->cmd);
 	if (mini->input)
 		free(mini->input);
 }
@@ -478,28 +479,31 @@ char		**get_cmd_tab(t_list *cmd)
 	return (cmd_tab);
 }
 
-t_list		**ft_lst_cmds(t_mini *mini, char *s, t_list *env)
+t_list		*ft_lst_cmds(t_mini *mini, char *s, t_list *env)
 {
 	int		cmd_nb;
-	t_list	**cmds;
+	t_list	*cmds;
 	int		i;
 	int		len;
 
 	if (!s)
 		return (NULL);
 	cmd_nb = cmd_count(s);
-	if (!(cmds = (t_list **)malloc(sizeof(t_list *) * (cmd_nb + 1))))
+	if (!(cmds = (t_list *)malloc(sizeof(t_list) * (cmd_nb + 1))))
 		return (NULL);
 	i = 0;
+	mini->cmds = cmds;
 	while (i < cmd_nb)
 	{
 		len = ft_word_size(s, ';');
-		cmds[i] = ft_lst_input(ft_strndup(s, len), ' ', env);
-		run_cmd(mini, get_cmd_tab(cmds[i]));
+		cmds = ft_lst_input(ft_strndup(s, len), ' ', env);
+		mini->cmd = get_cmd_tab(cmds);
+		run_cmd(mini, mini->cmd);
+		free_cmds(mini);
 		s += len + 1;
 		i++;
 	}
-	cmds[i] = NULL;
+	cmds = NULL;
 	i = -1;
 	return (cmds);
 
@@ -526,39 +530,8 @@ char	**transform_env_lst_in_tab(t_list *env)
 
 void	set_mini(t_mini *mini)
 {
-	mini->cmds = NULL;
-	mini->input = malloc(sizeof(char) * 1);
-	*(mini->input) = 0;
 	mini->envp = NULL;
-	mini->cmmds = NULL;
-}
-
-void	get_cmds_tab(t_mini *mini)
-{
-	int		i;
-	int		j;
-	int		len;
-	t_list	*elem;
-
-	i = -1;
-	while (mini->cmmds[++i])
-		;
-	mini->cmds_tab = (char ***)malloc(sizeof(char **) * (i + 1));
-	i = -1;
-	while (mini->cmmds[++i])
-	{
-		len = ft_lstsize(mini->cmmds[i]);
-		mini->cmds_tab[i] = malloc(sizeof(char *) * (len + 1));
-		elem = mini->cmmds[i];
-		j = -1;
-		while (++j > -1 && elem)
-		{
-			mini->cmds_tab[i][j] = ft_strdup((char *)elem->content);
-			elem = elem->next;
-		}
-		mini->cmds_tab[i][j] = NULL;
-	}
-	mini->cmds_tab[i] = NULL;
+	mini->cmds = NULL;
 }
 
 void	free_cmds(t_mini *mini)
@@ -566,12 +539,14 @@ void	free_cmds(t_mini *mini)
 	int i;
 
 	i = -1;
-	while (mini->cmmds[++i])
-		ft_lstclear(&mini->cmmds[i], free);
-	free(mini->cmmds);
-	free_inputs(mini);
+	ft_lstclear(&mini->cmds, free);
+	free(mini->cmds);
+	mini->cmds = NULL;
+	i = -1;
+	while (mini->cmd[++i])
+		free(mini->cmd[i]);
+	free(mini->cmd);
 	set_mini(mini);
-
 }
 
 void	run_cmd(t_mini *mini, char **cmd)
@@ -620,9 +595,10 @@ int		ft_get_input(t_mini *mini)
 	}
 	if (ft_strchr(mini->input, '\n'))
 		*(ft_strchr(mini->input, '\n')) = '\0';
-	mini->cmmds = ft_lst_cmds(mini, mini->input, mini->env);
-	get_cmds_tab(mini);
-	free_cmds(mini);
+	ft_lst_cmds(mini, mini->input, mini->env);
+	free(mini->input);
+	mini->input = malloc(sizeof(char) * 1);
+	*(mini->input) = 0;
 	return (1);
 }
 
@@ -648,6 +624,8 @@ t_mini	*init_mini(char **envp_tocpy)
 
 	if (!(mini = malloc(sizeof(t_mini))))
 		return (NULL);
+	mini->input = malloc(sizeof(char) * 1);
+	*(mini->input) = 0;
 	mini->env = copy_env(envp_tocpy);
 	set_mini(mini);
 	return (mini);

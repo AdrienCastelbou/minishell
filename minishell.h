@@ -8,11 +8,10 @@
 #include <errno.h>
 
 typedef struct	s_mini {
-		char	***cmds;
-		char	***cmds_tab;
+		char	**cmd;
 		char	**envp;
 		char	*input;
-		t_list	**cmmds;
+		t_list	*cmds;
 		t_list	*env;
 }				t_mini;
 
@@ -45,7 +44,7 @@ char			*update_input_with_lil_quotes(char **s, char *new, int *i, t_list *env);
 char			*get_real_input(char *s, t_list *env);
 int				cmd_count(char *input);
 t_list			*ft_lst_input(char *s, char c, t_list *env);
-t_list			**ft_lst_cmds(t_mini *mini, char *s, t_list *env);
+t_list			*ft_lst_cmds(t_mini *mini, char *s, t_list *env);
 
 //UTILS
 char			**transform_env_lst_in_tab(t_list *env);
