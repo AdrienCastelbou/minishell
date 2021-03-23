@@ -42,8 +42,8 @@ void	free_inputs(t_mini *mini)
 	int	i;
 
 	i = -1;
-	while (mini->cmds[++i])
-		ft_free_splited(mini->cmds[i]);
+	while (mini->cmds_tab[++i])
+		ft_free_splited(mini->cmds_tab[i]);
 	if (mini->input)
 		free(mini->input);
 }
@@ -132,7 +132,6 @@ int		export_builtin(char	**splited_inputs, t_list *env)
 			add_env_var(splited_inputs[i], env, ft_strndup(splited_inputs[i], j));
 		else
 			printf("export: \'%s\': not a valid identifier\n", splited_inputs[i]);
-		return (1);
 	}
 		return (0);
 }
@@ -566,10 +565,12 @@ t_list		**ft_lst_cmds(char *s, t_list *env)
 	{
 		len = ft_word_size(s, ';');
 		cmds[i] = ft_lst_input(ft_strndup(s, len), ' ', env);
+
 		s += len + 1;
 		i++;
 	}
 	cmds[i] = NULL;
+	i = -1;
 	return (cmds);
 
 }
@@ -610,6 +611,8 @@ void	get_cmds_tab(t_mini *mini)
 	t_list	*elem;
 
 	i = -1;
+	while (mini->cmmds[++i])
+		;
 	mini->cmds_tab = (char ***)malloc(sizeof(char **) * (i + 1));
 	i = -1;
 	while (mini->cmmds[++i])
@@ -626,6 +629,19 @@ void	get_cmds_tab(t_mini *mini)
 		mini->cmds_tab[i][j] = NULL;
 	}
 	mini->cmds_tab[i] = NULL;
+}
+
+void	free_cmds(t_mini *mini)
+{
+	int i;
+
+	i = -1;
+	while (mini->cmmds[++i])
+		ft_lstclear(&mini->cmmds[i], free);
+	free(mini->cmmds);
+	free_inputs(mini);
+	set_mini(mini);
+
 }
 
 int		ft_get_input(t_mini *mini)
@@ -646,7 +662,6 @@ int		ft_get_input(t_mini *mini)
 	}
 	if (ft_strchr(mini->input, '\n'))
 		*(ft_strchr(mini->input, '\n')) = '\0';
-	mini->cmds = ft_split_cmds(mini->input, mini->env);
 	mini->cmmds = ft_lst_cmds(mini->input, mini->env);
 	get_cmds_tab(mini);
 	i = 0;
@@ -677,12 +692,7 @@ int		ft_get_input(t_mini *mini)
 		}
 			i++;
 	}
-	i = -1;
-	while (mini->cmmds[++i])
-		ft_lstclear(&mini->cmmds[i], free);
-	free(mini->cmmds);
-	free_inputs(mini);
-	set_mini(mini);
+	free_cmds(mini);
 	return (1);
 }
 
