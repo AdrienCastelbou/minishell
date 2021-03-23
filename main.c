@@ -644,14 +644,43 @@ void	free_cmds(t_mini *mini)
 
 }
 
+void	run_cmd(t_mini *mini, char **cmd)
+{
+	char	*tmp;
+	int		pid;
+	int		status;
+
+	if (!*cmd)
+		;
+	else if (run_builtins(cmd, mini))
+		;
+	else
+	{
+		if (!ft_strchr(cmd[0], '/'))
+		{
+			tmp = cmd[0];
+			cmd[0] = ft_strjoin("/bin/", tmp);
+			free(tmp);
+		}
+		pid = fork();
+		if (pid)
+			wait(&status);
+		else
+		{
+			mini->envp = transform_env_lst_in_tab(mini->env);
+			status = execve(cmd[0], cmd, mini->envp);
+			exit(0);
+			free(mini->envp);
+		}
+	}
+}
+
 int		ft_get_input(t_mini *mini)
 {
 	char	buffer[128];
 	char	*tmp;
 	int		size;
-	int		status;
 	int		i;
-	pid_t	pid;
 
 	ft_putstr_fd("\033[0;34mminishell> \033[0m", 1);
 	while ( !ft_strchr(mini->input, '\n') && (size = read(STDIN_FILENO, buffer, 128)) > 0)
@@ -667,30 +696,8 @@ int		ft_get_input(t_mini *mini)
 	i = 0;
 	while (mini->cmds_tab[i])
 	{
-		if (!*mini->cmds_tab[i])
-			;
-		else if (run_builtins(mini->cmds_tab[i], mini))
-			;
-		else
-		{
-			if (!ft_strchr(mini->cmds_tab[i][0], '/'))
-			{
-				tmp = mini->cmds_tab[i][0];
-				mini->cmds_tab[i][0] = ft_strjoin("/bin/", tmp);
-				free(tmp);
-			}
-			pid = fork();
-			if (pid)
-				wait(&status);
-			else
-			{
-				mini->envp = transform_env_lst_in_tab(mini->env);
-				status = execve(mini->cmds_tab[i][0], mini->cmds_tab[i], mini->envp);
-				exit(0);
-				free(mini->envp);
-			}
-		}
-			i++;
+		run_cmd(mini, mini->cmds_tab[i]);
+		i++;
 	}
 	free_cmds(mini);
 	return (1);
