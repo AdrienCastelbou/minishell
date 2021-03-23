@@ -9,8 +9,10 @@
 
 typedef struct	s_mini {
 		char	***cmds;
+		char	***cmds_tab;
 		char	**envp;
 		char	*input;
+		t_list	**cmmds;
 		t_list	*env;
 }				t_mini;
 
@@ -235,7 +237,6 @@ int		run_builtins(char	**splited_inputs, t_mini *mini)
 		status = echo_builtin(splited_inputs);
 	else if (ft_strcmp(splited_inputs[0], "cd") == 0)
 		status = cd_builtin(mini, splited_inputs[1]);
-		//status = chdir(splited_inputs[1]);
 	else if (ft_strcmp(splited_inputs[0], "pwd") == 0)
 		status = pwd_builtin();
 	else if (ft_strcmp(splited_inputs[0], "export") == 0)
@@ -502,6 +503,28 @@ int		cmd_count(char *input)
 	return (count);
 }
 
+
+t_list	*ft_lst_input(char *s, char c, t_list *env)
+{
+	t_list	*cmd;
+	int		words_nb;
+	int		i;
+	int		len;
+
+	if (!s)
+		return (NULL);
+	cmd = NULL;
+	i = -1;
+	while (*s)
+	{
+		while (*s == c && *s)
+			s++;
+		len = ft_word_size(s, c);
+		(ft_lstadd_back(&cmd, ft_lstnew(get_real_input((char *)s, env))));
+		s += len;
+	}
+	return (cmd);
+}
 char		***ft_split_cmds(char *s, t_list *env)
 {
 	int		cmd_nb;
@@ -524,6 +547,31 @@ char		***ft_split_cmds(char *s, t_list *env)
 	}
 	cmds[i] = NULL;
 	return (cmds);
+}
+
+t_list		**ft_lst_cmds(char *s, t_list *env)
+{
+	int		cmd_nb;
+	t_list	**cmds;
+	int		i;
+	int		len;
+
+	if (!s)
+		return (NULL);
+	cmd_nb = cmd_count(s);
+	if (!(cmds = (t_list **)malloc(sizeof(t_list *) * (cmd_nb + 1))))
+		return (NULL);
+	i = 0;
+	while (i < cmd_nb)
+	{
+		len = ft_word_size(s, ';');
+		cmds[i] = ft_lst_input(ft_strndup(s, len), ' ', env);
+		s += len + 1;
+		i++;
+	}
+	cmds[i] = NULL;
+	return (cmds);
+
 }
 
 char	**transform_env_lst_in_tab(t_list *env)
@@ -551,6 +599,33 @@ void	set_mini(t_mini *mini)
 	mini->input = malloc(sizeof(char) * 1);
 	*(mini->input) = 0;
 	mini->envp = NULL;
+	mini->cmmds = NULL;
+}
+
+void	get_cmds_tab(t_mini *mini)
+{
+	int		i;
+	int		j;
+	int		len;
+	t_list	*elem;
+
+	i = -1;
+	mini->cmds_tab = (char ***)malloc(sizeof(char **) * (i + 1));
+	i = -1;
+	while (mini->cmmds[++i])
+	{
+		len = ft_lstsize(mini->cmmds[i]);
+		mini->cmds_tab[i] = malloc(sizeof(char *) * (len + 1));
+		elem = mini->cmmds[i];
+		j = -1;
+		while (++j > -1 && elem)
+		{
+			mini->cmds_tab[i][j] = ft_strdup((char *)elem->content);
+			elem = elem->next;
+		}
+		mini->cmds_tab[i][j] = NULL;
+	}
+	mini->cmds_tab[i] = NULL;
 }
 
 int		ft_get_input(t_mini *mini)
@@ -572,19 +647,21 @@ int		ft_get_input(t_mini *mini)
 	if (ft_strchr(mini->input, '\n'))
 		*(ft_strchr(mini->input, '\n')) = '\0';
 	mini->cmds = ft_split_cmds(mini->input, mini->env);
+	mini->cmmds = ft_lst_cmds(mini->input, mini->env);
+	get_cmds_tab(mini);
 	i = 0;
-	while (mini->cmds[i])
+	while (mini->cmds_tab[i])
 	{
-		if (!*mini->cmds[i])
+		if (!*mini->cmds_tab[i])
 			;
-		else if (run_builtins(mini->cmds[i], mini))
+		else if (run_builtins(mini->cmds_tab[i], mini))
 			;
 		else
 		{
-			if (!ft_strchr(mini->cmds[i][0], '/'))
+			if (!ft_strchr(mini->cmds_tab[i][0], '/'))
 			{
-				tmp = mini->cmds[i][0];
-				mini->cmds[i][0] = ft_strjoin("/bin/", tmp);
+				tmp = mini->cmds_tab[i][0];
+				mini->cmds_tab[i][0] = ft_strjoin("/bin/", tmp);
 				free(tmp);
 			}
 			pid = fork();
@@ -593,13 +670,17 @@ int		ft_get_input(t_mini *mini)
 			else
 			{
 				mini->envp = transform_env_lst_in_tab(mini->env);
-				status = execve(mini->cmds[i][0], mini->cmds[i], mini->envp);
+				status = execve(mini->cmds_tab[i][0], mini->cmds_tab[i], mini->envp);
 				exit(0);
 				free(mini->envp);
 			}
 		}
 			i++;
 	}
+	i = -1;
+	while (mini->cmmds[++i])
+		ft_lstclear(&mini->cmmds[i], free);
+	free(mini->cmmds);
 	free_inputs(mini);
 	set_mini(mini);
 	return (1);
