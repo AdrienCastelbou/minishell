@@ -1,20 +1,4 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <curses.h>
-#include <term.h>
-#include <unistd.h>
-#include "libft.h"
-#include <string.h>
-#include <errno.h>
-
-typedef struct	s_mini {
-		char	***cmds;
-		char	***cmds_tab;
-		char	**envp;
-		char	*input;
-		t_list	**cmmds;
-		t_list	*env;
-}				t_mini;
+#include "minishell.h"
 
 int		ft_strcmp(char *s1, char *s2)
 {
@@ -430,57 +414,6 @@ char			*get_real_input(char *s, t_list *env)
 	return (new);
 }
 
-static char		*ft_create_w(const char *s, int len, t_list *env)
-{
-	char	*str;
-
-	if (!(str = (char *)malloc(sizeof(char) * (len + 1))))
-		return (NULL);
-	str[len] = '\0';
-	while (len--)
-		str[len] = s[len];
-	return (str);
-}
-
-static void		ft_free_tab(char **splited, int size)
-{
-	int i;
-
-	i = -1;
-	while (++i < size)
-		free(splited[i]);
-	free(splited);
-}
-
-char			**ft_split_input(char const *s, char c, t_list *env)
-{
-	int		words_nb;
-	char	**splited;
-	int		i;
-	int		len;
-
-	if (!s)
-		return (NULL);
-	words_nb = ft_words_count(s, c);
-	if (!(splited = (char **)malloc(sizeof(char *) * (words_nb + 1))))
-		return (NULL);
-	i = -1;
-	while (++i < words_nb)
-	{
-		while (*s == c && *s)
-			s++;
-		len = ft_word_size(s, c);
-		if (!(splited[i] = get_real_input((char *)s, env)))
-		{
-			ft_free_tab(splited, i);
-			return (NULL);
-		}
-		s += len;
-	}
-	splited[i] = NULL;
-	return (splited);
-}
-
 int		cmd_count(char *input)
 {
 	int	i;
@@ -524,31 +457,8 @@ t_list	*ft_lst_input(char *s, char c, t_list *env)
 	}
 	return (cmd);
 }
-char		***ft_split_cmds(char *s, t_list *env)
-{
-	int		cmd_nb;
-	char	***cmds;
-	int		i;
-	int		len;
 
-	if (!s)
-		return (NULL);
-	cmd_nb = cmd_count(s);
-	if (!(cmds = (char ***)malloc(sizeof(char **) * (cmd_nb + 1))))
-		return (NULL);
-	i = 0;
-	while (i < cmd_nb)
-	{
-		len = ft_word_size(s, ';');
-		cmds[i] = ft_split_input(ft_strndup(s, len), ' ', env);
-		s += len + 1;
-		i++;
-	}
-	cmds[i] = NULL;
-	return (cmds);
-}
-
-t_list		**ft_lst_cmds(char *s, t_list *env)
+t_list		**ft_lst_cmds(t_mini *mini, char *s, t_list *env)
 {
 	int		cmd_nb;
 	t_list	**cmds;
@@ -565,7 +475,6 @@ t_list		**ft_lst_cmds(char *s, t_list *env)
 	{
 		len = ft_word_size(s, ';');
 		cmds[i] = ft_lst_input(ft_strndup(s, len), ' ', env);
-
 		s += len + 1;
 		i++;
 	}
@@ -691,7 +600,7 @@ int		ft_get_input(t_mini *mini)
 	}
 	if (ft_strchr(mini->input, '\n'))
 		*(ft_strchr(mini->input, '\n')) = '\0';
-	mini->cmmds = ft_lst_cmds(mini->input, mini->env);
+	mini->cmmds = ft_lst_cmds(mini, mini->input, mini->env);
 	get_cmds_tab(mini);
 	i = 0;
 	while (mini->cmds_tab[i])
