@@ -630,6 +630,25 @@ void	set_mini(t_mini *mini)
 	mini->cmds = NULL;
 }
 
+void	ft_fddelone(t_fds *fd)
+{
+	if (!fd)
+		return ;
+	if (fd)
+		close(fd->fd);
+	free(fd);
+}
+
+void	ft_fdclear(t_fds **fds)
+{
+	if (!fds || !*fds)
+		return ;
+	if ((*fds)->next != NULL)
+		ft_fdclear(&((*fds)->next));
+	ft_fddelone((*fds));
+	*fds = NULL;
+}
+
 void	free_cmds(t_mini *mini)
 {
 	int i;
@@ -637,6 +656,7 @@ void	free_cmds(t_mini *mini)
 
 	elem = mini->cmds;
 	ft_lstclear(&mini->cmds, free);
+	//ft_fdclear(&mini->fds->next);
 	free(mini->cmds);
 	mini->cmds = NULL;
 	i = -1;
@@ -646,20 +666,12 @@ void	free_cmds(t_mini *mini)
 	set_mini(mini);
 }
 
-void	run_cmd(t_mini *mini, char **cmd)
+void	exec_cmd(t_mini *mini, char **cmd)
 {
 	char	*tmp;
 	int		pid;
 	int		status;
 
-	mini->current_fd = ft_fdlast(mini->fds)->fd;
-	t_fds *fd;
-	fd = mini->fds;
-	while (fd)
-	{
-		printf("%d\n", fd->fd);
-		fd = fd->next;
-	}
 	if (!*cmd)
 		;
 	else if (run_builtins(cmd, mini))
@@ -683,6 +695,21 @@ void	run_cmd(t_mini *mini, char **cmd)
 			free(mini->envp);
 		}
 	}
+
+}
+
+void	run_cmd(t_mini *mini, char **cmd)
+{
+	t_fds *fd;
+
+	fd = mini->fds;
+	while (fd)
+	{
+		printf("%d\n", fd->fd);
+		fd =fd->next;
+	}
+	mini->current_fd = ft_fdlast(mini->fds)->fd;
+	exec_cmd(mini, cmd);
 }
 
 int		ft_get_input(t_mini *mini)
