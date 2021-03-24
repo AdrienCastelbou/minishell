@@ -6,6 +6,13 @@
 #include "libft.h"
 #include <string.h>
 #include <errno.h>
+#include <fcntl.h>
+#include <memory.h>
+
+typedef struct	s_fds {
+		int			fd;
+		struct s_fds	*next;
+}				t_fds;
 
 typedef struct	s_mini {
 		char	**cmd;
@@ -13,6 +20,8 @@ typedef struct	s_mini {
 		char	*input;
 		t_list	*cmds;
 		t_list	*env;
+		t_fds	*fds;
+		int		current_fd;
 }				t_mini;
 
 //FREE
@@ -43,7 +52,7 @@ char			*update_input_with_big_quotes(char **s, char *new, int *i, t_list *env);
 char			*update_input_with_lil_quotes(char **s, char *new, int *i, t_list *env);
 char			*get_real_input(char *s, t_list *env);
 int				cmd_count(char *input);
-t_list			*ft_lst_input(char *s, char c, t_list *env);
+t_list			*ft_lst_input(t_mini *mini, char *s, char c, t_list *env);
 t_list			*ft_lst_cmds(t_mini *mini, char *s, t_list *env);
 
 //UTILS

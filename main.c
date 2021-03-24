@@ -260,7 +260,7 @@ static int		ft_word_size(const char *s, char c)
 	int		len;
 
 	len = 0;
-	if ((s[len] == '>' || s[len] == '<'))
+	if ((s[len] == '>' || s[len] == '<') && c == ' ')
 		return (ft_get_fd_token(s));
 	while (s[len] != c && s[len])
 	{
@@ -423,7 +423,7 @@ char			*get_real_input(char *s, t_list *env)
 	new = malloc(sizeof(char) * 1);
 	*new = 0;
 	i = 0;
-	while (s[i] != ' ' && s[i])
+	while (s[i] && s[i] != ' ')
 	{
 		if (s[i] == '$' && s[i + 1] && !ft_strchr("\"\' ", s[i + 1]))
 			new = update_input_with_var(&s, new, &i, env);
@@ -460,8 +460,79 @@ int		cmd_count(char *input)
 	return (count);
 }
 
+void	ft_fdsadd_back(t_fds **afds, t_fds *new)
+{
+	t_fds *elem;
 
-t_list	*ft_lst_input(char *s, char c, t_list *env)
+	if (!afds)
+		return ;
+	if (!*afds)
+	{
+		*afds = new;
+		return ;
+	}
+	elem = *afds;
+	while (elem->next)
+		elem = elem->next;
+	elem->next = new;
+}
+
+t_fds	*ft_fdnew(char *file, char *method)
+{
+	t_fds	*elem;
+
+	if (!(elem = (t_fds *)malloc(sizeof(t_fds))))
+		return (NULL);
+	if (strcmp(method, ">") == 0)
+		elem->fd = open(file, O_WRONLY | O_TRUNC | O_CREAT, 777);
+	else
+		elem->fd = open(file, O_WRONLY | O_APPEND | O_CREAT, 777);
+	elem->next = NULL;
+	return (elem);
+}
+
+t_fds	*ft_fdlast(t_fds *fd)
+{
+	if (!fd)
+		return (NULL);
+	while (fd->next)
+		fd = fd->next;
+	return (fd);
+}
+
+void	get_fd_token(t_mini *mini, char *s, t_list *env)
+{
+	char	*method;
+	char	*file;
+	int		i;
+	int		size;
+
+	i = 0;
+	if (s[i] == '<')
+	{
+		i += 1;
+		method = "<";
+	}
+	else if (s[i] == '>' && s[i + 1] != '>')
+	{
+		i += 1;
+		method = ">";
+	}
+	else
+	{
+		i += 2;
+		method = ">>";
+	}
+	while (s[i] && s[i] == ' ')
+		i++;
+	size = ft_word_size(s + i, ' ');
+	file = get_real_input(ft_strndup(s + i, size), env);
+	ft_fdsadd_back(&mini->fds, ft_fdnew(file, method));
+	free(file);
+	free(s);
+}
+
+t_list	*ft_lst_input(t_mini *mini, char *s, char c, t_list *env)
 {
 	t_list	*cmd;
 	int		words_nb;
@@ -477,7 +548,10 @@ t_list	*ft_lst_input(char *s, char c, t_list *env)
 		while (*s == c && *s)
 			s++;
 		len = ft_word_size(s, c);
-		(ft_lstadd_back(&cmd, ft_lstnew(get_real_input(ft_strndup(s, len), env))));
+		if (*s == '>' || *s == '<')
+			get_fd_token(mini, ft_strndup(s, len), env);
+		else
+			(ft_lstadd_back(&cmd, ft_lstnew(get_real_input(ft_strndup(s, len), env))));
 		s += len;
 	}
 	return (cmd);
@@ -518,7 +592,7 @@ t_list		*ft_lst_cmds(t_mini *mini, char *s, t_list *env)
 	{
 		len = ft_word_size(s, ';');
 		cmd_input = ft_strndup(s, len);
-		mini->cmds = ft_lst_input(cmd_input, ' ', env);
+		mini->cmds = ft_lst_input(mini, cmd_input, ' ', env);
 		mini->cmd = get_cmd_tab(mini->cmds);
 		run_cmd(mini, mini->cmd);
 		free_cmds(mini);
@@ -578,6 +652,14 @@ void	run_cmd(t_mini *mini, char **cmd)
 	int		pid;
 	int		status;
 
+	mini->current_fd = ft_fdlast(mini->fds)->fd;
+	t_fds *fd;
+	fd = mini->fds;
+	while (fd)
+	{
+		printf("%d\n", fd->fd);
+		fd = fd->next;
+	}
 	if (!*cmd)
 		;
 	else if (run_builtins(cmd, mini))
@@ -647,9 +729,14 @@ t_mini	*init_mini(char **envp_tocpy)
 
 	if (!(mini = malloc(sizeof(t_mini))))
 		return (NULL);
-	mini->input = malloc(sizeof(char) * 1);
+	if (!(mini->input = malloc(sizeof(char) * 1)))
+		return (NULL);
 	*(mini->input) = 0;
 	mini->env = copy_env(envp_tocpy);
+	if (!(mini->fds = malloc(sizeof(t_fds))))
+		return (NULL);
+	mini->fds->fd = 1;
+	mini->fds->next = NULL;
 	set_mini(mini);
 	return (mini);
 }
