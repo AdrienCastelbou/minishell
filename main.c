@@ -481,6 +481,7 @@ char		**get_cmd_tab(t_list *cmd)
 
 t_list		*ft_lst_cmds(t_mini *mini, char *s, t_list *env)
 {
+	char	*cmd_input;
 	int		cmd_nb;
 	int		i;
 	int		len;
@@ -492,17 +493,18 @@ t_list		*ft_lst_cmds(t_mini *mini, char *s, t_list *env)
 	while (i < cmd_nb)
 	{
 		len = ft_word_size(s, ';');
-		mini->cmds = ft_lst_input(ft_strndup(s, len), ' ', env);
+		cmd_input = ft_strndup(s, len);
+		mini->cmds = ft_lst_input(cmd_input, ' ', env);
 		mini->cmd = get_cmd_tab(mini->cmds);
 		run_cmd(mini, mini->cmd);
 		free_cmds(mini);
+		free(cmd_input);
 		s += len + 1;
 		i++;
 	}
 	mini->cmds = NULL;
 	i = -1;
 	return (mini->cmds);
-
 }
 
 char	**transform_env_lst_in_tab(t_list *env)
@@ -536,7 +538,7 @@ void	free_cmds(t_mini *mini)
 	t_list *elem;
 
 	elem = mini->cmds;
-	//ft_lstclear(&mini->cmds, free);
+	ft_lstclear(&mini->cmds, free);
 	free(mini->cmds);
 	mini->cmds = NULL;
 	i = -1;
