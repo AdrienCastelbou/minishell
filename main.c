@@ -238,13 +238,34 @@ int		run_builtins(char	**splited_inputs, t_mini *mini)
 	return (1);
 }
 
+int				ft_get_fd_token(const char *s)
+{
+	int	len;
+
+	len = 0;
+	if (s[len] == '<')
+		len += 1;
+	else if (s[len] == '>' && s[len + 1] != '>')
+		len += 1;
+	else
+		len += 2;
+	while (s[len] && s[len] == ' ')
+		len++;
+	len += ft_word_size(s + len, ' ');
+	return (len);
+}
+
 static int		ft_word_size(const char *s, char c)
 {
 	int		len;
 
 	len = 0;
+	if ((s[len] == '>' || s[len] == '<'))
+		return (ft_get_fd_token(s));
 	while (s[len] != c && s[len])
 	{
+		if (c == ' ' && (s[len] == '>' || s[len] == '<'))
+			return (len);
 		if (s[len] == '\"')
 		{
 			len += 1;
@@ -396,7 +417,9 @@ char			*get_real_input(char *s, t_list *env)
 {
 	int		i;
 	char	*new;
+	char	*str;
 
+	str = s;
 	new = malloc(sizeof(char) * 1);
 	*new = 0;
 	i = 0;
@@ -412,6 +435,7 @@ char			*get_real_input(char *s, t_list *env)
 			i++;
 	}
 	new = join_input_parts(s, new, i);
+	free(str);
 	return (new);
 }
 
@@ -453,7 +477,7 @@ t_list	*ft_lst_input(char *s, char c, t_list *env)
 		while (*s == c && *s)
 			s++;
 		len = ft_word_size(s, c);
-		(ft_lstadd_back(&cmd, ft_lstnew(get_real_input((char *)s, env))));
+		(ft_lstadd_back(&cmd, ft_lstnew(get_real_input(ft_strndup(s, len), env))));
 		s += len;
 	}
 	return (cmd);
