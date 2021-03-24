@@ -6,6 +6,13 @@
 #include "libft.h"
 #include <string.h>
 #include <errno.h>
+#include <memory.h>
+#include <fcntl.h>
+
+typedef struct	s_fds {
+		int				fd;
+		struct	s_fds	*next;
+}				t_fds;
 
 typedef struct	s_mini {
 		char	**cmd;
@@ -13,6 +20,8 @@ typedef struct	s_mini {
 		char	*input;
 		t_list	*cmds;
 		t_list	*env;
+		t_fds	*fds;
+		int		current_fd;
 }				t_mini;
 
 //FREE
@@ -32,6 +41,10 @@ int				pwd_builtin(void);
 int				cd_builtin(t_mini *mini, char *mov);
 int				run_builtins(char	**splited_inputs, t_mini *mini);
 
+//FD MANAGEMENT
+
+t_fds		*ft_fdnew(char *file, char *method);
+
 //PARSING
 static int		ft_word_size(const char *s, char c);
 static int		ft_words_count(char const *s, char c);
@@ -41,9 +54,9 @@ char			*get_var_value(char *s, char *new, int i, t_list *env);
 char			*update_input_with_var(char **s, char *new, int *i, t_list *env);
 char			*update_input_with_big_quotes(char **s, char *new, int *i, t_list *env);
 char			*update_input_with_lil_quotes(char **s, char *new, int *i, t_list *env);
-char			*get_real_input(char *s, t_list *env);
+char			*get_real_input(t_mini *mini, char *s, t_list *env);
 int				cmd_count(char *input);
-t_list			*ft_lst_input(char *s, char c, t_list *env);
+t_list			*ft_lst_input(t_mini *mini, char *s, char c, t_list *env);
 t_list			*ft_lst_cmds(t_mini *mini, char *s, t_list *env);
 
 //UTILS

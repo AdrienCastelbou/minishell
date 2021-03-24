@@ -238,12 +238,33 @@ int		run_builtins(char	**splited_inputs, t_mini *mini)
 	return (1);
 }
 
+
+int				ft_fd_token_len(const char *s)
+{
+	int len;
+
+	len = 0;
+	if (s[len] == '<')
+		len++;
+	else if (s[len] == '>' && s[len + 1] != '>')
+		len++;
+	else
+		len += 2;
+	while (s[len] && s[len] == ' ')
+		len++;
+	len += ft_word_size(s + len, ' ');
+	printf("in fd = %d\n", len);
+	return (len);
+}
+
 static int		ft_word_size(const char *s, char c)
 {
 	int		len;
 
 	len = 0;
-	while (s[len] != c && s[len])
+	if (s[len] == '>' || s[len] == '<')
+		return (ft_fd_token_len(s));
+	while (s[len] != c && s[len] && s[len] != '>' && s[len] != '<')
 	{
 		if (s[len] == '\"')
 		{
@@ -392,7 +413,55 @@ char			*update_input_with_lil_quotes(char **s, char *new, int *i, t_list *env)
 	return (new);
 }
 
-char			*get_real_input(char *s, t_list *env)
+void	ft_fdsadd_back(t_fds **alst, t_fds *new)
+{
+	t_fds *elem;
+
+	if (!alst)
+		return ;
+	if (!*alst)
+	{
+		*alst = new;
+		return ;
+	}
+	elem = *alst;
+	while (elem->next)
+		elem = elem->next;
+	elem->next = new;
+}
+
+void			update_fd_list(t_mini *mini, char **s, int *i, t_list *env)
+{
+	char	*file;
+	char	*str;
+	char	*method;
+	int		spaces;
+
+	spaces = 0;
+	str = *s;
+	if (str[*i] == '>')
+	{
+		*i += 1;
+		if (str[*i] == '>')
+		{
+			*i += 1;
+			method = ">>";
+		}
+		else
+			method = ">";
+	}
+	while (str[*i + spaces] == ' ')
+		spaces += 1;
+	*i += spaces;
+	file = get_real_input(mini, str + *i, env);
+	ft_fdsadd_back(&mini->fds, ft_fdnew(file, method));
+	free(file);
+	str += spaces + ft_word_size(str + *i, ' ') + 1;
+	*s = str;
+	*i = 0;
+}
+
+char			*get_real_input(t_mini *mini, char *s, t_list *env)
 {
 	int		i;
 	char	*new;
@@ -437,7 +506,7 @@ int		cmd_count(char *input)
 }
 
 
-t_list	*ft_lst_input(char *s, char c, t_list *env)
+t_list	*ft_lst_input(t_mini *mini, char *s, char c, t_list *env)
 {
 	t_list	*cmd;
 	int		words_nb;
@@ -448,12 +517,14 @@ t_list	*ft_lst_input(char *s, char c, t_list *env)
 		return (NULL);
 	cmd = NULL;
 	i = -1;
+		printf("%s\n", s);
 	while (*s)
 	{
 		while (*s == c && *s)
 			s++;
+		printf("%s\n", s);
 		len = ft_word_size(s, c);
-		(ft_lstadd_back(&cmd, ft_lstnew(get_real_input((char *)s, env))));
+		(ft_lstadd_back(&cmd, ft_lstnew(get_real_input(mini, s, env))));
 		s += len;
 	}
 	return (cmd);
@@ -492,7 +563,7 @@ t_list		*ft_lst_cmds(t_mini *mini, char *s, t_list *env)
 	while (i < cmd_nb)
 	{
 		len = ft_word_size(s, ';');
-		mini->cmds = ft_lst_input(ft_strndup(s, len), ' ', env);
+		mini->cmds = ft_lst_input(mini, ft_strndup(s, len), ' ', env);
 		mini->cmd = get_cmd_tab(mini->cmds);
 		run_cmd(mini, mini->cmd);
 		free_cmds(mini);
@@ -536,7 +607,7 @@ void	free_cmds(t_mini *mini)
 	t_list *elem;
 
 	elem = mini->cmds;
-	//ft_lstclear(&mini->cmds, free);
+	ft_lstclear(&mini->cmds, free);
 	free(mini->cmds);
 	mini->cmds = NULL;
 	i = -1;
@@ -615,15 +686,39 @@ t_list	*copy_env(char **envp)
 	return (env);
 }
 
+t_fds	*ft_fdnew(char *file, char *method)
+{
+	t_fds	*fd;
+
+	if (!(fd = (t_fds*)malloc(sizeof(t_fds))))
+		return (NULL);
+	if (strcmp(method, ">") == 0)
+		fd->fd = open(file, O_WRONLY | O_TRUNC | O_CREAT, 777);
+	else
+		fd->fd = open(file, O_WRONLY | O_CREAT, 777);
+	if (fd->fd == -1)
+	{
+		free(fd);
+		return (NULL);
+	}
+	fd->next = NULL;
+	return (fd);
+}
+
 t_mini	*init_mini(char **envp_tocpy)
 {
 	t_mini	*mini;
 
 	if (!(mini = malloc(sizeof(t_mini))))
 		return (NULL);
-	mini->input = malloc(sizeof(char) * 1);
+	if (!(mini->input = malloc(sizeof(char) * 1)))
+		return (NULL);
 	*(mini->input) = 0;
 	mini->env = copy_env(envp_tocpy);
+	if (!(mini->fds = malloc(sizeof(t_fds) * 1)))
+		return (NULL);
+	mini->fds->fd = 1;
+	mini->fds->next = NULL;
 	set_mini(mini);
 	return (mini);
 }
