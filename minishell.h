@@ -22,6 +22,7 @@ typedef struct	s_mini {
 		t_list	*env;
 		t_fds	*fds;
 		int		current_fd;
+		int		current_stdin;
 }				t_mini;
 
 //FREE

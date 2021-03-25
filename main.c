@@ -532,12 +532,18 @@ void	put_file_in_stdin(t_mini *mini, char *s, t_list *env)
 	char	*file;
 	int		size;
 	int		i;
-	char	buff[128];
+	int		fd;
+
 	i = 1;
 	while (s[i] && s[i] == ' ')
 		i++;
 	size = ft_word_size(s + i, ' ');
 	file = get_real_input(ft_strndup(s + i, size), env);
+	if ((fd = open(file, O_RDONLY)) < 0)
+		return ;
+	if (mini->current_stdin != 0)
+		close(mini->current_stdin);
+	mini->current_stdin = fd;
 	free(file);
 	free(s);
 }
@@ -640,6 +646,7 @@ void	set_mini(t_mini *mini)
 {
 	mini->envp = NULL;
 	mini->cmds = NULL;
+	mini->current_stdin = 0;
 }
 
 void	ft_fddelone(t_fds *fd)
@@ -712,9 +719,11 @@ void	exec_cmd(t_mini *mini, char **cmd)
 
 void	run_cmd(t_mini *mini, char **cmd)
 {
-
+	dup2(STDIN_FILENO, 10);
+	dup2(mini->current_stdin, STDIN_FILENO);
 	mini->current_fd = ft_fdlast(mini->fds)->fd;
 	exec_cmd(mini, cmd);
+	dup2(10, STDIN_FILENO);
 }
 
 int		ft_get_input(t_mini *mini)
