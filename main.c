@@ -527,7 +527,7 @@ void	get_fd_token(t_mini *mini, char *s, t_list *env)
 	free(s);
 }
 
-void	put_file_in_stdin(t_mini *mini, char *s, t_list *env)
+int		put_file_in_stdin(t_mini *mini, char *s, t_list *env)
 {
 	char	*file;
 	int		size;
@@ -540,12 +540,19 @@ void	put_file_in_stdin(t_mini *mini, char *s, t_list *env)
 	size = ft_word_size(s + i, ' ');
 	file = get_real_input(ft_strndup(s + i, size), env);
 	if ((fd = open(file, O_RDONLY)) < 0)
-		return ;
+	{
+		ft_putstr_fd(file, STDERR_FILENO);
+		ft_putstr_fd(": No such file or directory\n", STDERR_FILENO);
+			free(file);
+		free(s);
+		return (1);
+	}
 	if (mini->current_stdin != 0)
 		close(mini->current_stdin);
 	mini->current_stdin = fd;
 	free(file);
 	free(s);
+	return (0);
 }
 
 t_list	*ft_lst_input(t_mini *mini, char *s, char c, t_list *env)
