@@ -48,9 +48,10 @@ int		echo_builtin(char	**splited_inputs)
 {
 	int	i;
 	int	is_flag;
+
 	i = 0;
 	is_flag = 0;
-	if (ft_strcmp(splited_inputs[1], "-n") == 0)
+	if (splited_inputs[1] && ft_strcmp(splited_inputs[1], "-n") == 0)
 		is_flag = 1;
 	i += is_flag;
 	while (splited_inputs[++i])
@@ -656,7 +657,7 @@ void	free_cmds(t_mini *mini)
 
 	elem = mini->cmds;
 	ft_lstclear(&mini->cmds, free);
-	//ft_fdclear(&mini->fds->next);
+	ft_fdclear(&mini->fds->next);
 	free(mini->cmds);
 	mini->cmds = NULL;
 	i = -1;
