@@ -122,7 +122,6 @@ int		export_builtin(char	**splited_inputs, t_list *env)
 		return (0);
 }
 
-
 void	delete_env_var(char *key, t_list **env)
 {
 	t_list	*previous;
@@ -509,12 +508,7 @@ void	get_fd_token(t_mini *mini, char *s, t_list *env)
 	int		size;
 
 	i = 0;
-	if (s[i] == '<')
-	{
-		i += 1;
-		method = "<";
-	}
-	else if (s[i] == '>' && s[i + 1] != '>')
+	if (s[i] == '>' && s[i + 1] != '>')
 	{
 		i += 1;
 		method = ">";
@@ -529,6 +523,21 @@ void	get_fd_token(t_mini *mini, char *s, t_list *env)
 	size = ft_word_size(s + i, ' ');
 	file = get_real_input(ft_strndup(s + i, size), env);
 	ft_fdsadd_back(&mini->fds, ft_fdnew(file, method));
+	free(file);
+	free(s);
+}
+
+void	put_file_in_stdin(t_mini *mini, char *s, t_list *env)
+{
+	char	*file;
+	int		size;
+	int		i;
+	char	buff[128];
+	i = 1;
+	while (s[i] && s[i] == ' ')
+		i++;
+	size = ft_word_size(s + i, ' ');
+	file = get_real_input(ft_strndup(s + i, size), env);
 	free(file);
 	free(s);
 }
@@ -549,8 +558,10 @@ t_list	*ft_lst_input(t_mini *mini, char *s, char c, t_list *env)
 		while (*s == c && *s)
 			s++;
 		len = ft_word_size(s, c);
-		if (*s == '>' || *s == '<')
+		if (*s == '>')
 			get_fd_token(mini, ft_strndup(s, len), env);
+		else if (*s == '<')
+			put_file_in_stdin(mini, ft_strndup(s, len), env);
 		else
 			(ft_lstadd_back(&cmd, ft_lstnew(get_real_input(ft_strndup(s, len), env))));
 		s += len;
@@ -701,14 +712,7 @@ void	exec_cmd(t_mini *mini, char **cmd)
 
 void	run_cmd(t_mini *mini, char **cmd)
 {
-	t_fds *fd;
 
-	fd = mini->fds;
-	while (fd)
-	{
-		printf("%d\n", fd->fd);
-		fd =fd->next;
-	}
 	mini->current_fd = ft_fdlast(mini->fds)->fd;
 	exec_cmd(mini, cmd);
 }
