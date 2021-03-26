@@ -570,6 +570,8 @@ t_list	*ft_lst_input(t_mini *mini, char *s, char c, t_list *env)
 	{
 		while (*s == c && *s)
 			s++;
+		if (!(*s))
+			return (cmd);
 		len = ft_word_size(s, c);
 		if (*s == '>')
 			get_fd_token(mini, ft_strndup(s, len), env);
