@@ -51,6 +51,7 @@ char			*get_var_value(char *s, char *new, int i, t_list *env);
 char			*update_input_with_var(char **s, char *new, int *i, t_list *env);
 char			*update_input_with_big_quotes(char **s, char *new, int *i, t_list *env);
 char			*update_input_with_lil_quotes(char **s, char *new, int *i, t_list *env);
+char			*update_input_with_echap(char **s, char *new, int *i, t_list *env);
 char			*get_real_input(char *s, t_list *env);
 int				cmd_count(char *input);
 t_list			*ft_lst_input(t_mini *mini, char *s, char c, t_list *env);
