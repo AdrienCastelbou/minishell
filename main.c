@@ -380,7 +380,7 @@ char			*update_input_with_big_quotes(char **s, char *new, int *i, t_list *env)
 	*i = 0;
 	while (str[*i] != '\"' && str[*i])
 	{
-		if (str[*i] == '\\' && (str[*i + 1] == '$' || str[*i + 1] == '\"'))
+		if (str[*i] == '\\' && (str[*i + 1] == '$' || str[*i + 1] == '\"' || str[*i + 1] == '\\'))
 			new = update_input_with_echap(&str, new, i, env);
 		else if (str[*i] == '$' && str[*i + 1] && !ft_strchr("\"\' ", str[*i + 1]))
 			new = update_input_with_var(&str, new, i, env);
