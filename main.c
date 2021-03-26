@@ -267,21 +267,12 @@ static int		ft_word_size(const char *s, char c)
 		if (c == ' ' && (s[len] == '>' || s[len] == '<'))
 			return (len);
 		if (s[len] == '\"')
-		{
-			len += 1;
-			while (s[len] != '\"' && s[len])
+			while (s[++len] != '\"' && s[len])
 				len++;
-			len += 1;
-		}
 		else if (s[len] == '\'')
-		{
-			len += 1;
-			while (s[len] != '\'' && s[len])
-				len++;
-			len += 1;
-		}
-		else
-			len++;
+			while (s[++len] != '\'' && s[len])
+				;
+		len++;
 	}
 	return (len);
 }
