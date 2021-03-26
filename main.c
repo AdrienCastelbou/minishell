@@ -258,20 +258,28 @@ int				ft_get_fd_token(const char *s)
 static int		ft_word_size(const char *s, char c)
 {
 	int		len;
+	int		echap;
 
+	echap = 0;
 	len = 0;
 	if ((s[len] == '>' || s[len] == '<') && c == ' ')
 		return (ft_get_fd_token(s));
-	while (s[len] != c && s[len])
+	while (s[len])
 	{
-		if (c == ' ' && (s[len] == '>' || s[len] == '<'))
+		if (echap && s[len])
+			echap = 0;
+		else if (s[len] == c)
 			return (len);
-		if (s[len] == '\"')
+		else if (c == ' ' && (s[len] == '>' || s[len] == '<'))
+			return (len);
+		else if (s[len] == '\"')
 			while (s[++len] != '\"' && s[len])
-				len++;
+				;
 		else if (s[len] == '\'')
 			while (s[++len] != '\'' && s[len])
 				;
+		else if (s[len] == '\\')
+			echap = 1;
 		len++;
 	}
 	return (len);
@@ -388,7 +396,7 @@ char			*update_input_with_big_quotes(char **s, char *new, int *i, t_list *env)
 
 char			*update_input_with_lil_quotes(char **s, char *new, int *i, t_list *env)
 {
-	char *str;
+	char	*str;
 
 	new = join_input_parts(*s, new, *i);
 	*s = *s + *i + 1;
@@ -398,6 +406,25 @@ char			*update_input_with_lil_quotes(char **s, char *new, int *i, t_list *env)
 		*i +=1;
 	new = join_input_parts(*s, new, *i);
 	*s = *s + *i;
+	if (**s)
+		*s += 1;
+	*i = 0;
+	return (new);
+}
+
+char			*update_input_with_echap(char **s, char *new, int *i, t_list *env)
+{
+	char	buff[2];
+	char	*str;
+
+	str = *s;
+	*buff = str[*i + 1];
+	buff[1] = 0;
+	new = join_input_parts(*s, new, *i);
+	new = join_input_parts(buff, new, 1);
+	*s = *s + *i;
+	if (**s)
+		*s += 1;
 	if (**s)
 		*s += 1;
 	*i = 0;
@@ -416,7 +443,9 @@ char			*get_real_input(char *s, t_list *env)
 	i = 0;
 	while (s[i] && s[i] != ' ')
 	{
-		if (s[i] == '$' && s[i + 1] && !ft_strchr("\"\' ", s[i + 1]))
+		if (s[i] == '\\')
+			new = update_input_with_echap(&s, new, &i, env);
+		else if (s[i] == '$' && s[i + 1] && !ft_strchr("\"\' ", s[i + 1]))
 			new = update_input_with_var(&s, new, &i, env);
 		else if (s[i] == '\"')
 			new = update_input_with_big_quotes(&s, new, &i, env);
