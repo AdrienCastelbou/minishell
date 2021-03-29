@@ -86,7 +86,7 @@ void	add_env_var(char *env_var, t_list *env, char *key)
 	while (begin)
 	{
 		if (ft_strnstr((char *)begin->content, key, key_len) == begin->content
-				&& *(char *)(begin->content + key_len) == '=')
+				&& (*(char *)(begin->content + key_len) == '=') || !*(char *)(begin->content + key_len))
 		{
 			free(key);
 			free(begin->content);
