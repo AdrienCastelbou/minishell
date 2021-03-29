@@ -128,6 +128,25 @@ void	print_ordered_var(char *str)
 	free(key);
 }
 
+char	**get_env_tab_for_sort(t_list *env)
+{
+	char	**envp;
+	int		i;
+	int		size;
+
+	size = ft_lstsize(env);
+	if (!(envp = malloc(sizeof(char *) * (size + 1))))
+		return (NULL);
+	i = -1;
+	while (++i < size)
+	{
+		envp[i] = ((char *)env->content);
+		env = env->next;
+	}
+	envp[i] = NULL;
+	return (envp);
+}
+
 void	print_export_var(t_list *env)
 {
 	char	**tab_var;
@@ -135,7 +154,7 @@ void	print_export_var(t_list *env)
 	int		i;
 	int		j;
 
-	tab_var = transform_env_lst_in_tab(env);
+	tab_var = get_env_tab_for_sort(env);
 	i = -1;
 	while (tab_var[++i])
 	{
@@ -148,8 +167,6 @@ void	print_export_var(t_list *env)
 	while (tab_var[++i])
 		print_ordered_var(tab_var[i]);
 	i = -1;
-	while (tab_var[++i])
-		free(tab_var[i]);
 	free(tab_var);
 }
 
@@ -721,10 +738,14 @@ char	**transform_env_lst_in_tab(t_list *env)
 	size = ft_lstsize(env);
 	if (!(envp = malloc(sizeof(char *) * (size + 1))))
 		return (NULL);
-	i = -1;
-	while (++i < size)
+	i = 0;
+	while (env && i < size)
 	{
-		envp[i] = ft_strdup((char *)env->content);
+		if (ft_strchr((char *)env->content, '='))
+		{
+			envp[i] = ft_strdup((char *)env->content);
+			i++;
+		}
 		env = env->next;
 	}
 	envp[i] = NULL;
