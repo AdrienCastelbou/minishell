@@ -134,7 +134,7 @@ void	delete_env_var(char *key, t_list **env)
 	while (current)
 	{
 		if (ft_strnstr((char *)current->content, key, key_len) == current->content
-				&& *(char *)(current->content + key_len) == '=')
+				&& (*(char *)(current->content + key_len) == '=' || !*(char *)(current->content + key_len)))
 		{
 			if (!previous)
 				*env = current->next;
