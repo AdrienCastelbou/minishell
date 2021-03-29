@@ -69,7 +69,8 @@ int		env_builtin(t_list *env)
 {
 	while (env)
 	{
-		printf("%s\n", (char *)(env->content));
+		if (ft_strchr((char *)env->content, '='))
+			printf("%s\n", (char *)(env->content));
 		env = env->next;
 	}
 	return (0);
