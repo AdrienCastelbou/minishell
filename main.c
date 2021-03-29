@@ -100,12 +100,69 @@ void	add_env_var(char *env_var, t_list *env, char *key)
 	free(key);
 }
 
+void	ft_switch_strs(char **tab_var, int i, int j)
+{
+	char	*tmp;
+
+	tmp = tab_var[i];
+	tab_var[i] = tab_var[j];
+	tab_var[j] = tmp;
+}
+
+void	print_ordered_var(char *str)
+{
+	int		key_len;
+	char	*key;
+
+	key_len = 0;
+	while (str[key_len] && str[key_len] != '=')
+		key_len++;
+	key = ft_strndup(str, key_len);
+	ft_putstr_fd("declare -x ", 1);
+	ft_putstr_fd(key, 1);
+	if (str[key_len] == '=')
+		printf("=\"%s\"\n", str + key_len + 1);
+	else
+		write(1, "\n", 1);
+	free(key);
+}
+
+void	print_export_var(t_list *env)
+{
+	char	**tab_var;
+	char	*str;
+	int		i;
+	int		j;
+
+	tab_var = transform_env_lst_in_tab(env);
+	i = -1;
+	while (tab_var[++i])
+	{
+		j = i;
+		while (tab_var[++j])
+			if (ft_strcmp(tab_var[i], tab_var[j]) > 0)
+				ft_switch_strs(tab_var, i, j);
+	}
+	i = -1;
+	while (tab_var[++i])
+		print_ordered_var(tab_var[i]);
+	i = -1;
+	while (tab_var[++i])
+		free(tab_var[i]);
+	free(tab_var);
+}
+
 int		export_builtin(char	**splited_inputs, t_list *env)
 {
 	int	i;
 	int	j;
 
 	i = -1;
+	if (!*splited_inputs)
+	{
+		print_export_var(env);
+		return (0);
+	}
 	while (splited_inputs[++i])
 	{
 		j = -1;
