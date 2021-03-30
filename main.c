@@ -832,8 +832,11 @@ void	run_cmd(t_mini *mini, char **cmd)
 	dup2(STDIN_FILENO, 10);
 	dup2(mini->current_stdin, STDIN_FILENO);
 	mini->current_fd = ft_fdlast(mini->fds)->fd;
+	dup2(STDOUT_FILENO, 11);
+	dup2(mini->current_fd, STDOUT_FILENO);
 	exec_cmd(mini, cmd);
 	dup2(10, STDIN_FILENO);
+	dup2(11, STDOUT_FILENO);
 }
 
 int		ft_get_input(t_mini *mini)
