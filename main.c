@@ -581,9 +581,9 @@ t_fds	*ft_fdnew(char *file, char *method)
 	if (!(elem = (t_fds *)malloc(sizeof(t_fds))))
 		return (NULL);
 	if (strcmp(method, ">") == 0)
-		elem->fd = open(file, O_WRONLY | O_TRUNC | O_CREAT, 777);
+		elem->fd = open(file, O_WRONLY | O_TRUNC | O_CREAT, S_IRWXU | S_IRGRP | S_IROTH);
 	else
-		elem->fd = open(file, O_WRONLY | O_APPEND | O_CREAT, 777);
+		elem->fd = open(file, O_WRONLY | O_APPEND | O_CREAT, S_IRWXU | S_IRGRP | S_IROTH);
 	elem->next = NULL;
 	return (elem);
 }
