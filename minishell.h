@@ -23,6 +23,8 @@ typedef struct	s_mini {
 		t_fds	*fds;
 		int		current_fd;
 		int		current_stdin;
+		int		stdin_copy;
+		int		stdout_copy;
 }				t_mini;
 
 //FREE

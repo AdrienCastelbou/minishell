@@ -39,6 +39,8 @@ int		exit_minishell(char	**splited_inputs, t_mini *mini)
 	ft_lstclear(&mini->env, free);
 	if (mini->envp)
 		ft_free_splited(mini->envp);
+	close(mini->stdin_copy);
+	close(mini->stdout_copy);
 	free(mini);
 	exit(0);
 	return (0);
@@ -829,14 +831,12 @@ void	exec_cmd(t_mini *mini, char **cmd)
 
 void	run_cmd(t_mini *mini, char **cmd)
 {
-	dup2(STDIN_FILENO, 10);
 	dup2(mini->current_stdin, STDIN_FILENO);
 	mini->current_fd = ft_fdlast(mini->fds)->fd;
-	dup2(STDOUT_FILENO, 11);
 	dup2(mini->current_fd, STDOUT_FILENO);
 	exec_cmd(mini, cmd);
-	dup2(10, STDIN_FILENO);
-	dup2(11, STDOUT_FILENO);
+	dup2(mini->stdin_copy, STDIN_FILENO);
+	dup2(mini->stdout_copy, STDOUT_FILENO);
 }
 
 int		ft_get_input(t_mini *mini)
@@ -891,6 +891,8 @@ t_mini	*init_mini(char **envp_tocpy)
 		return (NULL);
 	mini->fds->fd = 1;
 	mini->fds->next = NULL;
+	mini->stdin_copy = dup(STDIN_FILENO);
+	mini->stdout_copy = dup(STDOUT_FILENO);
 	set_mini(mini);
 	return (mini);
 }
