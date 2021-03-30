@@ -186,11 +186,8 @@ int		export_builtin(char	**splited_inputs, t_list *env)
 	while (splited_inputs[++i])
 	{
 		j = -1;
-		while (splited_inputs[i][++j] && splited_inputs[i][j] != '=')
-		{
-			if (splited_inputs[i][j] == ' ')
-				break;
-		}
+		while (splited_inputs[i][++j] && ft_isalnum(splited_inputs[i][j]))
+			;
 		if ((splited_inputs[i][j] == '=' && j > 0) || !splited_inputs[i][j])
 			add_env_var(splited_inputs[i], env, ft_strndup(splited_inputs[i], j));
 		else
@@ -240,11 +237,8 @@ int		unset_builtin(char	**splited_inputs, t_list *env)
 	while (splited_inputs[++i])
 	{
 		j = -1;
-		while (splited_inputs[i][++j] && splited_inputs[i][j] != '=')
-		{
-			if (splited_inputs[i][j] == ' ')
-				break;
-		}
+		while (splited_inputs[i][++j] && ft_isalnum(splited_inputs[i][j]))
+			;
 		if (!splited_inputs[i][j])
 			delete_env_var(splited_inputs[i], &env);
 		else
