@@ -389,7 +389,7 @@ char			*get_env_var(const char *s, t_list *env)
 
 	i = -1;
 	str = ft_strdup("");
-	while (s[++i] && !ft_strchr("\"\'\\ ", s[i]))
+	while (s[++i] && ft_isalnum(s[i]))
 		;
 	if (!(variable = ft_strndup((char *)s, i)))
 		return (NULL);
@@ -440,7 +440,7 @@ char			*update_input_with_var(char **s, char *new, int *i, t_list *env)
 
 	str = *s;
 	new = get_var_value(*s, new, *i, env);
-	while (str[++(*i)] && !ft_strchr("\"\'\\ ", str[*i]))
+	while (str[++(*i)] && ft_isalnum(str[*i]))
 		;
 	*s = *s + *i;
 	*i = 0;
@@ -459,7 +459,7 @@ char			*update_input_with_big_quotes(char **s, char *new, int *i, t_list *env)
 	{
 		if (str[*i] == '\\' && (str[*i + 1] == '$' || str[*i + 1] == '\"' || str[*i + 1] == '\\'))
 			new = update_input_with_echap(&str, new, i, env);
-		else if (str[*i] == '$' && str[*i + 1] && !ft_strchr("\"\' ", str[*i + 1]))
+		else if (str[*i] == '$' && str[*i + 1] && ft_isalnum(str[*i + 1]))
 			new = update_input_with_var(&str, new, i, env);
 		else
 			*i += 1;
@@ -524,7 +524,7 @@ char			*get_real_input(char *s, t_list *env)
 	{
 		if (s[i] == '\\')
 			new = update_input_with_echap(&s, new, &i, env);
-		else if (s[i] == '$' && s[i + 1] && !ft_strchr("\"\'\\ ", s[i + 1]))
+		else if (s[i] == '$' && s[i + 1] && ft_isalnum(s[i + 1]))
 			new = update_input_with_var(&s, new, &i, env);
 		else if (s[i] == '\"')
 			new = update_input_with_big_quotes(&s, new, &i, env);
