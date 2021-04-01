@@ -16,13 +16,16 @@ t_cmdlst *create_lst(void)
 
 	begin = malloc(sizeof(t_cmdlst));
 	begin->cmds = malloc(sizeof(t_list));
-	begin->cmds->content = "wc";
+	begin->cmds->content = "ls";
 	begin->cmds->next = NULL;
 	begin->next = malloc(sizeof(t_cmdlst));
 	begin->next->cmds = malloc(sizeof(t_list));
-	begin->next->cmds->content = "ls";
+	begin->next->cmds->content = "wc";
 	begin->next->cmds->next = NULL;
-	begin->next->next = NULL;
+	begin->next->next = malloc(sizeof(t_cmdlst));
+	begin->next->next->cmds = malloc(sizeof(t_list));
+	begin->next->next->cmds->content = "ls";
+	begin->next->next->next = NULL; 
 	return (begin);
 }
 
@@ -38,43 +41,49 @@ t_fds	*fd_creation(int fdn)
 	return (fd);
 }
 
-void	make_pipe(t_cmdlst *lst, t_fds *in, t_fds *out, int piped[])
-{
-	int	pid;
-	int	status;
-	int	pfd[2];
-
-
-	printf("%s\n", lst->cmds->content);
-	if (lst->next)
-		pipe(pfd);
-	pid = fork();
-	if (pid == 0)
-	{
-		if (lst->next)
-		{
-			close(pfd[1]);
-			//pqssqge en mode lecture pour recevoir son output
-			dup2(pfd[0], in->fd);
-			make_pipe(lst->next, in->next, out->next, pfd);
-			close(0);
-		}
-		//printf("ueue\n");
-		if(piped[0] != -1)
-		{
-			close(piped[0]);
-			dup2(piped[1], 1);
-close(piped[1]);
-		}
-		//printf("ueue\n");
-		execlp(lst->cmds->content, lst->cmds->content, (char *) 0);
-		return ;
-	}
+static void redirect(int oldfd, int newfd) {
+	if (oldfd != newfd) {
+	if (dup2(oldfd, newfd) != -1)
+		close(oldfd); /* successfully redirected */
 	else
+		;
+  }
+}
+
+void	run(char *content, int in, int out)
+{
+	redirect(in, STDIN_FILENO);   /* <&in  : child reads from in */
+	redirect(out, STDOUT_FILENO);
+	execlp(content, content, (char *) 0);
+}
+
+void	make_pipe(t_cmdlst *lst, t_fds *in, t_fds *out)
+{
+	int fd[2];
+	int pid;
+
+	while (lst->next)
 	{
-		wait(&status);
-		return;
+		if (pipe(fd) == -1)
+			return ;
+		else if ((pid = fork()) < 0)
+			return ;
+		if (pid == 0)
+		{
+			// CHILD PROCESS
+			close(fd[0]);
+			run(lst->cmds->content, in->fd, fd[1]);
+		}
+		else
+		{
+			close(fd[1]);
+
+			close(in->fd);
+			in->fd = fd[0];
+		}
+		lst = lst->next;
 	}
+	run(lst->cmds->content, in->fd, 1);
 }
 
 int main( int argc, char ** argv )
@@ -88,8 +97,7 @@ int main( int argc, char ** argv )
 	fd_out = fd_creation(1);
    /* create the pipe */
    int pfd[2];
-   *pfd = -1;
-	make_pipe(lst, fd_in, fd_out, pfd);
+	make_pipe(lst, fd_in, fd_out);
 	return (1);
 if (pipe(pfd) == -1)
      {
