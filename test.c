@@ -61,9 +61,15 @@ void	make_pipe(t_cmdlst *lst, t_fds *in, t_fds *out)
 {
 	int fd[2];
 	int pid;
+	int	fin;
+	int	fout;
 
+	fout = 1;
+	fin = 0;
 	while (lst->next)
 	{
+		if (in->fd != 0)
+			fin = in->fd;
 		if (pipe(fd) == -1)
 			return ;
 		else if ((pid = fork()) < 0)
@@ -72,18 +78,21 @@ void	make_pipe(t_cmdlst *lst, t_fds *in, t_fds *out)
 		{
 			// CHILD PROCESS
 			close(fd[0]);
-			run(lst->cmds->content, in->fd, fd[1]);
+			run(lst->cmds->content, fin, fd[1]);
 		}
 		else
 		{
 			close(fd[1]);
 
-			close(in->fd);
-			in->fd = fd[0];
+			close(fin);
+			fin = fd[0];
 		}
 		lst = lst->next;
+		in = in->next;
 	}
-	run(lst->cmds->content, in->fd, 1);
+	if (in && in->fd != 0)
+			fin = in->fd;
+	run(lst->cmds->content, fin, 1);
 }
 
 int main( int argc, char ** argv )
@@ -91,9 +100,12 @@ int main( int argc, char ** argv )
 	t_cmdlst	*lst;
 	t_fds		*fd_in;
 	t_fds		*fd_out;
+	int			fd;
 
+	fd = open("test.c", O_RDONLY);
 	lst = create_lst();
 	fd_in = fd_creation(0);
+	fd_in->next->fd = fd;
 	fd_out = fd_creation(1);
    /* create the pipe */
    int pfd[2];
