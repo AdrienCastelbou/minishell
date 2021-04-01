@@ -22,10 +22,12 @@ t_cmdlst *create_lst(void)
 	begin->next->cmds = malloc(sizeof(t_list));
 	begin->next->cmds->content = "wc";
 	begin->next->cmds->next = NULL;
-	begin->next->next = malloc(sizeof(t_cmdlst));
+	begin->next->next = NULL;
+	/*malloc(sizeof(t_cmdlst));
 	begin->next->next->cmds = malloc(sizeof(t_list));
 	begin->next->next->cmds->content = "ls";
 	begin->next->next->next = NULL; 
+	*/
 	return (begin);
 }
 
@@ -76,9 +78,12 @@ void	make_pipe(t_cmdlst *lst, t_fds *in, t_fds *out)
 			return ;
 		if (pid == 0)
 		{
+			fout = fd[1];
+			if (out->fd != 1)
+				fout = out->fd;
 			// CHILD PROCESS
 			close(fd[0]);
-			run(lst->cmds->content, fin, fd[1]);
+			run(lst->cmds->content, fin, fout);
 		}
 		else
 		{
@@ -89,10 +94,15 @@ void	make_pipe(t_cmdlst *lst, t_fds *in, t_fds *out)
 		}
 		lst = lst->next;
 		in = in->next;
+		out = out->next;
 	}
 	if (in && in->fd != 0)
 			fin = in->fd;
-	run(lst->cmds->content, fin, 1);
+	if (out && out->fd != 1)
+		fout = out->fd;
+	else
+		fout = 1;
+	run(lst->cmds->content, fin, fout);
 }
 
 int main( int argc, char ** argv )
@@ -102,10 +112,11 @@ int main( int argc, char ** argv )
 	t_fds		*fd_out;
 	int			fd;
 
-	fd = open("test.c", O_RDONLY);
+	//fd = open("file", O_WRONLY | O_TRUNC | O_CREAT, S_IRWXU | S_IRGRP | S_IROTH);
+	int	f = open("file", O_RDONLY);
 	lst = create_lst();
 	fd_in = fd_creation(0);
-	fd_in->next->fd = fd;
+	fd_in->next->fd = f;
 	fd_out = fd_creation(1);
    /* create the pipe */
    int pfd[2];
