@@ -10,21 +10,29 @@
 #include <memory.h>
 
 typedef struct	s_fds {
-		int			fd;
+		char			*name;
+		char			*method;
+		int				fd;
 		struct s_fds	*next;
 }				t_fds;
 
+typedef struct	s_instructions {
+		t_list					*cmds;
+		struct s_instructions	*next;
+}				t_instructions;
+
 typedef struct	s_mini {
-		char	**cmd;
-		char	**envp;
-		char	*input;
-		t_list	*cmds;
-		t_list	*env;
-		t_fds	*fds;
-		int		current_fd;
-		int		current_stdin;
-		int		stdin_copy;
-		int		stdout_copy;
+		char		**cmd;
+		char			**envp;
+		char			*input;
+		t_instructions	*instructions;
+		t_list			*cmds;
+		t_list			*env;
+		t_fds			*fds;
+		int				current_fd;
+		int				current_stdin;
+		int				stdin_copy;
+		int				stdout_copy;
 }				t_mini;
 
 //FREE

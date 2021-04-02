@@ -697,6 +697,56 @@ char		**get_cmd_tab(t_list *cmd)
 	return (cmd_tab);
 }
 
+void	ft_instruct_add_back(t_instructions **alst, t_instructions *new)
+{
+	t_instructions *elem;
+
+	if (!alst)
+		return ;
+	if (!*alst)
+	{
+		*alst = new;
+		return ;
+	}
+	elem = *alst;
+	while (elem->next)
+		elem = elem->next;
+	elem->next = new;
+}
+
+t_instructions	*ft_instructnew(t_list *content)
+{
+	t_instructions	*elem;
+
+	if (!(elem = (t_instructions*)malloc(sizeof(t_instructions))))
+		return (NULL);
+	elem->cmds = content;
+	elem->next = NULL;
+	return (elem);
+}
+void		get_instructions(t_mini *mini, char *s, t_list *env)
+{
+	char	*instruction;
+	t_list	*cmd;
+	int		len;
+
+	mini->instructions = NULL;
+	if (*s == '|')
+		return ;
+	while (*s)
+	{
+		len = ft_word_size(s, '|');
+		instruction = ft_strndup(s, len);
+		cmd = ft_lst_input(mini, instruction, ' ', env);
+		ft_instruct_add_back(&mini->instructions, ft_instructnew(cmd));
+		free(instruction);
+		s += len;
+		if (*s == '|')
+			s += 1;
+	}
+
+}
+
 t_list		*ft_lst_cmds(t_mini *mini, char *s, t_list *env)
 {
 	char	*cmd_input;
@@ -712,6 +762,7 @@ t_list		*ft_lst_cmds(t_mini *mini, char *s, t_list *env)
 	{
 		len = ft_word_size(s, ';');
 		cmd_input = ft_strndup(s, len);
+		get_instructions(mini, cmd_input, env);
 		mini->cmds = ft_lst_input(mini, cmd_input, ' ', env);
 		mini->cmd = get_cmd_tab(mini->cmds);
 		run_cmd(mini, mini->cmd);
@@ -887,6 +938,7 @@ t_mini	*init_mini(char **envp_tocpy)
 	mini->fds->next = NULL;
 	mini->stdin_copy = dup(STDIN_FILENO);
 	mini->stdout_copy = dup(STDOUT_FILENO);
+	mini->instructions = NULL;
 	set_mini(mini);
 	return (mini);
 }
