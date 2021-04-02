@@ -22,12 +22,10 @@ t_cmdlst *create_lst(void)
 	begin->next->cmds = malloc(sizeof(t_list));
 	begin->next->cmds->content = "wc";
 	begin->next->cmds->next = NULL;
-	begin->next->next = NULL;
-	/*malloc(sizeof(t_cmdlst));
+	begin->next->next = malloc(sizeof(t_cmdlst));
 	begin->next->next->cmds = malloc(sizeof(t_list));
-	begin->next->next->cmds->content = "ls";
+	begin->next->next->cmds->content = "cat";
 	begin->next->next->next = NULL; 
-	*/
 	return (begin);
 }
 
@@ -39,7 +37,9 @@ t_fds	*fd_creation(int fdn)
 	fd->fd = fdn;
 	fd->next = malloc(sizeof(t_fds));
 	fd->next->fd = fdn;
-	fd->next->next = NULL;
+	fd->next->next = malloc(sizeof(t_fds));
+	fd->next->next->fd = fdn;
+	fd->next->next->next = NULL;
 	return (fd);
 }
 
@@ -98,6 +98,8 @@ void	make_pipe(t_cmdlst *lst, t_fds *in, t_fds *out)
 	}
 	if (in && in->fd != 0)
 			fin = in->fd;
+	else
+		fin = 0;
 	if (out && out->fd != 1)
 		fout = out->fd;
 	else
@@ -112,12 +114,16 @@ int main( int argc, char ** argv )
 	t_fds		*fd_out;
 	int			fd;
 
-	//fd = open("file", O_WRONLY | O_TRUNC | O_CREAT, S_IRWXU | S_IRGRP | S_IROTH);
-	int	f = open("file", O_RDONLY);
+	fd = open("file", O_WRONLY | O_TRUNC | O_CREAT, S_IRWXU | S_IRGRP | S_IROTH);
+	int	f = open("test.c", O_RDONLY);
+	int	fdd = open("minishell.h", O_RDONLY);
 	lst = create_lst();
 	fd_in = fd_creation(0);
 	fd_in->next->fd = f;
 	fd_out = fd_creation(1);
+	fd_out->next->fd = fd;
+	fd_in->next->next->fd = f;
+
    /* create the pipe */
    int pfd[2];
 	make_pipe(lst, fd_in, fd_out);
