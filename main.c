@@ -599,7 +599,7 @@ int		create_and_close_file(char *file, char *method)
 
 	if (strcmp(method, ">") == 0)
 		fd = open(file, O_WRONLY | O_TRUNC | O_CREAT, S_IRWXU | S_IRGRP | S_IROTH);
-	else if (strcmp(method, "<"))
+	else if (strcmp(method, "<") == 0)
 		fd = open(file, O_RDONLY);
 	else
 		fd = open(file, O_WRONLY | O_APPEND | O_CREAT, S_IRWXU | S_IRGRP | S_IROTH);
