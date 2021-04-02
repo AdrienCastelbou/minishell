@@ -593,7 +593,26 @@ t_fds	*ft_fdlast(t_fds *fd)
 	return (fd);
 }
 
-void	get_fd_token(t_mini *mini, char *s, t_list *env)
+int		create_and_close_file(char *file, char *method)
+{
+	int fd;
+
+	if (strcmp(method, ">") == 0)
+		fd = open(file, O_WRONLY | O_TRUNC | O_CREAT, S_IRWXU | S_IRGRP | S_IROTH);
+	else if (strcmp(method, "<"))
+		fd = open(file, O_RDONLY);
+	else
+		fd = open(file, O_WRONLY | O_APPEND | O_CREAT, S_IRWXU | S_IRGRP | S_IROTH);
+	if (fd < 0)
+	{
+		printf("%s\n", strerror(errno));
+		return (1);
+	}
+	close(fd);
+	return (0);
+}
+
+void	get_fdout_file(t_instructions *instruct, char *s, t_list *env)
 {
 	char	*method;
 	char	*file;
@@ -615,12 +634,35 @@ void	get_fd_token(t_mini *mini, char *s, t_list *env)
 		i++;
 	size = ft_word_size(s + i, ' ');
 	file = get_real_input(ft_strndup(s + i, size), env);
-	ft_fdsadd_back(&mini->fds, ft_fdnew(file, method));
-	free(file);
+	instruct->fdout.name = file;
+	instruct->fdout.method = method;
+	instruct->fdout.is_file = 1;
+	create_and_close_file(file, method);
 	free(s);
 }
 
-int		put_file_in_stdin(t_mini *mini, char *s, t_list *env)
+int		get_fdin_file(t_instructions *instruct, char *s, t_list *env)
+{
+	char	*method;
+	char	*file;
+	int		size;
+	int		i;
+
+	method = "<";
+	i = 1;
+	while (s[i] && s[i] == ' ')
+		i++;
+	size = ft_word_size(s + i, ' ');
+	file = get_real_input(ft_strndup(s + i, size), env);
+	instruct->fdin.name = file;
+	instruct->fdin.method = method;
+	instruct->fdin.is_file = 1;
+	create_and_close_file(file, method);
+	return (0);
+}
+
+
+int		open_file_in_stdin(t_mini *mini, char *s, t_list *env)
 {
 	char	*file;
 	int		size;
@@ -636,7 +678,7 @@ int		put_file_in_stdin(t_mini *mini, char *s, t_list *env)
 	{
 		ft_putstr_fd(file, STDERR_FILENO);
 		ft_putstr_fd(": No such file or directory\n", STDERR_FILENO);
-			free(file);
+		free(file);
 		free(s);
 		return (1);
 	}
@@ -648,7 +690,7 @@ int		put_file_in_stdin(t_mini *mini, char *s, t_list *env)
 	return (0);
 }
 
-t_list	*ft_lst_input(t_mini *mini, char *s, char c, t_list *env)
+t_list	*ft_lst_input(t_instructions *instruc, char *s, char c, t_list *env)
 {
 	t_list	*cmd;
 	int		words_nb;
@@ -667,9 +709,9 @@ t_list	*ft_lst_input(t_mini *mini, char *s, char c, t_list *env)
 			return (cmd);
 		len = ft_word_size(s, c);
 		if (*s == '>')
-			get_fd_token(mini, ft_strndup(s, len), env);
+			get_fdout_file(instruc, ft_strndup(s, len), env);
 		else if (*s == '<')
-			put_file_in_stdin(mini, ft_strndup(s, len), env);
+			get_fdin_file(instruc, ft_strndup(s, len), env);
 		else
 			(ft_lstadd_back(&cmd, ft_lstnew(get_real_input(ft_strndup(s, len), env))));
 		s += len;
@@ -721,30 +763,43 @@ t_instructions	*ft_instructnew(t_list *content)
 	if (!(elem = (t_instructions*)malloc(sizeof(t_instructions))))
 		return (NULL);
 	elem->cmds = content;
+	elem->fdin.fd = 0;
+	elem->fdin.name = NULL;
+	elem->fdin.is_file = 0;
+	elem->fdout.fd = 1;
+	elem->fdout.is_file = 0;
+	elem->fdout.name = NULL;
 	elem->next = NULL;
 	return (elem);
 }
 void		get_instructions(t_mini *mini, char *s, t_list *env)
 {
-	char	*instruction;
-	t_list	*cmd;
-	int		len;
+	char			*instruction;
+	t_instructions	*current;
+	t_list			*cmd;
+	int				len;
 
 	mini->instructions = NULL;
 	if (*s == '|')
 		return ;
 	while (*s)
 	{
+		current = ft_instructnew(NULL);
 		len = ft_word_size(s, '|');
 		instruction = ft_strndup(s, len);
-		cmd = ft_lst_input(mini, instruction, ' ', env);
-		ft_instruct_add_back(&mini->instructions, ft_instructnew(cmd));
+		cmd = ft_lst_input(current, instruction, ' ', env);
+		current->cmds = cmd;
+		ft_instruct_add_back(&mini->instructions, current);
 		free(instruction);
 		s += len;
 		if (*s == '|')
 			s += 1;
-	}
+		if (current->fdin.name)
+			printf("%s\n", current->fdin.name);
+		if (current->fdout.name)
+			printf("%s\n", current->fdout.name);
 
+	}
 }
 
 t_list		*ft_lst_cmds(t_mini *mini, char *s, t_list *env)
@@ -763,8 +818,8 @@ t_list		*ft_lst_cmds(t_mini *mini, char *s, t_list *env)
 		len = ft_word_size(s, ';');
 		cmd_input = ft_strndup(s, len);
 		get_instructions(mini, cmd_input, env);
-		mini->cmds = ft_lst_input(mini, cmd_input, ' ', env);
-		mini->cmd = get_cmd_tab(mini->cmds);
+		//mini->cmds = ft_lst_input(mini, cmd_input, ' ', env);
+		mini->cmd = get_cmd_tab(mini->instructions->cmds);
 		run_cmd(mini, mini->cmd);
 		free_cmds(mini);
 		free(cmd_input);
