@@ -937,6 +937,12 @@ void	make_pipe(t_mini *mini, t_instructions *instruc)
 		if (pid == 0)
 		{
 			close(fd[0]);
+			if (instruc->fdout.name)
+			{
+				fdout = open_agreg_file(instruc->fdout.name, instruc->fdout.method);
+				dup2(fdout, fd[1]);
+				close(fdout);
+			}
 			mini->cmd = get_cmd_tab(instruc->cmds);
 			run(mini, pid, fdin, fd[1]);
 			free_cmds(mini);
