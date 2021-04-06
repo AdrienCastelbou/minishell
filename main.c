@@ -952,6 +952,7 @@ void	make_pipe(t_mini *mini, t_instructions *instruc)
 			mini->cmd = get_cmd_tab(instruc->cmds);
 			run(mini, pid, fdin, fd[1]);
 			free_cmds(mini);
+			return ;
 		}
 		else
 		{
