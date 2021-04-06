@@ -967,8 +967,6 @@ void	make_pipe(t_mini *mini, t_instructions *instruc)
 			close(fdin);
 		fdin = open_agreg_file(instruc->fdin.name, instruc->fdin.method);
 	}
-	else
-		fdin = STDIN_FILENO;
 	if (instruc && instruc->fdout.name)
 		fdout = open_agreg_file(instruc->fdout.name, instruc->fdout.method);
 	else
