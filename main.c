@@ -593,13 +593,25 @@ t_fds	*ft_fdlast(t_fds *fd)
 	return (fd);
 }
 
+int		open_agreg_file(char *file, char *method)
+{
+	int fd;
+
+	if (strcmp(method, ">") == 0)
+		fd = open(file, O_WRONLY | O_TRUNC | O_CREAT, S_IRWXU | S_IRGRP | S_IROTH);
+	else if (strcmp(method, "<") == 0)
+		fd = open(file, O_RDONLY);
+	else
+		fd = open(file, O_WRONLY | O_APPEND | O_CREAT, S_IRWXU | S_IRGRP | S_IROTH);
+	return (fd);
+}
 int		create_and_close_file(char *file, char *method)
 {
 	int fd;
 
 	if (strcmp(method, ">") == 0)
 		fd = open(file, O_WRONLY | O_TRUNC | O_CREAT, S_IRWXU | S_IRGRP | S_IROTH);
-	else if (strcmp(method, "<"))
+	else if (strcmp(method, "<") == 0)
 		fd = open(file, O_RDONLY);
 	else
 		fd = open(file, O_WRONLY | O_APPEND | O_CREAT, S_IRWXU | S_IRGRP | S_IROTH);
@@ -794,13 +806,10 @@ void		get_instructions(t_mini *mini, char *s, t_list *env)
 		s += len;
 		if (*s == '|')
 			s += 1;
-		if (current->fdin.name)
-			printf("%s\n", current->fdin.name);
-		if (current->fdout.name)
-			printf("%s\n", current->fdout.name);
-
 	}
 }
+
+void		make_pipe(t_mini *mini, t_instructions *instruc);
 
 t_list		*ft_lst_cmds(t_mini *mini, char *s, t_list *env)
 {
@@ -808,6 +817,7 @@ t_list		*ft_lst_cmds(t_mini *mini, char *s, t_list *env)
 	int		cmd_nb;
 	int		i;
 	int		len;
+	t_instructions *current;
 
 	if (!s)
 		return (NULL);
@@ -818,11 +828,16 @@ t_list		*ft_lst_cmds(t_mini *mini, char *s, t_list *env)
 		len = ft_word_size(s, ';');
 		cmd_input = ft_strndup(s, len);
 		get_instructions(mini, cmd_input, env);
-		//mini->cmds = ft_lst_input(mini, cmd_input, ' ', env);
-		mini->cmd = get_cmd_tab(mini->instructions->cmds);
-		run_cmd(mini, mini->cmd);
-		free_cmds(mini);
-		free(cmd_input);
+		make_pipe(mini, mini->instructions);
+		/*current = mini->instructions;
+		while (current)
+		{
+			mini->cmd = get_cmd_tab(current->cmds);
+			run_cmd(mini, mini->cmd);
+			free_cmds(mini);
+			current = current->next;
+		}
+		free(cmd_input);*/
 		s += len + 1;
 		i++;
 	}
@@ -830,6 +845,149 @@ t_list		*ft_lst_cmds(t_mini *mini, char *s, t_list *env)
 	i = -1;
 	return (mini->cmds);
 }
+
+void	exec_cmd(t_mini *mini, char **cmd)
+{
+	char	*tmp;
+	int		pid;
+	int		status;
+
+	if (!*cmd)
+		;
+	else if (run_builtins(cmd, mini))
+		;
+	else
+	{
+		if (!ft_strchr(cmd[0], '/'))
+		{
+			tmp = cmd[0];
+			cmd[0] = ft_strjoin("/bin/", tmp);
+			free(tmp);
+		}
+		pid = fork();
+		if (pid)
+			wait(&status);
+		else
+		{
+			mini->envp = transform_env_lst_in_tab(mini->env);
+			status = execve(cmd[0], cmd, mini->envp);
+			exit(0);
+			free(mini->envp);
+		}
+	}
+}
+
+static void redirect(int oldfd, int newfd) {
+	if (oldfd != newfd) {
+	if (dup2(oldfd, newfd) != -1)
+		close(oldfd); /* successfully redirected */
+	else
+		;
+  }
+}
+
+int		run(t_mini *mini, int pid, int fdin, int fdout)
+{
+	char	*tmp;
+	char	**cmd;
+	int		status;
+
+	cmd = mini->cmd;
+	redirect(fdin, STDIN_FILENO);   /* <&in  : child reads from in */
+	redirect(fdout, STDOUT_FILENO);
+	if (!*cmd)
+		;
+	else if (run_builtins(cmd, mini))
+		;
+	else
+	{
+		if (!ft_strchr(cmd[0], '/'))
+		{
+			tmp = cmd[0];
+			cmd[0] = ft_strjoin("/bin/", tmp);
+			free(tmp);
+		}
+		mini->envp = transform_env_lst_in_tab(mini->env);
+		status = execve(cmd[0], cmd, mini->envp);
+		exit(0);
+		free(mini->envp);
+	}
+	if (!pid)
+		exit(0);
+	return (1);
+}
+
+void	make_pipe(t_mini *mini, t_instructions *instruc)
+{
+	int	fd[2];
+	int	pid;
+	int	fdin;
+	int	fdout;
+
+	fdin = 0;
+	fdout = 1;
+	if (!instruc)
+		return ;
+	while (instruc->next)
+	{
+		if (instruc->fdin.name)
+		{
+			if (fdin != 0)
+				close(fdin);
+			fdin = open_agreg_file(instruc->fdin.name, instruc->fdin.method);
+		}
+		if (pipe(fd) == -1)
+			return ;
+		else if ((pid = fork()) < 0)
+			return ;
+		if (pid == 0)
+		{
+			close(fd[0]);
+			if (instruc->fdout.name)
+			{
+				fdout = open_agreg_file(instruc->fdout.name, instruc->fdout.method);
+				dup2(fdout, fd[1]);
+				close(fdout);
+			}
+			mini->cmd = get_cmd_tab(instruc->cmds);
+			run(mini, pid, fdin, fd[1]);
+			free_cmds(mini);
+			return ;
+		}
+		else
+		{
+			close(fd[1]);
+			close(fdin);
+			fdin = fd[0];
+		}
+		instruc = instruc->next;
+	}
+	if (instruc && instruc->fdin.name)
+	{
+		if (fdin != 0)
+			close(fdin);
+		fdin = open_agreg_file(instruc->fdin.name, instruc->fdin.method);
+	}
+	if (instruc && instruc->fdout.name)
+		fdout = open_agreg_file(instruc->fdout.name, instruc->fdout.method);
+	else
+		fdout = STDOUT_FILENO;
+	mini->cmd = get_cmd_tab(instruc->cmds);
+	run(mini, pid, fdin, fdout);
+	free_cmds(mini);
+}
+
+/*
+void	run_cmd(t_mini *mini, char **cmd)
+{
+	dup2(mini->current_stdin, STDIN_FILENO);
+	mini->current_fd = ft_fdlast(mini->fds)->fd;
+	dup2(mini->current_fd, STDOUT_FILENO);
+	exec_cmd(mini, cmd);
+	dup2(mini->stdin_copy, STDIN_FILENO);
+	dup2(mini->stdout_copy, STDOUT_FILENO);
+}*/
+
 
 char	**transform_env_lst_in_tab(t_list *env)
 {
@@ -895,48 +1053,6 @@ void	free_cmds(t_mini *mini)
 		free(mini->cmd[i]);
 	free(mini->cmd);
 	set_mini(mini);
-}
-
-void	exec_cmd(t_mini *mini, char **cmd)
-{
-	char	*tmp;
-	int		pid;
-	int		status;
-
-	if (!*cmd)
-		;
-	else if (run_builtins(cmd, mini))
-		;
-	else
-	{
-		if (!ft_strchr(cmd[0], '/'))
-		{
-			tmp = cmd[0];
-			cmd[0] = ft_strjoin("/bin/", tmp);
-			free(tmp);
-		}
-		pid = fork();
-		if (pid)
-			wait(&status);
-		else
-		{
-			mini->envp = transform_env_lst_in_tab(mini->env);
-			status = execve(cmd[0], cmd, mini->envp);
-			exit(0);
-			free(mini->envp);
-		}
-	}
-
-}
-
-void	run_cmd(t_mini *mini, char **cmd)
-{
-	dup2(mini->current_stdin, STDIN_FILENO);
-	mini->current_fd = ft_fdlast(mini->fds)->fd;
-	dup2(mini->current_fd, STDOUT_FILENO);
-	exec_cmd(mini, cmd);
-	dup2(mini->stdin_copy, STDIN_FILENO);
-	dup2(mini->stdout_copy, STDOUT_FILENO);
 }
 
 int		ft_get_input(t_mini *mini)
