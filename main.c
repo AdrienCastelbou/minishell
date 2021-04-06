@@ -930,6 +930,12 @@ void	make_pipe(t_mini *mini, t_instructions *instruc)
 		return ;
 	while (instruc->next)
 	{
+		if (instruc->fdin.name)
+		{
+			if (fdin != 0)
+				close(fdin);
+			fdin = open_agreg_file(instruc->fdin.name, instruc->fdin.method);
+		}
 		if (pipe(fd) == -1)
 			return ;
 		else if ((pid = fork()) < 0)
@@ -955,8 +961,20 @@ void	make_pipe(t_mini *mini, t_instructions *instruc)
 		}
 		instruc = instruc->next;
 	}
+	if (instruc && instruc->fdin.name)
+	{
+		if (fdin != 0)
+			close(fdin);
+		fdin = open_agreg_file(instruc->fdin.name, instruc->fdin.method);
+	}
+	else
+		fdin = STDIN_FILENO;
+	if (instruc && instruc->fdout.name)
+		fdout = open_agreg_file(instruc->fdout.name, instruc->fdout.method);
+	else
+		fdout = STDOUT_FILENO;
 	mini->cmd = get_cmd_tab(instruc->cmds);
-	run(mini, pid, fdin,STDOUT_FILENO);
+	run(mini, pid, fdin, fdout);
 	free_cmds(mini);
 }
 

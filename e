@@ -1,0 +1,1 @@
+[0;34mminishell> [0m
