@@ -794,11 +794,6 @@ void		get_instructions(t_mini *mini, char *s, t_list *env)
 		s += len;
 		if (*s == '|')
 			s += 1;
-		if (current->fdin.name)
-			printf("%s\n", current->fdin.name);
-		if (current->fdout.name)
-			printf("%s\n", current->fdout.name);
-
 	}
 }
 
@@ -808,6 +803,7 @@ t_list		*ft_lst_cmds(t_mini *mini, char *s, t_list *env)
 	int		cmd_nb;
 	int		i;
 	int		len;
+	t_instructions *current;
 
 	if (!s)
 		return (NULL);
@@ -819,9 +815,14 @@ t_list		*ft_lst_cmds(t_mini *mini, char *s, t_list *env)
 		cmd_input = ft_strndup(s, len);
 		get_instructions(mini, cmd_input, env);
 		//mini->cmds = ft_lst_input(mini, cmd_input, ' ', env);
-		mini->cmd = get_cmd_tab(mini->instructions->cmds);
-		run_cmd(mini, mini->cmd);
-		free_cmds(mini);
+		current = mini->instructions;
+		while (current)
+		{
+			mini->cmd = get_cmd_tab(current->cmds);
+			run_cmd(mini, mini->cmd);
+			free_cmds(mini);
+			current = current->next;
+		}
 		free(cmd_input);
 		s += len + 1;
 		i++;
@@ -926,7 +927,6 @@ void	exec_cmd(t_mini *mini, char **cmd)
 			free(mini->envp);
 		}
 	}
-
 }
 
 void	run_cmd(t_mini *mini, char **cmd)
