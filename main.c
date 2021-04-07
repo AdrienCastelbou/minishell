@@ -974,6 +974,8 @@ void	make_pipe(t_mini *mini, t_instructions *instruc)
 		fdout = STDOUT_FILENO;
 	mini->cmd = get_cmd_tab(instruc->cmds);
 	run(mini, pid, fdin, fdout);
+	dup2(mini->stdin_copy, STDIN_FILENO);
+	dup2(mini->stdout_copy, STDOUT_FILENO);
 	free_cmds(mini);
 }
 
