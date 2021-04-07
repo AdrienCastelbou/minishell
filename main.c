@@ -904,7 +904,7 @@ int		run(t_mini *mini, int pid, int fdin, int fdout)
 		if (!ft_strchr(cmd[0], '/'))
 		{
 			tmp = cmd[0];
-			cmd[0] = ft_strjoin("/bin/", tmp);
+			cmd[0] = ft_strjoin("/usr/bin/", tmp);
 			free(tmp);
 		}
 		mini->envp = transform_env_lst_in_tab(mini->env);
