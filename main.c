@@ -905,12 +905,15 @@ int		run(t_mini *mini, int pid, int fdin, int fdout)
 		{
 			tmp = cmd[0];
 			cmd[0] = ft_strjoin("/usr/bin/", tmp);
-			free(tmp);
+			//free(tmp);
 		}
 		mini->envp = transform_env_lst_in_tab(mini->env);
 		status = execve(cmd[0], cmd, mini->envp);
-		exit(0);
+		if (!ft_strchr(tmp, '/'))
+			cmd[0] = ft_strjoin("/bin/", tmp);
+		status = execve(cmd[0], cmd, mini->envp);
 		free(mini->envp);
+		exit(0);
 	}
 	if (!pid)
 		exit(0);
