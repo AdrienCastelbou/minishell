@@ -923,6 +923,7 @@ void	make_pipe(t_mini *mini, t_instructions *instruc)
 	int	pid;
 	int	fdin;
 	int	fdout;
+	int	status;
 
 	fdin = 0;
 	fdout = 1;
@@ -956,6 +957,7 @@ void	make_pipe(t_mini *mini, t_instructions *instruc)
 		}
 		else
 		{
+			waitpid(pid, &status, -1);
 			close(fd[1]);
 			close(fdin);
 			fdin = fd[0];
