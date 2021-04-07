@@ -962,7 +962,8 @@ void	make_pipe(t_mini *mini, t_instructions *instruc)
 		{
 			waitpid(pid, &status, -1);
 			close(fd[1]);
-			close(fdin);
+			if (fdin != STDIN_FILENO)
+				close(fdin);
 			fdin = fd[0];
 		}
 		instruc = instruc->next;
