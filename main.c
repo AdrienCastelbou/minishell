@@ -925,8 +925,8 @@ void	make_pipe(t_mini *mini, t_instructions *instruc)
 	int	fdout;
 	int	status;
 
-	fdin = 0;
-	fdout = 1;
+	fdin = STDIN_FILENO;
+	fdout = STDOUT_FILENO;
 	if (!instruc)
 		return ;
 	while (instruc->next)
