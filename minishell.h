@@ -28,14 +28,13 @@ typedef struct	s_mini {
 		char		**cmd;
 		char			**envp;
 		char			*input;
+		char			*to_exec;
 		t_instructions	*instructions;
 		t_list			*cmds;
 		t_list			*env;
-		t_fds			*fds;
-		int				current_fd;
-		int				current_stdin;
 		int				stdin_copy;
 		int				stdout_copy;
+		int				is_pipe;
 }				t_mini;
 
 //FREE
@@ -74,7 +73,7 @@ t_list			*ft_lst_cmds(t_mini *mini, char *s, t_list *env);
 char			**transform_env_lst_in_tab(t_list *env);
 void			set_mini(t_mini *mini);
 void			get_cmds_tab(t_mini *mini);
-void			run_cmd(t_mini *mini, char **cmd);
+void			run_cmd(t_mini *mini, char **cmd, t_instructions *instruc);
 int				ft_get_input(t_mini *mini);
 t_list			*copy_env(char **envp);
 t_mini			*init_mini(char **envp_tocpy);
