@@ -673,35 +673,6 @@ int		get_fdin_file(t_instructions *instruct, char *s, t_list *env)
 	return (0);
 }
 
-
-int		open_file_in_stdin(t_mini *mini, char *s, t_list *env)
-{
-	char	*file;
-	int		size;
-	int		i;
-	int		fd;
-
-	i = 1;
-	while (s[i] && s[i] == ' ')
-		i++;
-	size = ft_word_size(s + i, ' ');
-	file = get_real_input(ft_strndup(s + i, size), env);
-	if ((fd = open(file, O_RDONLY)) < 0)
-	{
-		ft_putstr_fd(file, STDERR_FILENO);
-		ft_putstr_fd(": No such file or directory\n", STDERR_FILENO);
-		free(file);
-		free(s);
-		return (1);
-	}
-	if (mini->current_stdin != 0)
-		close(mini->current_stdin);
-	mini->current_stdin = fd;
-	free(file);
-	free(s);
-	return (0);
-}
-
 t_list	*ft_lst_input(t_instructions *instruc, char *s, char c, t_list *env)
 {
 	t_list	*cmd;
@@ -807,6 +778,8 @@ void		get_instructions(t_mini *mini, char *s, t_list *env)
 		if (*s == '|')
 			s += 1;
 	}
+	if (mini->instructions && mini->instructions->next)
+		mini->is_pipe = 1;
 }
 
 void		make_pipe(t_mini *mini, t_instructions *instruc);
@@ -828,18 +801,21 @@ t_list		*ft_lst_cmds(t_mini *mini, char *s, t_list *env)
 		len = ft_word_size(s, ';');
 		cmd_input = ft_strndup(s, len);
 		get_instructions(mini, cmd_input, env);
-		make_pipe(mini, mini->instructions);
-		/*current = mini->instructions;
-		while (current)
+		if (mini->is_pipe)
+			make_pipe(mini, mini->instructions);
+		else
 		{
-			mini->cmd = get_cmd_tab(current->cmds);
-			run_cmd(mini, mini->cmd);
+			if (mini->instructions)
+			{
+				mini->cmd = get_cmd_tab(mini->instructions->cmds);
+				run_cmd(mini, mini->cmd, mini->instructions);
+			}
 			free_cmds(mini);
-			current = current->next;
+			free(cmd_input);
 		}
-		free(cmd_input);*/
 		s += len + 1;
 		i++;
+		set_mini(mini);
 	}
 	mini->cmds = NULL;
 	i = -1;
@@ -888,11 +864,11 @@ static void redirect(int oldfd, int newfd) {
 
 int		run(t_mini *mini, int pid, int fdin, int fdout)
 {
-	char	*tmp;
 	char	**cmd;
 	int		status;
 
 	cmd = mini->cmd;
+	mini->to_exec = cmd[0];
 	redirect(fdin, STDIN_FILENO);   /* <&in  : child reads from in */
 	redirect(fdout, STDOUT_FILENO);
 	if (!*cmd)
@@ -901,22 +877,20 @@ int		run(t_mini *mini, int pid, int fdin, int fdout)
 		;
 	else
 	{
-		if (!ft_strchr(cmd[0], '/'))
-		{
-			tmp = cmd[0];
-			cmd[0] = ft_strjoin("/usr/bin/", tmp);
-			//free(tmp);
-		}
+		if (!ft_strchr(mini->to_exec, '/'))
+			cmd[0] = ft_strjoin("/usr/bin/", mini->to_exec);
 		mini->envp = transform_env_lst_in_tab(mini->env);
 		status = execve(cmd[0], cmd, mini->envp);
-		if (!ft_strchr(tmp, '/'))
-			cmd[0] = ft_strjoin("/bin/", tmp);
+		if (!ft_strchr(mini->to_exec, '/'))
+		{
+			free(cmd[0]);
+			cmd[0] = ft_strjoin("/bin/", mini->to_exec);
+		}
 		status = execve(cmd[0], cmd, mini->envp);
 		free(mini->envp);
 		exit(0);
 	}
-	if (!pid)
-		exit(0);
+	exit(0);
 	return (1);
 }
 
@@ -982,16 +956,23 @@ void	make_pipe(t_mini *mini, t_instructions *instruc)
 	close(fd[0]);
 }
 
-/*
-void	run_cmd(t_mini *mini, char **cmd)
+void	run_cmd(t_mini *mini, char **cmd, t_instructions *instruc)
 {
-	dup2(mini->current_stdin, STDIN_FILENO);
-	mini->current_fd = ft_fdlast(mini->fds)->fd;
-	dup2(mini->current_fd, STDOUT_FILENO);
+	int	fdin;
+	int	fdout;
+
+	fdin = STDIN_FILENO;
+	fdout = STDOUT_FILENO;
+	if (instruc->fdin.name) 
+		fdin = open_agreg_file(instruc->fdin.name, instruc->fdin.method);
+	if (instruc->fdout.name)
+		fdout = open_agreg_file(instruc->fdout.name, instruc->fdout.method);
+	redirect(fdin, STDIN_FILENO);
+	redirect(fdout, STDOUT_FILENO);
 	exec_cmd(mini, cmd);
 	dup2(mini->stdin_copy, STDIN_FILENO);
 	dup2(mini->stdout_copy, STDOUT_FILENO);
-}*/
+}
 
 
 char	**transform_env_lst_in_tab(t_list *env)
@@ -1021,7 +1002,7 @@ void	set_mini(t_mini *mini)
 {
 	mini->envp = NULL;
 	mini->cmds = NULL;
-	mini->current_stdin = 0;
+	mini->is_pipe = 0;
 }
 
 void	ft_fddelone(t_fds *fd)
@@ -1046,17 +1027,10 @@ void	ft_fdclear(t_fds **fds)
 void	free_cmds(t_mini *mini)
 {
 	int i;
-	t_list *elem;
 
-	elem = mini->cmds;
 	ft_lstclear(&mini->cmds, free);
-	ft_fdclear(&mini->fds->next);
 	free(mini->cmds);
 	mini->cmds = NULL;
-	i = -1;
-	while (mini->cmd[++i])
-		free(mini->cmd[i]);
-	free(mini->cmd);
 	set_mini(mini);
 }
 
@@ -1108,10 +1082,6 @@ t_mini	*init_mini(char **envp_tocpy)
 		return (NULL);
 	*(mini->input) = 0;
 	mini->env = copy_env(envp_tocpy);
-	if (!(mini->fds = malloc(sizeof(t_fds))))
-		return (NULL);
-	mini->fds->fd = 1;
-	mini->fds->next = NULL;
 	mini->stdin_copy = dup(STDIN_FILENO);
 	mini->stdout_copy = dup(STDOUT_FILENO);
 	mini->instructions = NULL;
