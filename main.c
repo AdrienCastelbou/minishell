@@ -932,7 +932,7 @@ void	make_pipe(t_mini *mini, t_instructions *instruc)
 	fdout = STDOUT_FILENO;
 	if (!instruc)
 		return ;
-	while (instruc->next)
+	while (instruc)
 	{
 		if (instruc->fdin.name)
 		{
@@ -944,31 +944,37 @@ void	make_pipe(t_mini *mini, t_instructions *instruc)
 			return ;
 		else if ((pid = fork()) < 0)
 			return ;
+		fdout = fd[1];
+		if (instruc->fdout.name)
+			fdout = open_agreg_file(instruc->fdout.name, instruc->fdout.method);
+		else if (!instruc->next)
+			fdout = STDOUT_FILENO;
 		if (pid == 0)
 		{
-			close(fd[0]);
-			if (instruc->fdout.name)
-			{
-				fdout = open_agreg_file(instruc->fdout.name, instruc->fdout.method);
-				dup2(fdout, fd[1]);
-				close(fdout);
-			}
 			mini->cmd = get_cmd_tab(instruc->cmds);
-			run(mini, pid, fdin, fd[1]);
+			run(mini, pid, fdin, fdout);
 			free_cmds(mini);
 			return ;
 		}
 		else
 		{
 			waitpid(pid, &status, 0);
+			if (instruc->fdout.name)
+				close(fdout);
 			if (fd[1] != STDOUT_FILENO)
 				close(fd[1]);
 			if (fdin != STDIN_FILENO)
 				close(fdin);
+			if (!instruc->next)
+			{
+				dup2(mini->stdin_copy, STDIN_FILENO);
+				dup2(mini->stdout_copy, STDOUT_FILENO);
+			}
 			fdin = fd[0];
 		}
 		instruc = instruc->next;
 	}
+	return ;
 	if (instruc && instruc->fdin.name)
 	{
 		if (fdin != 0)
