@@ -1027,11 +1027,30 @@ void	ft_fdclear(t_fds **fds)
 	*fds = NULL;
 }
 
+void	ft_instrucdelone(t_instructions *instruc)
+{
+	if (!instruc)
+		return ;
+	ft_lstclear(&(instruc->cmds), free);
+	free(instruc);
+}
+
+void	ft_instruclear(t_instructions **instruc)
+{
+	if (!instruc || !*instruc)
+		return ;
+	if ((*instruc)->next != NULL)
+		ft_instruclear(&((*instruc)->next));
+	ft_instrucdelone((*instruc));
+	*instruc = NULL;
+}
+
 void	free_cmds(t_mini *mini)
 {
 	int i;
 
 	ft_lstclear(&mini->cmds, free);
+	ft_instruclear(&mini->instructions);
 	free(mini->cmds);
 	mini->cmds = NULL;
 	set_mini(mini);
