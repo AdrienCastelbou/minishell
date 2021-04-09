@@ -828,27 +828,30 @@ void	exec_cmd(t_mini *mini, char **cmd)
 	int		pid;
 	int		status;
 
+	mini->to_exec = cmd[0];
 	if (!*cmd)
 		;
 	else if (run_builtins(cmd, mini))
 		;
 	else
 	{
-		if (!ft_strchr(cmd[0], '/'))
-		{
-			tmp = cmd[0];
-			cmd[0] = ft_strjoin("/bin/", tmp);
-			free(tmp);
-		}
 		pid = fork();
 		if (pid)
 			wait(&status);
 		else
 		{
+			if (!ft_strchr(mini->to_exec, '/'))
+				cmd[0] = ft_strjoin("/usr/bin/", mini->to_exec);
 			mini->envp = transform_env_lst_in_tab(mini->env);
 			status = execve(cmd[0], cmd, mini->envp);
-			exit(0);
+			if (!ft_strchr(mini->to_exec, '/'))
+			{
+				free(cmd[0]);
+				cmd[0] = ft_strjoin("/bin/", mini->to_exec);
+			}
+			status = execve(cmd[0], cmd, mini->envp);
 			free(mini->envp);
+			exit(0);
 		}
 	}
 }
