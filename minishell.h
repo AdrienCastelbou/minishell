@@ -70,6 +70,10 @@ int				cmd_count(char *input);
 t_list			*ft_lst_input(t_instructions *instruc, char *s, char c, t_list *env);
 t_list			*ft_lst_cmds(t_mini *mini, char *s, t_list *env);
 
+//RUN CMDS
+
+int				run_bin(char **cmd, t_mini *mini);
+
 //UTILS
 char			**transform_env_lst_in_tab(t_list *env);
 void			set_mini(t_mini *mini);

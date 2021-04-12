@@ -824,11 +824,9 @@ t_list		*ft_lst_cmds(t_mini *mini, char *s, t_list *env)
 
 void	exec_cmd(t_mini *mini, char **cmd)
 {
-	char	*tmp;
 	int		pid;
 	int		status;
 
-	mini->to_exec = cmd[0];
 	if (!*cmd)
 		;
 	else if (run_builtins(cmd, mini))
@@ -840,18 +838,11 @@ void	exec_cmd(t_mini *mini, char **cmd)
 			wait(&status);
 		else
 		{
-			if (!ft_strchr(mini->to_exec, '/'))
-				cmd[0] = ft_strjoin("/usr/bin/", mini->to_exec);
-			mini->envp = transform_env_lst_in_tab(mini->env);
-			status = execve(cmd[0], cmd, mini->envp);
-			if (!ft_strchr(mini->to_exec, '/'))
-			{
-				free(cmd[0]);
-				cmd[0] = ft_strjoin("/bin/", mini->to_exec);
-			}
-			status = execve(cmd[0], cmd, mini->envp);
-			free(mini->envp);
-			exit(0);
+			if (!ft_strchr(cmd[0], '/'))
+				run_bin(cmd, mini);
+			else
+				execve(cmd[0], cmd, mini->envp);
+			exit(127);
 		}
 	}
 }
@@ -921,6 +912,7 @@ int		run_bin(char **cmd, t_mini *mini)
 	}
 	ft_putstr_fd(bin, STDERR_FILENO);
 	ft_putstr_fd(": command not found\n", STDERR_FILENO);
+	exit(127);
 	return (0);
 }
 
@@ -942,19 +934,6 @@ int		run(t_mini *mini, int pid, int fdin, int fdout)
 			run_bin(cmd, mini);
 		else
 			execve(cmd[0], cmd, mini->envp);
-		/*
-		if (!ft_strchr(mini->to_exec, '/'))
-			cmd[0] = ft_strjoin("/usr/bin/", mini->to_exec);
-		mini->envp = transform_env_lst_in_tab(mini->env);
-		status = execve(cmd[0], cmd, mini->envp);
-		if (!ft_strchr(mini->to_exec, '/'))
-		{
-			free(cmd[0]);
-			cmd[0] = ft_strjoin("/bin/", mini->to_exec);
-		}
-		status = execve(cmd[0], cmd, mini->envp);
-		free(mini->envp);*/
-		exit(0);
 	}
 	exit(0);
 	return (1);
