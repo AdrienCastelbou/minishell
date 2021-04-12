@@ -865,14 +865,72 @@ static void redirect(int oldfd, int newfd) {
   }
 }
 
+char	*ft_strjoin_bin(char const *s1, char const *s2)
+{
+	char	*str;
+	int		i;
+
+	if (s1 == NULL || !s2)
+		return (NULL);
+	if (!(str = (char *)malloc(sizeof(char) *
+					(ft_strlen(s1) + ft_strlen(s2) + 2))))
+		return (NULL);
+	i = 0;
+	while (*s1)
+	{
+		str[i] = *s1;
+		s1++;
+		i++;
+	}
+	str[i] = '/';
+	i++;
+	while (*s2)
+	{
+		str[i] = *s2;
+		s2++;
+		i++;
+	}
+	str[i] = '\0';
+	return (str);
+}
+
+int		run_bin(char **cmd, t_mini *mini)
+{
+	char	*path_list;
+	char	*tmp;
+	char	*path;
+	char	*bin;
+	int		path_len;
+
+	bin = ft_strdup(cmd[0]);
+	path_list = get_env_var("PATH", mini->env);
+	mini->envp = transform_env_lst_in_tab(mini->env);
+	while (*path_list)
+	{
+		path_len = (int)ft_strchr(path_list, ':') - (int)path_list;
+		if (path_len < 0)
+			path_len = ft_strlen(path_list);
+		path = ft_strndup(path_list, path_len);
+		free(cmd[0]);
+		cmd[0] = ft_strjoin_bin(path, bin);
+		free(path);
+		execve(cmd[0], cmd, mini->envp);
+		path_list += path_len;
+		if (*path_list == ':')
+			path_list += 1;
+	}
+	ft_putstr_fd(bin, STDERR_FILENO);
+	ft_putstr_fd(": command not found\n", STDERR_FILENO);
+	return (0);
+}
+
 int		run(t_mini *mini, int pid, int fdin, int fdout)
 {
 	char	**cmd;
 	int		status;
 
 	cmd = mini->cmd;
-	mini->to_exec = cmd[0];
-	redirect(fdin, STDIN_FILENO);   /* <&in  : child reads from in */
+	redirect(fdin, STDIN_FILENO);
 	redirect(fdout, STDOUT_FILENO);
 	if (!*cmd)
 		;
@@ -880,6 +938,11 @@ int		run(t_mini *mini, int pid, int fdin, int fdout)
 		;
 	else
 	{
+		if (!ft_strchr(cmd[0], '/'))
+			run_bin(cmd, mini);
+		else
+			execve(cmd[0], cmd, mini->envp);
+		/*
 		if (!ft_strchr(mini->to_exec, '/'))
 			cmd[0] = ft_strjoin("/usr/bin/", mini->to_exec);
 		mini->envp = transform_env_lst_in_tab(mini->env);
@@ -890,7 +953,7 @@ int		run(t_mini *mini, int pid, int fdin, int fdout)
 			cmd[0] = ft_strjoin("/bin/", mini->to_exec);
 		}
 		status = execve(cmd[0], cmd, mini->envp);
-		free(mini->envp);
+		free(mini->envp);*/
 		exit(0);
 	}
 	exit(0);
@@ -1107,6 +1170,7 @@ t_mini	*init_mini(char **envp_tocpy)
 	mini->stdin_copy = dup(STDIN_FILENO);
 	mini->stdout_copy = dup(STDOUT_FILENO);
 	mini->instructions = NULL;
+	mini->last_return = 0;
 	set_mini(mini);
 	return (mini);
 }

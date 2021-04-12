@@ -35,6 +35,7 @@ typedef struct	s_mini {
 		int				stdin_copy;
 		int				stdout_copy;
 		int				is_pipe;
+		int				last_return;
 }				t_mini;
 
 //FREE
