@@ -822,6 +822,15 @@ t_list		*ft_lst_cmds(t_mini *mini, char *s, t_list *env)
 	return (mini->cmds);
 }
 
+void	print_exec_error(char *cmd)
+{
+	ft_putstr_fd(cmd, STDERR_FILENO);
+	ft_putstr_fd(": ", STDERR_FILENO);
+	ft_putstr_fd(strerror(errno), STDERR_FILENO);
+	ft_putchar_fd('\n', STDERR_FILENO);
+	exit(127);
+}
+
 void	exec_cmd(t_mini *mini, char **cmd)
 {
 	int		pid;
@@ -842,18 +851,19 @@ void	exec_cmd(t_mini *mini, char **cmd)
 				run_bin(cmd, mini);
 			else
 				execve(cmd[0], cmd, mini->envp);
-			exit(127);
+			print_exec_error(cmd[0]);
 		}
 	}
 }
 
 static void redirect(int oldfd, int newfd) {
-	if (oldfd != newfd) {
-	if (dup2(oldfd, newfd) != -1)
-		close(oldfd); /* successfully redirected */
-	else
-		;
-  }
+	if (oldfd != newfd)
+	{
+		if (dup2(oldfd, newfd) != -1)
+			close(oldfd); /* successfully redirected */
+		else
+			;
+	}
 }
 
 char	*ft_strjoin_bin(char const *s1, char const *s2)
@@ -934,6 +944,7 @@ int		run(t_mini *mini, int pid, int fdin, int fdout)
 			run_bin(cmd, mini);
 		else
 			execve(cmd[0], cmd, mini->envp);
+		print_exec_error(cmd[0]);
 	}
 	exit(0);
 	return (1);
