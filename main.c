@@ -539,7 +539,23 @@ char			*update_input_with_echap(char **s, char *new, int *i, t_list *env)
 	return (new);
 }
 
-char			*get_real_input(char *s, t_list *env)
+char			*update_input_with_last_return(char **s, char *new, int *i, t_mini *mini)
+{
+	char	*last_return;
+	char	*tmp;
+
+	new = join_input_parts(*s, new, *i);
+	last_return = ft_itoa(mini->last_return);
+	tmp = new;
+	new = ft_strjoin(tmp, last_return);
+	free(tmp);
+	free(last_return);
+	*s = *s + *i + 2;
+	*i = 0;
+	return (new);
+}
+
+char			*get_real_input(char *s, t_mini *mini, t_list *env)
 {
 	int		i;
 	char	*new;
@@ -559,6 +575,8 @@ char			*get_real_input(char *s, t_list *env)
 			new = update_input_with_big_quotes(&s, new, &i, env);
 		else if (s[i] == '\'')
 			new = update_input_with_lil_quotes(&s, new, &i, env);
+		else if (s[i] == '$' && s[i + 1] == '?')
+			new = update_input_with_last_return(&s, new, &i, mini);
 		else
 			i++;
 	}
@@ -659,7 +677,7 @@ int		create_and_close_file(char *file, char *method)
 	return (0);
 }
 
-void	get_fdout_file(t_instructions *instruct, char *s, t_list *env)
+void	get_fdout_file(t_instructions *instruct, char *s, t_mini *mini)
 {
 	char	*method;
 	char	*file;
@@ -680,7 +698,7 @@ void	get_fdout_file(t_instructions *instruct, char *s, t_list *env)
 	while (s[i] && s[i] == ' ')
 		i++;
 	size = ft_word_size(s + i, ' ');
-	file = get_real_input(ft_strndup(s + i, size), env);
+	file = get_real_input(ft_strndup(s + i, size), mini, mini->env);
 	instruct->fdout.name = file;
 	instruct->fdout.method = method;
 	instruct->fdout.is_file = 1;
@@ -688,7 +706,7 @@ void	get_fdout_file(t_instructions *instruct, char *s, t_list *env)
 	free(s);
 }
 
-int		get_fdin_file(t_instructions *instruct, char *s, t_list *env)
+int		get_fdin_file(t_instructions *instruct, char *s, t_mini *mini)
 {
 	char	*method;
 	char	*file;
@@ -700,7 +718,7 @@ int		get_fdin_file(t_instructions *instruct, char *s, t_list *env)
 	while (s[i] && s[i] == ' ')
 		i++;
 	size = ft_word_size(s + i, ' ');
-	file = get_real_input(ft_strndup(s + i, size), env);
+	file = get_real_input(ft_strndup(s + i, size), mini, mini->env);
 	instruct->fdin.name = file;
 	instruct->fdin.method = method;
 	instruct->fdin.is_file = 1;
@@ -708,7 +726,7 @@ int		get_fdin_file(t_instructions *instruct, char *s, t_list *env)
 	return (0);
 }
 
-t_list	*ft_lst_input(t_instructions *instruc, char *s, char c, t_list *env)
+t_list	*ft_lst_input(t_mini *mini, t_instructions *instruc, char *s, char c)
 {
 	t_list	*cmd;
 	int		words_nb;
@@ -727,11 +745,11 @@ t_list	*ft_lst_input(t_instructions *instruc, char *s, char c, t_list *env)
 			return (cmd);
 		len = ft_word_size(s, c);
 		if (*s == '>')
-			get_fdout_file(instruc, ft_strndup(s, len), env);
+			get_fdout_file(instruc, ft_strndup(s, len), mini);
 		else if (*s == '<')
-			get_fdin_file(instruc, ft_strndup(s, len), env);
+			get_fdin_file(instruc, ft_strndup(s, len), mini);
 		else
-			(ft_lstadd_back(&cmd, ft_lstnew(get_real_input(ft_strndup(s, len), env))));
+			(ft_lstadd_back(&cmd, ft_lstnew(get_real_input(ft_strndup(s, len), mini, mini->env))));
 		s += len;
 	}
 	return (cmd);
@@ -805,7 +823,7 @@ void		get_instructions(t_mini *mini, char *s, t_list *env)
 		current = ft_instructnew(NULL);
 		len = ft_word_size(s, '|');
 		instruction = ft_strndup(s, len);
-		cmd = ft_lst_input(current, instruction, ' ', env);
+		cmd = ft_lst_input(mini, current, instruction, ' ');
 		current->cmds = cmd;
 		ft_instruct_add_back(&mini->instructions, current);
 		free(instruction);
