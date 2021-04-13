@@ -50,7 +50,7 @@ int				env_builtin(t_list *env);
 void			add_env_var(char *env_var, t_list *env, char *key);
 int				export_builtin(t_mini *mini, char	**splited_inputs, t_list *env);
 void			delete_env_var(char *key, t_list **env);
-int				unset_builtin(char	**splited_inputs, t_list *env);
+int				unset_builtin(t_mini *mini, char	**splited_inputs, t_list *env);
 int				pwd_builtin(void);
 int				cd_builtin(t_mini *mini, char *mov);
 int				run_builtins(char	**splited_inputs, t_mini *mini);

@@ -179,7 +179,14 @@ int		export_error(char *env_var)
 	ft_putstr_fd("\': not a valid identifier\n", STDERR_FILENO);
 	return (1);
 }
-
+int		is_valid_env_char(char c, int i)
+{
+	if (i == 0 && ft_isdigit(c))
+		return (0);
+	else if (ft_isalnum(c) || c == '_')
+		return (1);
+	return (0);
+}
 int		export_builtin(t_mini *mini, char	**splited_inputs, t_list *env)
 {
 	int	i;
@@ -195,7 +202,7 @@ int		export_builtin(t_mini *mini, char	**splited_inputs, t_list *env)
 	{
 		mini->last_return = 0;
 		j = -1;
-		while (splited_inputs[i][++j] && ft_isalnum(splited_inputs[i][j]))
+		while (splited_inputs[i][++j] && is_valid_env_char(splited_inputs[i][j], j))
 			;
 		if ((splited_inputs[i][j] == '=' && j > 0) || !splited_inputs[i][j])
 			add_env_var(splited_inputs[i], env, ft_strndup(splited_inputs[i], j));
@@ -237,7 +244,16 @@ void	delete_env_var(char *key, t_list **env)
 	}
 }
 
-int		unset_builtin(char	**splited_inputs, t_list *env)
+int		unset_error(char *env_var)
+{
+	ft_putstr_fd("unset: \'", STDERR_FILENO);
+	ft_putstr_fd(env_var, STDERR_FILENO);
+	ft_putstr_fd("\': not a valid identifier\n", STDERR_FILENO);
+	return (1);
+}
+
+
+int		unset_builtin(t_mini *mini, char	**splited_inputs, t_list *env)
 {
 	int	i;
 	int	j;
@@ -245,15 +261,16 @@ int		unset_builtin(char	**splited_inputs, t_list *env)
 	i = -1;
 	while (splited_inputs[++i])
 	{
+		mini->last_return = 0;
 		j = -1;
-		while (splited_inputs[i][++j] && ft_isalnum(splited_inputs[i][j]))
+		while (splited_inputs[i][++j] && is_valid_env_char(splited_inputs[i][j], j))
 			;
 		if (!splited_inputs[i][j])
 			delete_env_var(splited_inputs[i], &env);
 		else
-			printf("export: \'%s\': not a valid identifier\n", splited_inputs[i]);
+			mini->last_return = unset_error(splited_inputs[i]);
 	}
-		return (0);
+		return (mini->last_return);
 }
 
 int		pwd_builtin(void)
@@ -351,7 +368,7 @@ int		run_builtins(char	**splited_inputs, t_mini *mini)
 	else if (ft_strcmp(splited_inputs[0], "export") == 0)
 			mini->last_return = export_builtin(mini, &splited_inputs[1], mini->env);
 	else if (ft_strcmp(splited_inputs[0], "unset") == 0)
-			mini->last_return = unset_builtin(&splited_inputs[1], mini->env);
+			mini->last_return = unset_builtin(mini, &splited_inputs[1], mini->env);
 	else if (ft_strcmp(splited_inputs[0], "exit") == 0)
 		mini->last_return = exit_minishell(splited_inputs, mini);
 	else if (ft_strcmp(splited_inputs[0], "env") == 0)
