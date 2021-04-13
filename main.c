@@ -172,7 +172,15 @@ void	print_export_var(t_list *env)
 	free(tab_var);
 }
 
-int		export_builtin(char	**splited_inputs, t_list *env)
+int		export_error(char *env_var)
+{
+	ft_putstr_fd("export: \'", STDERR_FILENO);
+	ft_putstr_fd(env_var, STDERR_FILENO);
+	ft_putstr_fd("\': not a valid identifier\n", STDERR_FILENO);
+	return (1);
+}
+
+int		export_builtin(t_mini *mini, char	**splited_inputs, t_list *env)
 {
 	int	i;
 	int	j;
@@ -185,15 +193,16 @@ int		export_builtin(char	**splited_inputs, t_list *env)
 	}
 	while (splited_inputs[++i])
 	{
+		mini->last_return = 0;
 		j = -1;
 		while (splited_inputs[i][++j] && ft_isalnum(splited_inputs[i][j]))
 			;
 		if ((splited_inputs[i][j] == '=' && j > 0) || !splited_inputs[i][j])
 			add_env_var(splited_inputs[i], env, ft_strndup(splited_inputs[i], j));
 		else
-			printf("export: \'%s\': not a valid identifier\n", splited_inputs[i]);
+			mini->last_return = export_error(splited_inputs[i]);
 	}
-		return (0);
+		return (mini->last_return);
 }
 
 void	delete_env_var(char *key, t_list **env)
@@ -282,15 +291,24 @@ void	update_pwd_paths(t_mini *mini)
 	old_path = get_env_var("PWD", mini->env);
 	pwd[0] = ft_strjoin("OLDPWD=", old_path);
 	pwd[1] = NULL;
-	export_builtin(pwd, mini->env);
+	export_builtin(mini, pwd, mini->env);
 	free(old_path);
 	free(pwd[0]);
 	ft_bzero(buff, 128);
 	getcwd(buff, 128);
 	pwd[0] = ft_strjoin("PWD=", buff);
 	pwd[1] = NULL;
-	export_builtin(pwd, mini->env);
+	export_builtin(mini, pwd, mini->env);
 	free(pwd[0]);
+}
+
+void	cd_error(char *mov)
+{
+	ft_putstr_fd("cd: ", STDERR_FILENO);
+	ft_putstr_fd(mov, STDERR_FILENO);
+	ft_putstr_fd(": ", STDERR_FILENO);
+	ft_putstr_fd(strerror(errno), STDERR_FILENO);
+	ft_putchar_fd('\n', STDERR_FILENO);
 }
 
 int		cd_builtin(t_mini *mini, char *mov)
@@ -310,7 +328,10 @@ int		cd_builtin(t_mini *mini, char *mov)
 	if (!mini->last_return)
 		update_pwd_paths(mini);
 	else if (mini->last_return == -1)
+	{
+		cd_error(mov);
 		mini->last_return = 1;
+	}
 	if (mov_usr)
 		free(mov);
 	return (mini->last_return);
@@ -318,29 +339,25 @@ int		cd_builtin(t_mini *mini, char *mov)
 
 int		run_builtins(char	**splited_inputs, t_mini *mini)
 {
-	int		status;
-
 	if (!splited_inputs || !(*splited_inputs))
 		return (0);
-	status = 0;
+	mini->last_return = 0;
 	if (ft_strcmp(splited_inputs[0], "echo") == 0)
-		status = echo_builtin(splited_inputs);
+		mini->last_return = echo_builtin(splited_inputs);
 	else if (ft_strcmp(splited_inputs[0], "cd") == 0)
-		status = cd_builtin(mini, splited_inputs[1]);
+		mini->last_return = cd_builtin(mini, splited_inputs[1]);
 	else if (ft_strcmp(splited_inputs[0], "pwd") == 0)
-		status = pwd_builtin();
+		mini->last_return = pwd_builtin();
 	else if (ft_strcmp(splited_inputs[0], "export") == 0)
-			status = export_builtin(&splited_inputs[1], mini->env);
+			mini->last_return = export_builtin(mini, &splited_inputs[1], mini->env);
 	else if (ft_strcmp(splited_inputs[0], "unset") == 0)
-			status = unset_builtin(&splited_inputs[1], mini->env);
+			mini->last_return = unset_builtin(&splited_inputs[1], mini->env);
 	else if (ft_strcmp(splited_inputs[0], "exit") == 0)
-		status = exit_minishell(splited_inputs, mini);
+		mini->last_return = exit_minishell(splited_inputs, mini);
 	else if (ft_strcmp(splited_inputs[0], "env") == 0)
-		status = env_builtin(mini->env);
+		mini->last_return = env_builtin(mini->env);
 	else
 		return (0);
-	if (status != 0)
-		printf("%s: %s: %s\n",splited_inputs[0], strerror(errno), splited_inputs[1]);
 	return (1);
 }
 
