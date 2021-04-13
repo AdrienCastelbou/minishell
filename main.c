@@ -262,23 +262,58 @@ int		pwd_builtin(void)
 	return (status);
 }
 
+char	*get_user_dir(t_mini *mini)
+{
+	char	*user;
+	char	*user_path;
+
+	user = get_env_var("USER", mini->env);
+	user_path = ft_strjoin_path("/Users", user);
+	free(user);
+	return (user_path);
+}
+
+void	update_pwd_paths(t_mini *mini)
+{
+	char	buff[128];
+	char	*pwd[2];
+	char	*old_path;
+
+	old_path = get_env_var("PWD", mini->env);
+	pwd[0] = ft_strjoin("OLDPWD=", old_path);
+	pwd[1] = NULL;
+	export_builtin(pwd, mini->env);
+	free(old_path);
+	free(pwd[0]);
+	ft_bzero(buff, 128);
+	getcwd(buff, 128);
+	pwd[0] = ft_strjoin("PWD=", buff);
+	pwd[1] = NULL;
+	export_builtin(pwd, mini->env);
+	free(pwd[0]);
+}
+
 int		cd_builtin(t_mini *mini, char *mov)
 {
-	int		status;
+	int		mov_usr;
 	char	buff[128];
 	char	*pwd[2];
 
-	ft_bzero(buff, 128);
-	status = chdir(mov);
-	if (!status)
+	mov_usr = 0;
+	if (mov == NULL)
 	{
-		getcwd(buff, 128);
-		pwd[0] = ft_strjoin("PWD=", buff);
-		pwd[1] = NULL;
-		export_builtin(pwd, mini->env);
-		free(pwd[0]);
+		mov = get_user_dir(mini);
+		mov_usr = 1;
 	}
-	return (status);
+	ft_bzero(buff, 128);
+	mini->last_return = chdir(mov);
+	if (!mini->last_return)
+		update_pwd_paths(mini);
+	else if (mini->last_return == -1)
+		mini->last_return = 1;
+	if (mov_usr)
+		free(mov);
+	return (mini->last_return);
 }
 
 int		run_builtins(char	**splited_inputs, t_mini *mini)
@@ -813,7 +848,6 @@ t_list		*ft_lst_cmds(t_mini *mini, char *s, t_list *env)
 			free_cmds(mini);
 			free(cmd_input);
 		}
-		printf("$? = %d\n", mini->last_return);
 		s += len + 1;
 		i++;
 		set_mini(mini);
@@ -870,7 +904,7 @@ static void redirect(int oldfd, int newfd) {
 	}
 }
 
-char	*ft_strjoin_bin(char const *s1, char const *s2)
+char	*ft_strjoin_path(char const *s1, char const *s2)
 {
 	char	*str;
 	int		i;
@@ -917,7 +951,7 @@ int		run_bin(char **cmd, t_mini *mini)
 			path_len = ft_strlen(path_list);
 		path = ft_strndup(path_list, path_len);
 		free(cmd[0]);
-		cmd[0] = ft_strjoin_bin(path, bin);
+		cmd[0] = ft_strjoin_path(path, bin);
 		free(path);
 		execve(cmd[0], cmd, mini->envp);
 		path_list += path_len;

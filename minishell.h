@@ -75,6 +75,8 @@ t_list			*ft_lst_cmds(t_mini *mini, char *s, t_list *env);
 int				run_bin(char **cmd, t_mini *mini);
 
 //UTILS
+
+char			*ft_strjoin_path(char const *s1, char const *s2);
 char			**transform_env_lst_in_tab(t_list *env);
 void			set_mini(t_mini *mini);
 void			get_cmds_tab(t_mini *mini);
