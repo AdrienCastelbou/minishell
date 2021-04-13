@@ -813,6 +813,7 @@ t_list		*ft_lst_cmds(t_mini *mini, char *s, t_list *env)
 			free_cmds(mini);
 			free(cmd_input);
 		}
+		printf("$? = %d\n", mini->last_return);
 		s += len + 1;
 		i++;
 		set_mini(mini);
@@ -843,15 +844,18 @@ void	exec_cmd(t_mini *mini, char **cmd)
 	else
 	{
 		pid = fork();
-		if (pid)
-			wait(&status);
-		else
+		if (pid == 0)
 		{
 			if (!ft_strchr(cmd[0], '/'))
 				run_bin(cmd, mini);
 			else
 				execve(cmd[0], cmd, mini->envp);
 			print_exec_error(cmd[0]);
+		}
+		else
+		{
+			if (0 < waitpid(pid, &(mini->last_return), 0) && WIFEXITED(mini->last_return))
+				mini->last_return = WEXITSTATUS(mini->last_return);
 		}
 	}
 }
@@ -860,7 +864,7 @@ static void redirect(int oldfd, int newfd) {
 	if (oldfd != newfd)
 	{
 		if (dup2(oldfd, newfd) != -1)
-			close(oldfd); /* successfully redirected */
+			close(oldfd);
 		else
 			;
 	}
@@ -995,7 +999,8 @@ void	make_pipe(t_mini *mini, t_instructions *instruc)
 		}
 		else
 		{
-			waitpid(pid, &status, 0);
+			if (0 < waitpid(pid, &(mini->last_return), 0) && WIFEXITED(mini->last_return))
+				mini->last_return = WEXITSTATUS(mini->last_return);
 			if (fd[1] != STDOUT_FILENO)
 				close(fd[1]);
 			if (fdin != STDIN_FILENO)
