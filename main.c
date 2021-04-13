@@ -738,7 +738,10 @@ int		create_and_close_file(char *file, char *method)
 		fd = open(file, O_WRONLY | O_APPEND | O_CREAT, S_IRWXU | S_IRGRP | S_IROTH);
 	if (fd < 0)
 	{
-		printf("%s\n", strerror(errno));
+		ft_putstr_fd(file, STDERR_FILENO);
+		ft_putstr_fd(": ", STDERR_FILENO);
+		ft_putstr_fd(strerror(errno), STDERR_FILENO);
+		ft_putchar_fd('\n', STDERR_FILENO);
 		return (1);
 	}
 	close(fd);
@@ -790,8 +793,7 @@ int		get_fdin_file(t_instructions *instruct, char *s, t_mini *mini)
 	instruct->fdin.name = file;
 	instruct->fdin.method = method;
 	instruct->fdin.is_file = 1;
-	create_and_close_file(file, method);
-	return (0);
+	return (create_and_close_file(file, method));
 }
 
 t_list	*ft_lst_input(t_mini *mini, t_instructions *instruc, char *s, char c)
@@ -815,7 +817,10 @@ t_list	*ft_lst_input(t_mini *mini, t_instructions *instruc, char *s, char c)
 		if (*s == '>')
 			get_fdout_file(instruc, ft_strndup(s, len), mini);
 		else if (*s == '<')
-			get_fdin_file(instruc, ft_strndup(s, len), mini);
+		{
+			if (get_fdin_file(instruc, ft_strndup(s, len), mini) == 1)
+				return (cmd);
+		}
 		else
 			(ft_lstadd_back(&cmd, ft_lstnew(get_real_input(ft_strndup(s, len), mini, mini->env))));
 		s += len;
@@ -1056,6 +1061,8 @@ int		run(t_mini *mini, int pid, int fdin, int fdout)
 	int		status;
 
 	cmd = mini->cmd;
+	if (fdin == -1)
+		exit(1);
 	redirect(fdin, STDIN_FILENO);
 	redirect(fdout, STDOUT_FILENO);
 	if (!*cmd)
@@ -1146,6 +1153,11 @@ void	run_cmd(t_mini *mini, char **cmd, t_instructions *instruc)
 	fdout = STDOUT_FILENO;
 	if (instruc->fdin.name) 
 		fdin = open_agreg_file(instruc->fdin.name, instruc->fdin.method);
+	if (fdin == -1)
+	{
+		mini->last_return = 1;
+		return ;
+	}
 	if (instruc->fdout.name)
 		fdout = open_agreg_file(instruc->fdout.name, instruc->fdout.method);
 	redirect(fdin, STDIN_FILENO);
