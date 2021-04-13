@@ -33,8 +33,42 @@ void	free_inputs(t_mini *mini)
 		free(mini->input);
 }
 
+int		too_args_exit_error(void)
+{
+	ft_putstr_fd("exit: too many arguments\n", STDERR_FILENO);
+	return (1);
+}
+
+int		is_only_digit(char *s)
+{
+	int i;
+
+	i = -1;
+	while (s[++i])
+		if (!ft_isdigit(s[i]))
+			return (0);
+	return (1);
+}
+
+int		bad_exit_arg(char *s)
+{
+	ft_putstr_fd("exit: ", STDERR_FILENO);
+	ft_putstr_fd(s, STDERR_FILENO);
+	ft_putstr_fd(": numeric argument required\n", STDERR_FILENO);
+	return (255);
+}
+
 int		exit_minishell(char	**splited_inputs, t_mini *mini)
 {
+	int	return_value;
+
+	return_value = 0;
+	if (!is_only_digit(splited_inputs[1]))
+		return_value = bad_exit_arg(splited_inputs[1]);
+	else if (splited_inputs[1] && splited_inputs[2])
+		return (too_args_exit_error());
+	else
+		return_value = ft_atoi(splited_inputs[1]);
 	free_inputs(mini);
 	ft_lstclear(&mini->env, free);
 	if (mini->envp)
@@ -42,7 +76,7 @@ int		exit_minishell(char	**splited_inputs, t_mini *mini)
 	close(mini->stdin_copy);
 	close(mini->stdout_copy);
 	free(mini);
-	exit(0);
+	exit(return_value);
 	return (0);
 }
 
