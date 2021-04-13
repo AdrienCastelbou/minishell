@@ -63,11 +63,11 @@ int		exit_minishell(char	**splited_inputs, t_mini *mini)
 	int	return_value;
 
 	return_value = 0;
-	if (!is_only_digit(splited_inputs[1]))
+	if (splited_inputs[1] && !is_only_digit(splited_inputs[1]))
 		return_value = bad_exit_arg(splited_inputs[1]);
 	else if (splited_inputs[1] && splited_inputs[2])
 		return (too_args_exit_error());
-	else
+	else if (splited_inputs[1])
 		return_value = ft_atoi(splited_inputs[1]);
 	free_inputs(mini);
 	ft_lstclear(&mini->env, free);
