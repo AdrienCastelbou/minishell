@@ -353,20 +353,34 @@ void	update_pwd_paths(t_mini *mini)
 	free(pwd[0]);
 }
 
-void	cd_error(char *mov)
+void	cd_error(char *mov, char *error)
 {
 	ft_putstr_fd("cd: ", STDERR_FILENO);
 	ft_putstr_fd(mov, STDERR_FILENO);
 	ft_putstr_fd(": ", STDERR_FILENO);
-	ft_putstr_fd(strerror(errno), STDERR_FILENO);
+	ft_putstr_fd(error, STDERR_FILENO);
 	ft_putchar_fd('\n', STDERR_FILENO);
+}
+
+int		cd_oldpwd(t_mini *mini, char *mov)
+{
+	free(mov);
+	mov = get_env_var("OLDPWD", mini->env);
+	if (!*mov)
+	{
+		free(mov);
+		cd_error("OLDPWD", "not set");
+		return (1);
+	}
+	mini->last_return = chdir(mov);
+	update_pwd_paths(mini);
+	free(mov);
+	return (0);
 }
 
 int		cd_builtin(t_mini *mini, char *mov)
 {
 	int		mov_usr;
-	char	buff[128];
-	char	*pwd[2];
 
 	mov_usr = 0;
 	if (mov == NULL)
@@ -374,13 +388,14 @@ int		cd_builtin(t_mini *mini, char *mov)
 		mov = get_user_dir(mini);
 		mov_usr = 1;
 	}
-	ft_bzero(buff, 128);
+	else if (ft_strcmp(mov, "-") == 0)
+		return (cd_oldpwd(mini, mov));
 	mini->last_return = chdir(mov);
 	if (!mini->last_return)
 		update_pwd_paths(mini);
 	else if (mini->last_return == -1)
 	{
-		cd_error(mov);
+		cd_error(mov, strerror(errno));
 		mini->last_return = 1;
 	}
 	if (mov_usr)
