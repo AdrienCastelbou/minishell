@@ -438,7 +438,7 @@ int				ft_get_fd_token(const char *s)
 		len += 1;
 	else
 		len += 2;
-	while (s[len] && s[len] == ' ')
+	while (s[len] && (s[len] == ' ' || s[len] == 9))
 		len++;
 	len += ft_word_size(s + len, ' ');
 	return (len);
