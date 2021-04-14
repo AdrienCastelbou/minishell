@@ -62,7 +62,8 @@ int		exit_minishell(char	**splited_inputs, t_mini *mini)
 {
 	int	return_value;
 
-	return_value = 0;
+	return_value = mini->last_return;
+	printf("%d\n", return_value);
 	if (splited_inputs[1] && !is_only_digit(splited_inputs[1]))
 		return_value = bad_exit_arg(splited_inputs[1]);
 	else if (splited_inputs[1] && splited_inputs[2])
@@ -407,7 +408,6 @@ int		run_builtins(char	**splited_inputs, t_mini *mini)
 {
 	if (!splited_inputs || !(*splited_inputs))
 		return (0);
-	mini->last_return = 0;
 	if (ft_strcmp(splited_inputs[0], "echo") == 0)
 		mini->last_return = echo_builtin(splited_inputs);
 	else if (ft_strcmp(splited_inputs[0], "cd") == 0)
