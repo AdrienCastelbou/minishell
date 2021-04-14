@@ -444,22 +444,18 @@ int				ft_get_fd_token(const char *s)
 	return (len);
 }
 
-static int		ft_word_size(const char *s, char c)
+static int		ft_cmd_size(const char *s, char c)
 {
 	int		len;
 	int		echap;
 
 	echap = 0;
 	len = 0;
-	if ((s[len] == '>' || s[len] == '<') && c == ' ')
-		return (ft_get_fd_token(s));
 	while (s[len])
 	{
 		if (echap && s[len])
 			echap = 0;
 		else if (s[len] == c)
-			return (len);
-		else if (c == ' ' && (s[len] == '>' || s[len] == '<'))
 			return (len);
 		else if (s[len] == '\"')
 			while (s[++len] != '\"' && s[len])
@@ -474,23 +470,34 @@ static int		ft_word_size(const char *s, char c)
 	return (len);
 }
 
-static int		ft_words_count(char const *s, char c)
+static int		ft_word_size(const char *s, char c)
 {
-	int		count;
 	int		len;
+	int		echap;
 
-	count = 0;
-	while (*s)
+	echap = 0;
+	len = 0;
+	if ((s[len] == '>' || s[len] == '<'))
+		return (ft_get_fd_token(s));
+	while (s[len])
 	{
-		while (*s == c)
-			s++;
-		if ((len = ft_word_size(s, c)))
-		{
-			s += len;
-			count++;
-		}
+		if (echap && s[len])
+			echap = 0;
+		else if (s[len] == c || s[len] == 9)
+			return (len);
+		else if (s[len] == '>' || s[len] == '<')
+			return (len);
+		else if (s[len] == '\"')
+			while (s[++len] != '\"' && s[len])
+				;
+		else if (s[len] == '\'')
+			while (s[++len] != '\'' && s[len])
+				;
+		else if (s[len] == '\\')
+			echap = 1;
+		len++;
 	}
-	return (count);
+	return (len);
 }
 
 char			*get_env_var(const char *s, t_list *env)
@@ -648,7 +655,7 @@ char			*get_real_input(char *s, t_mini *mini, t_list *env)
 	new = malloc(sizeof(char) * 1);
 	*new = 0;
 	i = 0;
-	while (s[i] && s[i] != ' ')
+	while (s[i] && s[i] != ' ' && s[i] != 9)
 	{
 		if (s[i] == '\\')
 			new = update_input_with_echap(&s, new, &i, env);
@@ -781,7 +788,7 @@ void	get_fdout_file(t_instructions *instruct, char *s, t_mini *mini)
 		i += 2;
 		method = ">>";
 	}
-	while (s[i] && s[i] == ' ')
+	while (s[i] && (s[i] == ' ' || s[i] == 9))
 		i++;
 	size = ft_word_size(s + i, ' ');
 	file = get_real_input(ft_strndup(s + i, size), mini, mini->env);
@@ -801,7 +808,7 @@ int		get_fdin_file(t_instructions *instruct, char *s, t_mini *mini)
 
 	method = "<";
 	i = 1;
-	while (s[i] && s[i] == ' ')
+	while (s[i] && (s[i] == ' ' || s[i] == 9))
 		i++;
 	size = ft_word_size(s + i, ' ');
 	file = get_real_input(ft_strndup(s + i, size), mini, mini->env);
@@ -824,11 +831,11 @@ t_list	*ft_lst_input(t_mini *mini, t_instructions *instruc, char *s, char c)
 	i = -1;
 	while (*s)
 	{
-		while (*s == c && *s)
+		while ((*s == c || *s == 9) && *s)
 			s++;
 		if (!(*s))
 			return (cmd);
-		len = ft_word_size(s, c);
+		len = ft_word_size(s, ' ');
 		if (*s == '>')
 			get_fdout_file(instruc, ft_strndup(s, len), mini);
 		else if (*s == '<')
@@ -909,7 +916,7 @@ void		get_instructions(t_mini *mini, char *s, t_list *env)
 	while (*s)
 	{
 		current = ft_instructnew(NULL);
-		len = ft_word_size(s, '|');
+		len = ft_cmd_size(s, '|');
 		instruction = ft_strndup(s, len);
 		cmd = ft_lst_input(mini, current, instruction, ' ');
 		current->cmds = cmd;
@@ -939,7 +946,7 @@ t_list		*ft_lst_cmds(t_mini *mini, char *s, t_list *env)
 	i = 0;
 	while (i < cmd_nb)
 	{
-		len = ft_word_size(s, ';');
+		len = ft_cmd_size(s, ';');
 		cmd_input = ft_strndup(s, len);
 		get_instructions(mini, cmd_input, env);
 		if (mini->is_pipe)
