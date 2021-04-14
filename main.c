@@ -440,7 +440,7 @@ int				ft_get_fd_token(const char *s)
 		len += 2;
 	while (s[len] && (s[len] == ' ' || s[len] == 9))
 		len++;
-	len += ft_word_size(s + len, ' ');
+	len += ft_word_size(s + len);
 	return (len);
 }
 
@@ -470,7 +470,7 @@ static int		ft_cmd_size(const char *s, char c)
 	return (len);
 }
 
-static int		ft_word_size(const char *s, char c)
+static int		ft_word_size(const char *s)
 {
 	int		len;
 	int		echap;
@@ -483,7 +483,7 @@ static int		ft_word_size(const char *s, char c)
 	{
 		if (echap && s[len])
 			echap = 0;
-		else if (s[len] == c || s[len] == 9)
+		else if (s[len] == ' ' || s[len] == 9)
 			return (len);
 		else if (s[len] == '>' || s[len] == '<')
 			return (len);
@@ -790,7 +790,7 @@ void	get_fdout_file(t_instructions *instruct, char *s, t_mini *mini)
 	}
 	while (s[i] && (s[i] == ' ' || s[i] == 9))
 		i++;
-	size = ft_word_size(s + i, ' ');
+	size = ft_word_size(s + i);
 	file = get_real_input(ft_strndup(s + i, size), mini, mini->env);
 	instruct->fdout.name = file;
 	instruct->fdout.method = method;
@@ -810,7 +810,7 @@ int		get_fdin_file(t_instructions *instruct, char *s, t_mini *mini)
 	i = 1;
 	while (s[i] && (s[i] == ' ' || s[i] == 9))
 		i++;
-	size = ft_word_size(s + i, ' ');
+	size = ft_word_size(s + i);
 	file = get_real_input(ft_strndup(s + i, size), mini, mini->env);
 	instruct->fdin.name = file;
 	instruct->fdin.method = method;
@@ -835,7 +835,7 @@ t_list	*ft_lst_input(t_mini *mini, t_instructions *instruc, char *s, char c)
 			s++;
 		if (!(*s))
 			return (cmd);
-		len = ft_word_size(s, ' ');
+		len = ft_word_size(s);
 		if (*s == '>')
 			get_fdout_file(instruc, ft_strndup(s, len), mini);
 		else if (*s == '<')
