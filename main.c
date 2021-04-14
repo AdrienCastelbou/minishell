@@ -962,6 +962,7 @@ void	exec_cmd(t_mini *mini, char **cmd)
 	int		pid;
 	int		status;
 
+	mini->envp = transform_env_lst_in_tab(mini->env);
 	if (!*cmd)
 		;
 	else if (run_builtins(cmd, mini))
@@ -1034,7 +1035,6 @@ int		run_bin(char **cmd, t_mini *mini)
 
 	bin = ft_strdup(cmd[0]);
 	path_list = get_env_var("PATH", mini->env);
-	mini->envp = transform_env_lst_in_tab(mini->env);
 	while (*path_list)
 	{
 		path_len = (int)ft_strchr(path_list, ':') - (int)path_list;
@@ -1061,6 +1061,7 @@ int		run(t_mini *mini, int pid, int fdin, int fdout)
 	int		status;
 
 	cmd = mini->cmd;
+	mini->envp = transform_env_lst_in_tab(mini->env);
 	if (fdin == -1)
 		exit(1);
 	redirect(fdin, STDIN_FILENO);
