@@ -818,7 +818,7 @@ int		get_fdin_file(t_instructions *instruct, char *s, t_mini *mini)
 	return (create_and_close_file(file, method));
 }
 
-t_list	*ft_lst_input(t_mini *mini, t_instructions *instruc, char *s, char c)
+t_list	*ft_lst_input(t_mini *mini, t_instructions *instruc, char *s)
 {
 	t_list	*cmd;
 	int		words_nb;
@@ -831,7 +831,7 @@ t_list	*ft_lst_input(t_mini *mini, t_instructions *instruc, char *s, char c)
 	i = -1;
 	while (*s)
 	{
-		while ((*s == c || *s == 9) && *s)
+		while ((*s == ' ' || *s == 9) && *s)
 			s++;
 		if (!(*s))
 			return (cmd);
@@ -918,7 +918,7 @@ void		get_instructions(t_mini *mini, char *s, t_list *env)
 		current = ft_instructnew(NULL);
 		len = ft_cmd_size(s, '|');
 		instruction = ft_strndup(s, len);
-		cmd = ft_lst_input(mini, current, instruction, ' ');
+		cmd = ft_lst_input(mini, current, instruction);
 		current->cmds = cmd;
 		ft_instruct_add_back(&mini->instructions, current);
 		free(instruction);
@@ -938,7 +938,6 @@ t_list		*ft_lst_cmds(t_mini *mini, char *s, t_list *env)
 	int		cmd_nb;
 	int		i;
 	int		len;
-	t_instructions *current;
 
 	if (!s)
 		return (NULL);
