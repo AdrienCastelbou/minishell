@@ -1287,14 +1287,12 @@ int		ft_get_input(t_mini *mini)
 	ft_putstr_fd("\033[0;34mminishell> \033[0m", 1);
 	while ( !ft_strchr(mini->input, '\n') && (size = read(STDIN_FILENO, buffer, 128)) > 0 && should_run)
 	{
-		if (buffer[size] == 0)
-			exit_minishell(NULL, mini);
 		buffer[size] = 0;
 		tmp = mini->input;
 		mini->input = ft_strjoin(tmp, buffer);
 	}
-		if (size == 0)
-			exit_minishell(NULL, mini);
+	if (size == 0 && !*mini->input)
+		exit_minishell(NULL, mini);
 	if (!should_run)
 	{
 		if (mini->input && *mini->input)
