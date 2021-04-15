@@ -1291,7 +1291,13 @@ int		ft_get_input(t_mini *mini)
 		tmp = mini->input;
 		mini->input = ft_strjoin(tmp, buffer);
 	}
-	if (size == 0 && !*mini->input)
+		if (should_run == 0)
+		{
+			dup2(mini->stdin_copy, STDIN_FILENO);
+			ft_putchar_fd('\n', STDIN_FILENO);
+			return 1;
+		}
+			if (size == 0 && !*mini->input)
 		exit_minishell(NULL, mini);
 	if (!should_run)
 	{
@@ -1327,6 +1333,7 @@ t_list	*copy_env(char **envp)
 void sig_handler(int signum)
 {
 	should_run = 0;
+	close(STDIN_FILENO);
 }
 
 t_mini	*init_mini(char **envp_tocpy)
