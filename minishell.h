@@ -8,6 +8,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <memory.h>
+#include <signal.h>
 
 typedef struct	s_fds {
 		char			*name;

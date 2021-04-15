@@ -1,5 +1,7 @@
 #include "minishell.h"
 
+int		should_run;
+
 int		ft_strcmp(char *s1, char *s2)
 {
 	while (*s1 && *s2)
@@ -26,9 +28,12 @@ void	free_inputs(t_mini *mini)
 	int i;
 
 	i = -1;
-	while (mini->cmd[++i])
-		free(mini->cmd[i]);
-	free(mini->cmd);
+	if (mini->cmd)
+	{
+		while (mini->cmd[++i])
+			free(mini->cmd[i]);
+		free(mini->cmd);
+	}
 	if (mini->input)
 		free(mini->input);
 }
@@ -63,13 +68,15 @@ int		exit_minishell(char	**splited_inputs, t_mini *mini)
 	int	return_value;
 
 	return_value = mini->last_return;
-	printf("%d\n", return_value);
-	if (splited_inputs[1] && !is_only_digit(splited_inputs[1]))
-		return_value = bad_exit_arg(splited_inputs[1]);
-	else if (splited_inputs[1] && splited_inputs[2])
-		return (too_args_exit_error());
-	else if (splited_inputs[1])
-		return_value = ft_atoi(splited_inputs[1]);
+	if (splited_inputs)
+	{
+		if (splited_inputs[1] && !is_only_digit(splited_inputs[1]))
+			return_value = bad_exit_arg(splited_inputs[1]);
+		else if (splited_inputs[1] && splited_inputs[2])
+			return (too_args_exit_error());
+		else if (splited_inputs[1])
+			return_value = ft_atoi(splited_inputs[1]);
+	}
 	free_inputs(mini);
 	ft_lstclear(&mini->env, free);
 	if (mini->envp)
@@ -1215,6 +1222,7 @@ char	**transform_env_lst_in_tab(t_list *env)
 
 void	set_mini(t_mini *mini)
 {
+	mini->cmd = NULL;
 	mini->envp = NULL;
 	mini->cmds = NULL;
 	mini->is_pipe = 0;
@@ -1268,18 +1276,30 @@ void	free_cmds(t_mini *mini)
 	set_mini(mini);
 }
 
+
 int		ft_get_input(t_mini *mini)
 {
 	char	buffer[128];
 	char	*tmp;
 	int		size;
 
+	should_run = 1;
 	ft_putstr_fd("\033[0;34mminishell> \033[0m", 1);
-	while ( !ft_strchr(mini->input, '\n') && (size = read(STDIN_FILENO, buffer, 128)) > 0)
+	while ( !ft_strchr(mini->input, '\n') && (size = read(STDIN_FILENO, buffer, 128)) > 0 && should_run)
 	{
+		if (buffer[size] == 0)
+			exit_minishell(NULL, mini);
 		buffer[size] = 0;
 		tmp = mini->input;
 		mini->input = ft_strjoin(tmp, buffer);
+	}
+		if (size == 0)
+			exit_minishell(NULL, mini);
+	if (!should_run)
+	{
+		if (mini->input && *mini->input)
+			free(mini->input);
+		return(1);
 	}
 	if (ft_strchr(mini->input, '\n'))
 		*(ft_strchr(mini->input, '\n')) = '\0';
@@ -1306,6 +1326,11 @@ t_list	*copy_env(char **envp)
 	return (env);
 }
 
+void sig_handler(int signum)
+{
+	should_run = 0;
+}
+
 t_mini	*init_mini(char **envp_tocpy)
 {
 	t_mini	*mini;
@@ -1329,6 +1354,7 @@ int		main(int argc, char **argv, char **envp)
 	t_mini *mini;
 
 	mini = init_mini(envp);
+	signal(SIGINT, sig_handler);
 	while (1)
 		ft_get_input(mini);
 }
