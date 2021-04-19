@@ -1,4 +1,5 @@
 #include "minishell.h"
+#include <termios.h>
 
 int		should_run;
 
@@ -1279,13 +1280,13 @@ void	free_cmds(t_mini *mini)
 
 int		ft_get_input(t_mini *mini)
 {
-	char	buffer[128];
+	char	buffer[2];
 	char	*tmp;
 	int		size;
 
 	should_run = 1;
 	ft_putstr_fd("\033[0;34mminishell> \033[0m", 1);
-	while ( !ft_strchr(mini->input, '\n') && (size = read(STDIN_FILENO, buffer, 128)) > 0 && should_run)
+	while ( !ft_strchr(mini->input, '\n') && (size = read(STDIN_FILENO, buffer, 1)) > 0 && should_run)
 	{
 		buffer[size] = 0;
 		tmp = mini->input;
@@ -1297,8 +1298,6 @@ int		ft_get_input(t_mini *mini)
 		ft_putchar_fd('\n', STDIN_FILENO);
 		return 1;
 	}
-	if (size == 0 && !*mini->input)
-		exit_minishell(NULL, mini);
 	if (!should_run)
 	{
 		if (mini->input && *mini->input)
@@ -1354,11 +1353,26 @@ t_mini	*init_mini(char **envp_tocpy)
 	return (mini);
 }
 
+void	disable_veof(t_mini *mini)
+{
+	struct termios	t;
+	int				r;
+
+	r = tcgetattr(STDIN_FILENO, &t);
+	if (r)
+		exit_minishell(NULL, mini);
+	t.c_cc[VEOF] = _POSIX_VDISABLE;
+	r = tcsetattr(STDIN_FILENO, TCSANOW, &t);
+	if (r)
+		exit_minishell(NULL, mini);
+}
+
 int		main(int argc, char **argv, char **envp)
 {
 	t_mini *mini;
 
 	mini = init_mini(envp);
+	disable_veof(mini);
 	signal(SIGINT, sig_handler);
 	while (1)
 		ft_get_input(mini);
