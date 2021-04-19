@@ -56,13 +56,18 @@ int main( int argc, char ** argv )
 	set_mode();
 	while (read (STDIN_FILENO, &c, 1))
 	{
-		if (c == '\n')          /* C-d */
+		if (c == '\004')
+		{
+			if (!*input && !*buff)
+				break;
+		}
+		else if (c == '\n')          /* C-d */
 			break;
 		else if (c == 127)
 		{
 			if (!top && *input)
 				input[ft_strlen(input) - 1] = 0;
-			else
+			else if (top)
 			{
 				top -= 1;
 				buff[top] = 0;
