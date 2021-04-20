@@ -1308,17 +1308,53 @@ void	set_mode(void)
 	}
 }
 
+void	erase_char_in_prompt(t_mini *mini, int *top, char *buff)
+{
+	if (!(*mini->input) && !*buff)
+		return ;
+	if (!*top && *mini->input)
+		mini->input[ft_strlen(mini->input) - 1] = 0;
+	else if (*top)
+	{
+		*top -= 1;
+		buff[*top] = 0;
+	}
+	write(1, "\b \b", 3);
+}
+
+void	join_prompt_parts(t_mini *mini, char *buff)
+{
+	char *tmp;
+
+	tmp = mini->input;
+	mini->input = ft_strjoin(tmp, buff);
+	free(tmp);
+	ft_bzero(buff, ft_strlen(buff));
+}
+
+void	write_char_in_prompt(t_mini *mini, char c, int *top, char *buff)
+{
+	buff[*top] = c;
+	write(1, &c, 1);
+	*top += 1;
+	if (*top >= 128 - 1)
+	{
+		join_prompt_parts(mini, buff);
+		*top = 0;
+	}
+}
+
+
 void	read_prompt(t_mini *mini)
 {
 	char	c;
-	char	*tmp;
 	char	buff[128];
 	int		top;
 
 	top = 0;
 	ft_bzero(buff, 128);
 	set_mode();
-	while (read(STDIN_FILENO, &c, 1))
+	while (read(STDIN_FILENO, &c, 1) && should_run)
 	{
 		if (c == '\004')
 		{
@@ -1327,39 +1363,14 @@ void	read_prompt(t_mini *mini)
 		}
 		else if (c == '\n')
 			break ;
-		else if (c == 127 && (*mini->input || *buff))
-		{
-			if (!top && *mini->input)
-				mini->input[ft_strlen(mini->input) - 1] = 0;
-			else if (top)
-			{
-				top -= 1;
-				buff[top] = 0;
-			}
-			write(1, "\b \b", 3);
-		}
 		else if (c == 127)
-			;
+			erase_char_in_prompt(mini, &top, buff);
 		else
-		{
-			buff[top] = c;
-			write(1, &c, 1);
-			top += 1;
-			if (top >= 128 - 1)
-			{
-				tmp = mini->input;
-				mini->input = ft_strjoin(tmp, buff);
-				free(tmp);
-				ft_bzero(buff, 128);
-				top = 0;
-			}
-		}
+			write_char_in_prompt(mini, c, &top, buff);
 	}
 	write(1, "\n", 1);
 	reset_input_mode();
-	tmp = mini->input;
-	mini->input = ft_strjoin(mini->input, buff);
-	free(tmp);
+	join_prompt_parts(mini, buff);
 }
 
 int		ft_get_input(t_mini *mini)
@@ -1374,13 +1385,7 @@ int		ft_get_input(t_mini *mini)
 	if (should_run == 0)
 	{
 		dup2(mini->stdin_copy, STDIN_FILENO);
-		ft_putchar_fd('\n', STDIN_FILENO);
-		return 1;
-	}
-	if (!should_run)
-	{
-		if (mini->input && *mini->input)
-			free(mini->input);
+		ft_bzero(mini->input, ft_strlen(mini->input));
 		return(1);
 	}
 	if (ft_strchr(mini->input, '\n'))
