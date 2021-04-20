@@ -2,7 +2,7 @@
 #include <termios.h>
 
 int		should_run;
-int		t_pid;
+int		pid;
 struct termios saved_attributes;
 
 int		ft_strcmp(char *s1, char *s2)
@@ -990,7 +990,6 @@ void	print_exec_error(char *cmd)
 
 void	exec_cmd(t_mini *mini, char **cmd)
 {
-	int		pid;
 	int		status;
 
 	mini->envp = transform_env_lst_in_tab(mini->env);
@@ -1000,8 +999,8 @@ void	exec_cmd(t_mini *mini, char **cmd)
 		;
 	else
 	{
-		t_pid = fork();
-		if (t_pid == 0)
+		pid = fork();
+		if (pid == 0)
 		{
 			if (!ft_strchr(cmd[0], '/'))
 				run_bin(cmd, mini);
@@ -1011,7 +1010,7 @@ void	exec_cmd(t_mini *mini, char **cmd)
 		}
 		else
 		{
-			if (0 < waitpid(t_pid, &(mini->last_return), 0) && WIFEXITED(mini->last_return))
+			if (0 < waitpid(pid, &(mini->last_return), 0) && WIFEXITED(mini->last_return))
 				mini->last_return = WEXITSTATUS(mini->last_return);
 		}
 	}
@@ -1086,7 +1085,7 @@ int		run_bin(char **cmd, t_mini *mini)
 	return (0);
 }
 
-int		run(t_mini *mini, int pid, int fdin, int fdout)
+int		run(t_mini *mini, int fdin, int fdout)
 {
 	char	**cmd;
 	int		status;
@@ -1116,7 +1115,6 @@ int		run(t_mini *mini, int pid, int fdin, int fdout)
 void	make_pipe(t_mini *mini, t_instructions *instruc)
 {
 	int	fd[2];
-	int	pid;
 	int	fdin;
 	int	fdout;
 	int	status;
@@ -1152,7 +1150,7 @@ void	make_pipe(t_mini *mini, t_instructions *instruc)
 				fd[1] = STDOUT_FILENO;
 			}
 			mini->cmd = get_cmd_tab(instruc->cmds);
-			run(mini, pid, fdin, fd[1]);
+			run(mini, fdin, fd[1]);
 			free_cmds(mini);
 			return ;
 		}
@@ -1379,7 +1377,7 @@ int		ft_get_input(t_mini *mini)
 	int		size;
 
 	should_run = 1;
-	t_pid = -1;
+	pid = -1;
 	ft_putstr_fd("\033[0;34mminishell> \033[0m", 1);
 	read_prompt(mini);
 	reset_input_mode();
@@ -1421,8 +1419,8 @@ void sig_handler(int signum)
 		should_run = 0;
 		close(STDIN_FILENO);
 	}
-	else if (signum == SIGQUIT && t_pid > -1)
-		kill(t_pid, SIGQUIT);
+	else if (signum == SIGQUIT && pid > -1)
+		kill(pid, SIGQUIT);
 }
 
 t_mini	*init_mini(char **envp_tocpy)
