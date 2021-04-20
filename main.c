@@ -1,9 +1,7 @@
 #include "minishell.h"
 #include <termios.h>
 
-int		should_run;
-int		pid;
-struct termios saved_attributes;
+t_sigcatch	sig_catcher;
 
 int		ft_strcmp(char *s1, char *s2)
 {
@@ -999,8 +997,8 @@ void	exec_cmd(t_mini *mini, char **cmd)
 		;
 	else
 	{
-		pid = fork();
-		if (pid == 0)
+		sig_catcher.pid = fork();
+		if (sig_catcher.pid == 0)
 		{
 			if (!ft_strchr(cmd[0], '/'))
 				run_bin(cmd, mini);
@@ -1010,7 +1008,7 @@ void	exec_cmd(t_mini *mini, char **cmd)
 		}
 		else
 		{
-			if (0 < waitpid(pid, &(mini->last_return), 0) && WIFEXITED(mini->last_return))
+			if (0 < waitpid(sig_catcher.pid, &(mini->last_return), 0) && WIFEXITED(mini->last_return))
 				mini->last_return = WEXITSTATUS(mini->last_return);
 		}
 	}
@@ -1133,9 +1131,9 @@ void	make_pipe(t_mini *mini, t_instructions *instruc)
 		}
 		if (pipe(fd) == -1)
 			return ;
-		else if ((pid = fork()) < 0)
+		else if ((sig_catcher.pid = fork()) < 0)
 			return ;
-		if (pid == 0)
+		if (sig_catcher.pid == 0)
 		{
 			close(fd[0]);
 			if (instruc->fdout.name)
@@ -1156,7 +1154,7 @@ void	make_pipe(t_mini *mini, t_instructions *instruc)
 		}
 		else
 		{
-			if (0 < waitpid(pid, &(mini->last_return), 0) && WIFEXITED(mini->last_return))
+			if (0 < waitpid(sig_catcher.pid, &(mini->last_return), 0) && WIFEXITED(mini->last_return))
 				mini->last_return = WEXITSTATUS(mini->last_return);
 			if (fd[1] != STDOUT_FILENO)
 				close(fd[1]);
@@ -1282,7 +1280,7 @@ void	set_mode(void)
 	struct termios	t;
 	int				r;
 
-	tcgetattr (STDIN_FILENO, &saved_attributes);
+	tcgetattr (STDIN_FILENO, &sig_catcher.saved_attributes);
 	r = tcgetattr(STDIN_FILENO, &t);
 	if (r)
 	{
@@ -1302,7 +1300,7 @@ void	set_mode(void)
 
 void	reset_input_mode (void)
 {
-	tcsetattr(STDIN_FILENO, TCSAFLUSH, &saved_attributes);
+	tcsetattr(STDIN_FILENO, TCSAFLUSH, &sig_catcher.saved_attributes);
 }
 
 void	erase_char_in_prompt(t_mini *mini, int *top, char *buff)
@@ -1351,7 +1349,7 @@ void	read_prompt(t_mini *mini)
 	top = 0;
 	ft_bzero(buff, 128);
 	set_mode();
-	while (read(STDIN_FILENO, &c, 1) && should_run)
+	while (read(STDIN_FILENO, &c, 1) && sig_catcher.should_run)
 	{
 		if (c == '\004')
 		{
@@ -1376,11 +1374,11 @@ int		ft_get_input(t_mini *mini)
 	char	*tmp;
 	int		size;
 
-	should_run = 1;
-	pid = -1;
+	sig_catcher.should_run = 1;
+	sig_catcher.pid = -1;
 	ft_putstr_fd("\033[0;34mminishell> \033[0m", 1);
 	read_prompt(mini);
-	if (should_run == 0)
+	if (sig_catcher.should_run == 0)
 	{
 		dup2(mini->stdin_copy, STDIN_FILENO);
 		reset_input_mode();
@@ -1416,11 +1414,14 @@ void sig_handler(int signum)
 {
 	if (signum == SIGINT)
 	{
-		should_run = 0;
+		sig_catcher.should_run = 0;
 		close(STDIN_FILENO);
 	}
-	else if (signum == SIGQUIT && pid > -1)
-		kill(pid, SIGQUIT);
+	else if (signum == SIGQUIT && sig_catcher.pid > -1)
+	{
+		ft_putstr_fd("Quit\n", STDERR_FILENO);
+		kill(sig_catcher.pid, SIGQUIT);
+	}
 }
 
 t_mini	*init_mini(char **envp_tocpy)

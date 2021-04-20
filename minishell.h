@@ -39,6 +39,12 @@ typedef struct	s_mini {
 		int				last_return;
 }				t_mini;
 
+typedef struct	s_sigcatch {
+		int		should_run;
+		int		pid;
+		struct termios	saved_attributes;
+}		t_sigcatch;
+
 //FREE
 void			ft_free_splited(char **splited_inputs);
 void			free_inputs(t_mini *mini);
