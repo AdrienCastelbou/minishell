@@ -5,12 +5,6 @@ int		should_run;
 
 struct termios saved_attributes;
 
-void
-reset_input_mode (void)
-{
-  tcsetattr (STDIN_FILENO, TCSANOW, &saved_attributes);
-}
-
 int		ft_strcmp(char *s1, char *s2)
 {
 	while (*s1 && *s2)
@@ -1308,6 +1302,11 @@ void	set_mode(void)
 	}
 }
 
+void	reset_input_mode (void)
+{
+	tcsetattr(STDIN_FILENO, TCSAFLUSH, &saved_attributes);
+}
+
 void	erase_char_in_prompt(t_mini *mini, int *top, char *buff)
 {
 	if (!(*mini->input) && !*buff)
@@ -1382,6 +1381,7 @@ int		ft_get_input(t_mini *mini)
 	should_run = 1;
 	ft_putstr_fd("\033[0;34mminishell> \033[0m", 1);
 	read_prompt(mini);
+	reset_input_mode();
 	if (should_run == 0)
 	{
 		dup2(mini->stdin_copy, STDIN_FILENO);
@@ -1437,26 +1437,11 @@ t_mini	*init_mini(char **envp_tocpy)
 	return (mini);
 }
 
-void	disable_veof(t_mini *mini)
-{
-	struct termios	t;
-	int				r;
-
-	r = tcgetattr(STDIN_FILENO, &t);
-	if (r)
-		exit_minishell(NULL, mini);
-	t.c_cc[VEOF] = _POSIX_VDISABLE;
-	r = tcsetattr(STDIN_FILENO, TCSANOW, &t);
-	if (r)
-		exit_minishell(NULL, mini);
-}
-
 int		main(int argc, char **argv, char **envp)
 {
 	t_mini *mini;
 
 	mini = init_mini(envp);
-	disable_veof(mini);
 	signal(SIGINT, sig_handler);
 	while (1)
 		ft_get_input(mini);
