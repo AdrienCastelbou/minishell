@@ -1380,10 +1380,10 @@ int		ft_get_input(t_mini *mini)
 	pid = -1;
 	ft_putstr_fd("\033[0;34mminishell> \033[0m", 1);
 	read_prompt(mini);
-	reset_input_mode();
 	if (should_run == 0)
 	{
 		dup2(mini->stdin_copy, STDIN_FILENO);
+		reset_input_mode();
 		ft_bzero(mini->input, ft_strlen(mini->input));
 		return(1);
 	}
