@@ -1365,7 +1365,7 @@ void	read_prompt(t_mini *mini)
 			break ;
 		else if (c == 127)
 			erase_char_in_prompt(mini, &top, buff);
-		else
+		else if (ft_isprint(c))
 			write_char_in_prompt(mini, c, &top, buff);
 	}
 	write(1, "\n", 1);
