@@ -3,6 +3,14 @@
 
 int		should_run;
 
+struct termios saved_attributes;
+
+void
+reset_input_mode (void)
+{
+  tcsetattr (STDIN_FILENO, TCSANOW, &saved_attributes);
+}
+
 int		ft_strcmp(char *s1, char *s2)
 {
 	while (*s1 && *s2)
@@ -1277,6 +1285,82 @@ void	free_cmds(t_mini *mini)
 	set_mini(mini);
 }
 
+void	set_mode(void)
+{
+	struct termios	t;
+	int				r;
+
+	tcgetattr (STDIN_FILENO, &saved_attributes);
+	r = tcgetattr(STDIN_FILENO, &t);
+	if (r)
+	{
+		printf("Oh no...\n");
+		exit(0);
+	}
+	t.c_lflag &= ~(ICANON|ECHO);
+	t.c_cc[VMIN] = 1;
+	t.c_cc[VTIME] = 0;
+	r = tcsetattr(STDIN_FILENO, TCSANOW, &t);
+	if (r)
+	{
+		printf("Oh no...\n");
+		exit(0);
+	}
+}
+
+void	read_prompt(t_mini *mini)
+{
+	char	c;
+	char	*tmp;
+	char	buff[128];
+	int		top;
+
+	top = 0;
+	ft_bzero(buff, 128);
+	set_mode();
+	while (read(STDIN_FILENO, &c, 1))
+	{
+		if (c == '\004')
+		{
+			if (!(*mini->input) && !*buff)
+				exit_minishell(NULL, mini);
+		}
+		else if (c == '\n')
+			break ;
+		else if (c == 127 && (*mini->input || *buff))
+		{
+			if (!top && *mini->input)
+				mini->input[ft_strlen(mini->input) - 1] = 0;
+			else if (top)
+			{
+				top -= 1;
+				buff[top] = 0;
+			}
+			write(1, "\b \b", 3);
+		}
+		else if (c == 127)
+			;
+		else
+		{
+			buff[top] = c;
+			write(1, &c, 1);
+			top += 1;
+			if (top >= 128 - 1)
+			{
+				tmp = mini->input;
+				mini->input = ft_strjoin(tmp, buff);
+				free(tmp);
+				ft_bzero(buff, 128);
+				top = 0;
+			}
+		}
+	}
+	write(1, "\n", 1);
+	reset_input_mode();
+	tmp = mini->input;
+	mini->input = ft_strjoin(mini->input, buff);
+	free(tmp);
+}
 
 int		ft_get_input(t_mini *mini)
 {
@@ -1286,12 +1370,7 @@ int		ft_get_input(t_mini *mini)
 
 	should_run = 1;
 	ft_putstr_fd("\033[0;34mminishell> \033[0m", 1);
-	while ( !ft_strchr(mini->input, '\n') && (size = read(STDIN_FILENO, buffer, 1)) > 0 && should_run)
-	{
-		buffer[size] = 0;
-		tmp = mini->input;
-		mini->input = ft_strjoin(tmp, buffer);
-	}
+	read_prompt(mini);
 	if (should_run == 0)
 	{
 		dup2(mini->stdin_copy, STDIN_FILENO);
