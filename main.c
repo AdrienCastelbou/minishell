@@ -115,7 +115,10 @@ int		env_builtin(t_list *env)
 	while (env)
 	{
 		if (ft_strchr((char *)env->content, '='))
-			printf("%s\n", (char *)(env->content));
+		{
+			ft_putstr_fd((char *)(env->content), STDOUT_FILENO);
+			ft_putchar_fd('\n', STDOUT_FILENO);
+		}
 		env = env->next;
 	}
 	return (0);
@@ -164,12 +167,16 @@ void	print_ordered_var(char *str)
 	while (str[key_len] && str[key_len] != '=')
 		key_len++;
 	key = ft_strndup(str, key_len);
-	ft_putstr_fd("declare -x ", 1);
-	ft_putstr_fd(key, 1);
+	ft_putstr_fd("declare -x ", STDOUT_FILENO);
+	ft_putstr_fd(key, STDOUT_FILENO);
 	if (str[key_len] == '=')
-		printf("=\"%s\"\n", str + key_len + 1);
+	{
+		ft_putstr_fd("=\"", STDOUT_FILENO);
+		ft_putstr_fd(str + key_len + 1, STDOUT_FILENO);
+		ft_putstr_fd("\"\n", STDOUT_FILENO);
+	}
 	else
-		write(1, "\n", 1);
+		ft_putchar_fd('\n', STDOUT_FILENO);
 	free(key);
 }
 
