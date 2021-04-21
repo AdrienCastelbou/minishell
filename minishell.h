@@ -18,6 +18,12 @@ typedef struct	s_fds {
 		struct s_fds	*next;
 }				t_fds;
 
+typedef struct	s_history {
+		char				*input;
+		struct s_history	*previous;
+		struct s_history	*next;
+}				t_history;
+
 typedef struct	s_instructions {
 		t_list					*cmds;
 		t_fds					fdin;
@@ -31,6 +37,7 @@ typedef struct	s_mini {
 		char			*input;
 		char			*to_exec;
 		t_instructions	*instructions;
+		t_history		*history;
 		t_list			*cmds;
 		t_list			*env;
 		int				stdin_copy;

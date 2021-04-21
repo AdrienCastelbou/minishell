@@ -888,6 +888,27 @@ char		**get_cmd_tab(t_list *cmd)
 	return (cmd_tab);
 }
 
+t_history	*ft_historynew(char *input)
+{
+	t_history	*elem;
+
+	if (!(elem = malloc(sizeof(t_history) * 1)))
+		return (NULL);
+	elem->input = ft_strdup(input);
+	elem->previous = NULL;
+	elem->next = NULL;
+	return (elem);
+}
+
+void	ft_history_add_front(t_history **ahist, t_history *new)
+{
+	if (!ahist)
+		return ;
+	(*ahist)->previous = new;
+	new->next = *ahist;
+	*ahist = new;
+}
+
 void	ft_instruct_add_back(t_instructions **alst, t_instructions *new)
 {
 	t_instructions *elem;
@@ -950,6 +971,17 @@ void		get_instructions(t_mini *mini, char *s, t_list *env)
 
 void		make_pipe(t_mini *mini, t_instructions *instruc);
 
+void		add_input_in_history(t_mini *mini, char *input)
+{
+	t_history	*elem;
+
+	elem = ft_historynew(input);
+	if (mini->history)
+		ft_history_add_front(&mini->history, elem);
+	else
+		mini->history = elem;
+}
+
 t_list		*ft_lst_cmds(t_mini *mini, char *s, t_list *env)
 {
 	char	*cmd_input;
@@ -976,12 +1008,14 @@ t_list		*ft_lst_cmds(t_mini *mini, char *s, t_list *env)
 				run_cmd(mini, mini->cmd, mini->instructions);
 			}
 			free_cmds(mini);
-			free(cmd_input);
 		}
+		free(cmd_input);
 		s += len + 1;
 		i++;
 		set_mini(mini);
 	}
+	if (*mini->input)
+		add_input_in_history(mini, mini->input);
 	mini->cmds = NULL;
 	i = -1;
 	return (mini->cmds);
@@ -1412,6 +1446,15 @@ int		ft_get_input(t_mini *mini)
 	free(mini->input);
 	mini->input = malloc(sizeof(char) * 1);
 	*(mini->input) = 0;
+	t_history *current;
+	current = mini->history;
+	printf("history:\n");
+	while (current)
+	{
+		printf("%s\n", current->input);
+		current = current->next;
+	}
+	printf("end\n");
 	return (1);
 }
 
@@ -1458,6 +1501,7 @@ t_mini	*init_mini(char **envp_tocpy)
 	mini->stdin_copy = dup(STDIN_FILENO);
 	mini->stdout_copy = dup(STDOUT_FILENO);
 	mini->instructions = NULL;
+	mini->history = NULL;
 	mini->last_return = 0;
 	set_mini(mini);
 	return (mini);
