@@ -332,7 +332,10 @@ int		pwd_builtin(void)
 	status = 0;
 	ft_bzero(buff, 128);
 	if ((buff_copy = getcwd(buff, 128)) != NULL)
-		printf("%s\n", buff_copy);
+	{
+		ft_putstr_fd(buff_copy, STDOUT_FILENO);
+		ft_putchar_fd('\n', STDOUT_FILENO);
+	}
 	else
 		status = 1;
 	return (status);
