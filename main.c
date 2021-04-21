@@ -1388,9 +1388,48 @@ int		is_arrow(char *buff)
 {
 	if (buff[0] == 27 && buff[1] == 91 && buff[2] == 65)
 		return (1);
-	else if (buff[0] == 27 && buff[1] == 91 && buff[66])
+	else if (buff[0] == 27 && buff[1] == 91 && buff[2] == 66)
 		return (1);
 	return (0);
+}
+
+void	show_previous_history(t_mini *mini, int *top, char *buff)
+{
+	int len;
+	int i;
+	if (!mini->current_hist)
+		return ;
+	if (!mini->current_hist->previous)
+		return ;
+	mini->current_hist = mini->current_hist->previous;
+	if (!mini->current_hist)
+		return ;
+	len = ft_strlen(mini->input) + *top;
+	i = -1;
+	while (++i < len)
+		erase_char_in_prompt(mini, top, buff);
+	mini->input = ft_strdup(mini->current_hist->input);
+	ft_bzero(buff, 128);
+	*top = 0;
+	ft_putstr_fd(mini->input, STDIN_FILENO);
+}
+
+void	show_history(t_mini *mini, int *top, char *buff)
+{
+	int len;
+	int i;
+
+	if (!mini->current_hist)
+		return ;
+	len = ft_strlen(mini->input) + *top;
+	i = -1;
+	while (++i < len)
+		erase_char_in_prompt(mini, top, buff);
+	mini->input = ft_strdup(mini->current_hist->input);
+	mini->current_hist = mini->current_hist->next;
+	ft_bzero(buff, 128);
+	*top = 0;
+	ft_putstr_fd(mini->input, STDIN_FILENO);
 }
 
 void	read_prompt(t_mini *mini)
@@ -1399,6 +1438,7 @@ void	read_prompt(t_mini *mini)
 	char	buff[128];
 	int		top;
 
+	mini->current_hist = mini->history;
 	top = 0;
 	ft_bzero(buff, 128);
 	set_mode();
@@ -1409,8 +1449,10 @@ void	read_prompt(t_mini *mini)
 			if (!(*mini->input) && !*buff)
 				exit_minishell(NULL, mini);
 		}
-		else if (is_arrow(buffchar))
-			printf("ya\n");
+		else if (is_arrow(buffchar) && buffchar[2] == 65)
+			show_history(mini, &top, buff);
+		else if (is_arrow(buffchar) && buffchar[2] == 66)
+			show_previous_history(mini, &top, buff);
 		else if (*buffchar == '\n')
 			break ;
 		else if (*buffchar == 127)
@@ -1446,15 +1488,6 @@ int		ft_get_input(t_mini *mini)
 	free(mini->input);
 	mini->input = malloc(sizeof(char) * 1);
 	*(mini->input) = 0;
-	t_history *current;
-	current = mini->history;
-	printf("history:\n");
-	while (current)
-	{
-		printf("%s\n", current->input);
-		current = current->next;
-	}
-	printf("end\n");
 	return (1);
 }
 

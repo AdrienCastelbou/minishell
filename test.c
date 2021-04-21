@@ -8,28 +8,48 @@
 #include <term.h>
 #include <curses.h>
 
-int	pid;
-
-void	hand(int s)
+int	init_term()
 {
-	kill(pid, SIGQUIT);
+	int ret;
+	char *term_type = getenv("TERM");
+
+	if (term_type == NULL)
+	{
+		fprintf(stderr, "TERM must be set (see 'env').\n");
+		return -1;
+	}
+	 ret = tgetent(NULL, term_type);
+	if (ret == -1)
+	{
+		fprintf(stderr, "Could not access to the termcap database..\n");
+		return -1;
+	}
+	else if (ret == 0)
+	{
+		fprintf(stderr, "Terminal type '%s' is not defined in termcap database (or have too few informations).\n", term_type);
+		return -1;
+	}
+	return 0;
 }
 
-int main(void)
+int		ft_putchar(int c)
 {
-	pid  = -1;
-	signal(SIGQUIT, hand);
-	while (1)
-	{
-	printf("turn\n");
-	pid = fork();
-	if (pid > 0)
-	{
-		wait(NULL);
-	}
-	else
-	{
-		execlp("cat", "cat", NULL);
-	}
-	}
+	write(1, &c, 1);
+	return (1);
+}
+
+int	main(void)
+{
+	int ret = init_term();
+	if (ret != 0)
+		return (0);
+	int col = tgetnum("co");
+	int line = tgetnum("li");
+	printf("col = %d, li = %d", col, line);
+	char *cm_cap = tgetstr("cm", NULL);
+	cm_cap = tgetstr("dc", NULL);
+	tputs(cm_cap, 1, putchar);
+tputs(cm_cap, 1, putchar);
+	char *reset_cmd = tgetstr("me", NULL);
+tputs(reset_cmd, 1, putchar);
 }

@@ -38,6 +38,7 @@ typedef struct	s_mini {
 		char			*to_exec;
 		t_instructions	*instructions;
 		t_history		*history;
+		t_history		*current_hist;
 		t_list			*cmds;
 		t_list			*env;
 		int				stdin_copy;
