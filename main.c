@@ -1350,28 +1350,39 @@ void	write_char_in_prompt(t_mini *mini, char c, int *top, char *buff)
 }
 
 
+int		is_arrow(char *buff)
+{
+	if (buff[0] == 27 && buff[1] == 91 && buff[2] == 65)
+		return (1);
+	else if (buff[0] == 27 && buff[1] == 91 && buff[66])
+		return (1);
+	return (0);
+}
+
 void	read_prompt(t_mini *mini)
 {
-	char	c;
+	char	buffchar[3];
 	char	buff[128];
 	int		top;
 
 	top = 0;
 	ft_bzero(buff, 128);
 	set_mode();
-	while (read(STDIN_FILENO, &c, 1) && sig_catcher.should_run)
+	while (read(STDIN_FILENO, buffchar, 3) && sig_catcher.should_run)
 	{
-		if (c == '\004')
+		if (*buffchar == '\004')
 		{
 			if (!(*mini->input) && !*buff)
 				exit_minishell(NULL, mini);
 		}
-		else if (c == '\n')
+		else if (is_arrow(buffchar))
+			printf("ya\n");
+		else if (*buffchar == '\n')
 			break ;
-		else if (c == 127)
+		else if (*buffchar == 127)
 			erase_char_in_prompt(mini, &top, buff);
-		else if (ft_isprint(c))
-			write_char_in_prompt(mini, c, &top, buff);
+		else if (ft_isprint(*buffchar))
+			write_char_in_prompt(mini, *buffchar, &top, buff);
 	}
 	write(1, "\n", 1);
 	reset_input_mode();
