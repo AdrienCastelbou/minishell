@@ -1432,10 +1432,17 @@ void	show_history(t_mini *mini, int *top, char *buff)
 	ft_putstr_fd(mini->input, STDIN_FILENO);
 }
 
+int		ft_putchar(int c)
+{
+	write(1, &c, 1);
+	return (1);
+}
+
 void	test_terncap(t_mini *mini, int *top, char *buff, t_cursor *cursor)
 {
 	int		ret;
 	char	*term_type;
+	char	*cm_cap;
 
 	term_type = getenv("TERM");
 	ret = tgetent(NULL, term_type);
@@ -1446,6 +1453,10 @@ void	test_terncap(t_mini *mini, int *top, char *buff, t_cursor *cursor)
 	}
 	cursor->max_col = tgetnum("co");
 	cursor->max_line = tgetnum("li");
+	cm_cap = tgetstr("cm", NULL);
+	tputs(tgoto(cm_cap, cursor->col - 1 , cursor->line - 1), 1, ft_putchar);
+	cm_cap = tgetstr("ce", NULL);
+	tputs(cm_cap, 1, ft_putchar);
 }
 
 void	get_cursor_position(t_cursor *cursor)
