@@ -1457,6 +1457,8 @@ void	test_terncap(t_mini *mini, int *top, char *buff, t_cursor *cursor)
 	tputs(tgoto(cm_cap, cursor->col - 1 , cursor->line - 1), 1, ft_putchar);
 	cm_cap = tgetstr("ce", NULL);
 	tputs(cm_cap, 1, ft_putchar);
+	ft_bzero(mini->input, ft_strlen(mini->input));
+	ft_bzero(buff, ft_strlen(buff));
 }
 
 void	get_cursor_position(t_cursor *cursor)
@@ -1494,7 +1496,7 @@ void	read_prompt(t_mini *mini)
 			if (!(*mini->input) && !*buff)
 				exit_minishell(NULL, mini);
 		}
-		else if (is_arrow(buffchar) && buffchar[2] == 65)
+		else if (is_arrow(buffchar))
 			test_terncap(mini, &top, buff, &cursor);
 		else if (*buffchar == '\n')
 			break ;
