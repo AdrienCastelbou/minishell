@@ -27,6 +27,7 @@ typedef struct	s_fds {
 
 typedef struct	s_history {
 		char				*input;
+		int					is_prompt;
 		struct s_history	*previous;
 		struct s_history	*next;
 }				t_history;

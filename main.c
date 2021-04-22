@@ -894,7 +894,9 @@ t_history	*ft_historynew(char *input)
 
 	if (!(elem = malloc(sizeof(t_history) * 1)))
 		return (NULL);
-	elem->input = ft_strdup(input);
+	elem->input = malloc(sizeof(char) *1);
+	*elem->input = 0;
+	elem->is_prompt = 0;
 	elem->previous = NULL;
 	elem->next = NULL;
 	return (elem);
@@ -971,17 +973,6 @@ void		get_instructions(t_mini *mini, char *s, t_list *env)
 
 void		make_pipe(t_mini *mini, t_instructions *instruc);
 
-void		add_input_in_history(t_mini *mini, char *input)
-{
-	t_history	*elem;
-
-	elem = ft_historynew(input);
-	if (mini->history)
-		ft_history_add_front(&mini->history, elem);
-	else
-		mini->history = elem;
-}
-
 t_list		*ft_lst_cmds(t_mini *mini, char *s, t_list *env)
 {
 	char	*cmd_input;
@@ -1014,8 +1005,6 @@ t_list		*ft_lst_cmds(t_mini *mini, char *s, t_list *env)
 		i++;
 		set_mini(mini);
 	}
-	if (*mini->input)
-		add_input_in_history(mini, mini->input);
 	mini->cmds = NULL;
 	i = -1;
 	return (mini->cmds);
@@ -1349,10 +1338,10 @@ void	reset_input_mode (void)
 
 void	erase_char_in_prompt(t_mini *mini, int *top, char *buff)
 {
-	if (!(*mini->input) && !*buff)
+	if (!(*mini->history->input) && !*buff)
 		return ;
-	if (!*top && *mini->input)
-		mini->input[ft_strlen(mini->input) - 1] = 0;
+	if (!*top && *mini->history->input)
+		mini->history->input[ft_strlen(mini->history->input) - 1] = 0;
 	else if (*top)
 	{
 		*top -= 1;
@@ -1365,8 +1354,8 @@ void	join_prompt_parts(t_mini *mini, char *buff)
 {
 	char *tmp;
 
-	tmp = mini->input;
-	mini->input = ft_strjoin(tmp, buff);
+	tmp = mini->history->input;
+	mini->history->input = ft_strjoin(tmp, buff);
 	free(tmp);
 	ft_bzero(buff, ft_strlen(buff));
 }
@@ -1383,7 +1372,6 @@ void	write_char_in_prompt(t_mini *mini, char c, int *top, char *buff)
 	}
 }
 
-
 int		is_arrow(char *buff)
 {
 	if (buff[0] == 27 && buff[1] == 91 && buff[2] == 65)
@@ -1391,45 +1379,6 @@ int		is_arrow(char *buff)
 	else if (buff[0] == 27 && buff[1] == 91 && buff[2] == 66)
 		return (1);
 	return (0);
-}
-
-void	show_previous_history(t_mini *mini, int *top, char *buff)
-{
-	int len;
-	int i;
-	if (!mini->current_hist)
-		return ;
-	if (!mini->current_hist->previous)
-		return ;
-	mini->current_hist = mini->current_hist->previous;
-	if (!mini->current_hist)
-		return ;
-	len = ft_strlen(mini->input) + *top;
-	i = -1;
-	while (++i < len)
-		erase_char_in_prompt(mini, top, buff);
-	mini->input = ft_strdup(mini->current_hist->input);
-	ft_bzero(buff, 128);
-	*top = 0;
-	ft_putstr_fd(mini->input, STDIN_FILENO);
-}
-
-void	show_history(t_mini *mini, int *top, char *buff)
-{
-	int len;
-	int i;
-
-	if (!mini->current_hist)
-		return ;
-	len = ft_strlen(mini->input) + *top;
-	i = -1;
-	while (++i < len)
-		erase_char_in_prompt(mini, top, buff);
-	mini->input = ft_strdup(mini->current_hist->input);
-	mini->current_hist = mini->current_hist->next;
-	ft_bzero(buff, 128);
-	*top = 0;
-	ft_putstr_fd(mini->input, STDIN_FILENO);
 }
 
 int		ft_putchar(int c)
@@ -1491,6 +1440,23 @@ void	get_cursor_position(t_cursor *cursor)
 	cursor->col = ft_atoi(&buff[i]);
 }
 
+void		add_input_in_history(t_mini *mini, char *input)
+{
+	t_history	*elem;
+
+	if (mini->history && !*mini->history->input)
+	{
+		mini->current_hist = mini->history;
+		return ;
+	}
+	elem = ft_historynew(input);
+	if (mini->history)
+		ft_history_add_front(&mini->history, elem);
+	else
+		mini->history = elem;
+	mini->current_hist = mini->history;
+}
+
 void	read_prompt(t_mini *mini)
 {
 	char		buffchar[3];
@@ -1498,6 +1464,7 @@ void	read_prompt(t_mini *mini)
 	int			top;
 	t_cursor	cursor;
 
+	add_input_in_history(mini, NULL);
 	mini->current_hist = mini->history;
 	top = 0;
 	ft_bzero(buff, 128);
@@ -1507,7 +1474,7 @@ void	read_prompt(t_mini *mini)
 	{
 		if (*buffchar == '\004')
 		{
-			if (!(*mini->input) && !*buff)
+			if (!(*mini->history->input) && !*buff)
 				exit_minishell(NULL, mini);
 		}
 		else if (is_arrow(buffchar))
@@ -1522,6 +1489,7 @@ void	read_prompt(t_mini *mini)
 	write(1, "\n", 1);
 	reset_input_mode();
 	join_prompt_parts(mini, buff);
+	mini->input = ft_strdup(mini->history->input);
 }
 
 int		ft_get_input(t_mini *mini)
@@ -1547,6 +1515,13 @@ int		ft_get_input(t_mini *mini)
 	free(mini->input);
 	mini->input = malloc(sizeof(char) * 1);
 	*(mini->input) = 0;
+	t_history	*elem;
+	elem = mini->history;
+	while (elem)
+	{
+		printf("%s\n", elem->input);
+		elem = elem->next;
+	}
 	return (1);
 }
 
