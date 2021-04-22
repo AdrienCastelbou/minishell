@@ -10,6 +10,11 @@
 #include <memory.h>
 #include <signal.h>
 
+typedef struct	s_cursor {
+		int	col;
+		int	row;
+}				t_cursor;
+
 typedef struct	s_fds {
 		char			*name;
 		char			*method;

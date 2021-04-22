@@ -1432,16 +1432,39 @@ void	show_history(t_mini *mini, int *top, char *buff)
 	ft_putstr_fd(mini->input, STDIN_FILENO);
 }
 
+void	test_terncap(t_mini *mini, int *top, char *buff, t_cursor cursor)
+{
+
+}
+
+void	get_cursor_position(t_cursor *cursor)
+{
+	char cmd[]="\033[6n";
+	char buff[128];
+	int len = ft_strlen(cmd);
+	ft_bzero(buff, 128);
+	write(1, cmd, len);
+	read(1, buff, 127);
+	int i = 2;
+	cursor->row = ft_atoi(&buff[i]);
+	while (buff[i] && buff[i] != ';')
+		i++;
+	i+= 1;
+	cursor->col = ft_atoi(&buff[i]);
+}
+
 void	read_prompt(t_mini *mini)
 {
-	char	buffchar[3];
-	char	buff[128];
-	int		top;
+	char		buffchar[3];
+	char		buff[128];
+	int			top;
+	t_cursor	cursor;
 
 	mini->current_hist = mini->history;
 	top = 0;
 	ft_bzero(buff, 128);
 	set_mode();
+	get_cursor_position(&cursor);
 	while (read(STDIN_FILENO, buffchar, 3) && sig_catcher.should_run)
 	{
 		if (*buffchar == '\004')
@@ -1450,9 +1473,7 @@ void	read_prompt(t_mini *mini)
 				exit_minishell(NULL, mini);
 		}
 		else if (is_arrow(buffchar) && buffchar[2] == 65)
-			show_history(mini, &top, buff);
-		else if (is_arrow(buffchar) && buffchar[2] == 66)
-			show_previous_history(mini, &top, buff);
+			test_terncap(mini, &top, buff, cursor);
 		else if (*buffchar == '\n')
 			break ;
 		else if (*buffchar == 127)
