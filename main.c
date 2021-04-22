@@ -896,7 +896,7 @@ t_history	*ft_historynew(char *input)
 		return (NULL);
 	elem->input = malloc(sizeof(char) *1);
 	*elem->input = 0;
-	elem->is_prompt = 0;
+	elem->is_prompt = 1;
 	elem->previous = NULL;
 	elem->next = NULL;
 	return (elem);
@@ -1387,13 +1387,11 @@ int		ft_putchar(int c)
 	return (1);
 }
 
-void	test_terncap(t_mini *mini, int *top, char *buff, t_cursor *cursor)
+void	erase_current_prompt(t_mini *mini, int *top, char *buff, t_cursor *cursor)
 {
 	int		ret;
 	char	*term_type;
 	char	*cm_cap;
-	int		len;
-	char	*new;
 
 	term_type = getenv("TERM");
 	ret = tgetent(NULL, term_type);
@@ -1408,20 +1406,9 @@ void	test_terncap(t_mini *mini, int *top, char *buff, t_cursor *cursor)
 	tputs(tgoto(cm_cap, cursor->col - 1 , cursor->line - 1), 1, ft_putchar);
 	cm_cap = tgetstr("ce", NULL);
 	tputs(cm_cap, 1, ft_putchar);
-	ft_bzero(mini->input, ft_strlen(mini->input));
+	ft_bzero(mini->history->input, ft_strlen(mini->history->input));
 	ft_bzero(buff, ft_strlen(buff));
 	*top = 0;
-	new = "hello le monde";
-	len = ft_strlen(new);
-	int i = -1;
-	while (++i < len)
-	{
-		cm_cap = tgetstr("ic", NULL);
-		tputs(cm_cap, 1, ft_putchar);
-		write_char_in_prompt(mini, new[i], top, buff);
-		cm_cap = tgetstr("ip", NULL);
-		tputs(cm_cap, 1, ft_putchar);
-	}
 }
 
 void	get_cursor_position(t_cursor *cursor)
@@ -1457,6 +1444,54 @@ void		add_input_in_history(t_mini *mini, char *input)
 	mini->current_hist = mini->history;
 }
 
+void	up_history(t_mini *mini, int *top, char * buff, t_cursor *cursor)
+{
+	char	*cm_cap;
+	int		len;
+	char	*new;
+
+	if (!mini->current_hist->next)
+		return ;
+	join_prompt_parts(mini, buff);
+	erase_current_prompt(mini, top, buff, cursor);
+	mini->current_hist = mini->current_hist->next;
+	new = mini->current_hist->input;
+	len = ft_strlen(new);
+	int i = -1;
+	while (++i < len)
+	{
+		cm_cap = tgetstr("ic", NULL);
+		tputs(cm_cap, 1, ft_putchar);
+		write_char_in_prompt(mini, new[i], top, buff);
+		cm_cap = tgetstr("ip", NULL);
+		tputs(cm_cap, 1, ft_putchar);
+	}
+}
+
+void	down_history(t_mini *mini, int *top, char * buff, t_cursor *cursor)
+{
+	char	*cm_cap;
+	int		len;
+	char	*new;
+
+	if (!mini->current_hist->previous)
+		return ;
+	join_prompt_parts(mini, buff);
+	erase_current_prompt(mini, top, buff, cursor);
+	mini->current_hist = mini->current_hist->previous;
+	new = mini->current_hist->input;
+	len = ft_strlen(new);
+	int i = -1;
+	while (++i < len)
+	{
+		cm_cap = tgetstr("ic", NULL);
+		tputs(cm_cap, 1, ft_putchar);
+		write_char_in_prompt(mini, new[i], top, buff);
+		cm_cap = tgetstr("ip", NULL);
+		tputs(cm_cap, 1, ft_putchar);
+	}
+}
+
 void	read_prompt(t_mini *mini)
 {
 	char		buffchar[3];
@@ -1477,8 +1512,10 @@ void	read_prompt(t_mini *mini)
 			if (!(*mini->history->input) && !*buff)
 				exit_minishell(NULL, mini);
 		}
-		else if (is_arrow(buffchar))
-			test_terncap(mini, &top, buff, &cursor);
+		else if (is_arrow(buffchar) && buffchar[2] == 65)
+			up_history(mini, &top, buff, &cursor);
+		else if (is_arrow(buffchar) && buffchar[2] == 66)
+			down_history(mini, &top, buff, &cursor);
 		else if (*buffchar == '\n')
 			break ;
 		else if (*buffchar == 127)
@@ -1490,6 +1527,7 @@ void	read_prompt(t_mini *mini)
 	reset_input_mode();
 	join_prompt_parts(mini, buff);
 	mini->input = ft_strdup(mini->history->input);
+	mini->history->is_prompt = 0;
 }
 
 int		ft_get_input(t_mini *mini)
@@ -1513,15 +1551,7 @@ int		ft_get_input(t_mini *mini)
 		*(ft_strchr(mini->input, '\n')) = '\0';
 	ft_lst_cmds(mini, mini->input, mini->env);
 	free(mini->input);
-	mini->input = malloc(sizeof(char) * 1);
-	*(mini->input) = 0;
-	t_history	*elem;
-	elem = mini->history;
-	while (elem)
-	{
-		printf("%s\n", elem->input);
-		elem = elem->next;
-	}
+	mini->input = NULL;
 	return (1);
 }
 
