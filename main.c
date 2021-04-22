@@ -1432,9 +1432,20 @@ void	show_history(t_mini *mini, int *top, char *buff)
 	ft_putstr_fd(mini->input, STDIN_FILENO);
 }
 
-void	test_terncap(t_mini *mini, int *top, char *buff, t_cursor cursor)
+void	test_terncap(t_mini *mini, int *top, char *buff, t_cursor *cursor)
 {
+	int		ret;
+	char	*term_type;
 
+	term_type = getenv("TERM");
+	ret = tgetent(NULL, term_type);
+	if (!term_type || ret < 1)
+	{
+		printf("no termtype or pb\n");
+		return ;
+	}
+	cursor->max_col = tgetnum("co");
+	cursor->max_line = tgetnum("li");
 }
 
 void	get_cursor_position(t_cursor *cursor)
@@ -1446,7 +1457,7 @@ void	get_cursor_position(t_cursor *cursor)
 	write(1, cmd, len);
 	read(1, buff, 127);
 	int i = 2;
-	cursor->row = ft_atoi(&buff[i]);
+	cursor->line = ft_atoi(&buff[i]);
 	while (buff[i] && buff[i] != ';')
 		i++;
 	i+= 1;
@@ -1473,7 +1484,7 @@ void	read_prompt(t_mini *mini)
 				exit_minishell(NULL, mini);
 		}
 		else if (is_arrow(buffchar) && buffchar[2] == 65)
-			test_terncap(mini, &top, buff, cursor);
+			test_terncap(mini, &top, buff, &cursor);
 		else if (*buffchar == '\n')
 			break ;
 		else if (*buffchar == 127)

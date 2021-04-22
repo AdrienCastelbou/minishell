@@ -12,7 +12,9 @@
 
 typedef struct	s_cursor {
 		int	col;
-		int	row;
+		int	line;
+		int	max_col;
+		int	max_line;
 }				t_cursor;
 
 typedef struct	s_fds {
