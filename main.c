@@ -1443,6 +1443,8 @@ void	test_terncap(t_mini *mini, int *top, char *buff, t_cursor *cursor)
 	int		ret;
 	char	*term_type;
 	char	*cm_cap;
+	int		len;
+	char	*new;
 
 	term_type = getenv("TERM");
 	ret = tgetent(NULL, term_type);
@@ -1459,6 +1461,18 @@ void	test_terncap(t_mini *mini, int *top, char *buff, t_cursor *cursor)
 	tputs(cm_cap, 1, ft_putchar);
 	ft_bzero(mini->input, ft_strlen(mini->input));
 	ft_bzero(buff, ft_strlen(buff));
+	*top = 0;
+	new = "hello le monde";
+	len = ft_strlen(new);
+	int i = -1;
+	while (++i < len)
+	{
+		cm_cap = tgetstr("ic", NULL);
+		tputs(cm_cap, 1, ft_putchar);
+		write_char_in_prompt(mini, new[i], top, buff);
+		cm_cap = tgetstr("ip", NULL);
+		tputs(cm_cap, 1, ft_putchar);
+	}
 }
 
 void	get_cursor_position(t_cursor *cursor)
