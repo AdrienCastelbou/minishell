@@ -476,13 +476,25 @@ static int		ft_cmd_size(const char *s, char c)
 		else if (s[len] == c)
 			return (len);
 		else if (s[len] == '\"')
-			while (s[++len] != '\"' && s[len])
-				;
+			while (s[++len])
+			{
+				if (s[len] == '\\')
+					len += 1;
+				else if (s[len] == '\'')
+					break ;
+			}
 		else if (s[len] == '\'')
-			while (s[++len] != '\'' && s[len])
-				;
+			while (s[++len])
+			{
+				if (s[len] == '\\')
+					len += 1;
+				else if (s[len] == '\'')
+					break ;
+			}
 		else if (s[len] == '\\')
 			echap = 1;
+		if (!s[len])
+			return (len);
 		len++;
 	}
 	return (len);
@@ -506,13 +518,25 @@ static int		ft_word_size(const char *s)
 		else if (s[len] == '>' || s[len] == '<')
 			return (len);
 		else if (s[len] == '\"')
-			while (s[++len] != '\"' && s[len])
-				;
+			while (s[++len])
+			{
+				if (s[len] == '\\')
+					len += 1;
+				else if (s[len] == '\'')
+					break ;
+			}
 		else if (s[len] == '\'')
-			while (s[++len] != '\'' && s[len])
-				;
+			while (s[++len])
+			{
+				if (s[len] == '\\')
+					len += 1;
+				else if (s[len] == '\'')
+					break ;
+			}
 		else if (s[len] == '\\')
 			echap = 1;
+		if (!s[len])
+			return (len);
 		len++;
 	}
 	return (len);
@@ -695,24 +719,44 @@ char			*get_real_input(char *s, t_mini *mini, t_list *env)
 
 int		cmd_count(char *input)
 {
-	int	i;
-	int	count;
+	int		i;
+	int		echap;
+	int		count;
 
+	echap = 0;
+	i = 0;
 	count = 1;
-	i = -1;
-	while (input[++i])
+	while (input[i])
 	{
-		if (input[i] == '\"')
-			while (input[++i] && input[i] != '\"')
-				;
-		else if (input[i] == '\'')
-		while (input[++i] && input[i] != '\'')
-			;
+		if (echap && input[i])
+			echap = 0;
 		else if (input[i] == ';')
 			count += 1;
+		else if (input[i] == '\"')
+			while (input[++i])
+			{
+				if (input[i] == '\\')
+					i++;
+				else if (input[i] == '\"')
+					break ;
+			}
+		else if (input[i] == '\'')
+			while (input[++i])
+			{
+				if (input[i] == '\\')
+					i++;
+				else if (input[i] == '\'')
+					break ;
+			}
+		else if (input[i] == '\\')
+			echap = 1;
+		if (!input[i])
+			return (count);
+		i++;
 	}
 	return (count);
 }
+
 
 void	ft_fdsadd_back(t_fds **afds, t_fds *new)
 {
