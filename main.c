@@ -1522,7 +1522,6 @@ void	check_input_validity(t_mini *mini, char *buffchar, int *top, char *buff)
 		if (ft_isprint(buffchar[i]))
 			write_char_in_prompt(mini, buffchar[i], top, buff);
 	}
-	ft_bzero(buffchar, 3);
 }
 
 void	read_prompt(t_mini *mini)
@@ -1538,6 +1537,7 @@ void	read_prompt(t_mini *mini)
 	ft_bzero(buff, 128);
 	set_mode();
 	get_cursor_position(&cursor);
+	ft_bzero(buffchar, 3);
 	while (read(STDIN_FILENO, buffchar, 3) && sig_catcher.should_run)
 	{
 		if (*buffchar == '\004')
