@@ -1512,6 +1512,19 @@ void	down_history(t_mini *mini, int *top, char * buff, t_cursor *cursor)
 	}
 }
 
+void	check_input_validity(t_mini *mini, char *buffchar, int *top, char *buff)
+{
+	int	i;
+
+	i = -1;
+	while (++i < 3 && buffchar[i])
+	{
+		if (ft_isprint(buffchar[i]))
+			write_char_in_prompt(mini, buffchar[i], top, buff);
+	}
+	ft_bzero(buffchar, 3);
+}
+
 void	read_prompt(t_mini *mini)
 {
 	char		buffchar[3];
@@ -1541,7 +1554,8 @@ void	read_prompt(t_mini *mini)
 		else if (*buffchar == 127)
 			erase_char_in_prompt(mini, &top, buff);
 		else if (ft_isprint(*buffchar))
-			write_char_in_prompt(mini, *buffchar, &top, buff);
+			check_input_validity(mini, buffchar, &top, buff);
+		ft_bzero(buffchar, 3);
 	}
 	write(1, "\n", 1);
 	reset_input_mode();
