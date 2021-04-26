@@ -1407,11 +1407,25 @@ int		ft_putchar(int c)
 	return (1);
 }
 
+int		get_line(t_cursor *cursor, int len)
+{
+	int	result;
+
+	result = 1;
+	while (len > cursor->max_col)
+	{
+		result += 1;
+		len -= cursor->max_col;
+	}
+	return (result);
+}
+
 void	erase_current_prompt(t_mini *mini, int *top, char *buff, t_cursor *cursor)
 {
 	int		ret;
 	char	*term_type;
 	char	*cm_cap;
+	int		len;
 
 	term_type = getenv("TERM");
 	ret = tgetent(NULL, term_type);
@@ -1423,9 +1437,13 @@ void	erase_current_prompt(t_mini *mini, int *top, char *buff, t_cursor *cursor)
 	cursor->max_col = tgetnum("co");
 	cursor->max_line = tgetnum("li");
 	cm_cap = tgetstr("cm", NULL);
-	tputs(tgoto(cm_cap, cursor->col - 1 , cursor->line - 1), 1, ft_putchar);
-	cm_cap = tgetstr("cd", NULL);
-	tputs(cm_cap, 1, ft_putchar);
+	len = ft_strlen(mini->history->input);
+	tputs(tgoto(cm_cap, cursor->col - 1 , cursor->line - get_line(cursor, len)), 1, ft_putchar);
+	len = ft_strlen(mini->history->input);
+	cm_cap = tgetstr("dc", NULL);
+	int i = -1;
+	while (++i < len)
+		tputs(cm_cap, 1, ft_putchar);
 	ft_bzero(mini->history->input, ft_strlen(mini->history->input));
 	ft_bzero(buff, ft_strlen(buff));
 	*top = 0;
