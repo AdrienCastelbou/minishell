@@ -1422,28 +1422,18 @@ int		get_line(t_cursor *cursor, int len)
 
 void	erase_current_prompt(t_mini *mini, int *top, char *buff, t_cursor *cursor)
 {
-	int		ret;
-	char	*term_type;
 	char	*cm_cap;
 	int		len;
+	char	*buffer;
 
-	term_type = getenv("TERM");
-	ret = tgetent(NULL, term_type);
-	if (!term_type || ret < 1)
-	{
-		printf("no termtype or pb\n");
-		return ;
-	}
 	cursor->max_col = tgetnum("co");
 	cursor->max_line = tgetnum("li");
 	cm_cap = tgetstr("cm", NULL);
 	len = ft_strlen(mini->history->input);
-	tputs(tgoto(cm_cap, cursor->col - 1 , cursor->line - get_line(cursor, len)), 1, ft_putchar);
+	tputs(tgoto(cm_cap, cursor->col - 1 , cursor->line - 1), 1, ft_putchar);
 	len = ft_strlen(mini->history->input);
-	cm_cap = tgetstr("dc", NULL);
-	int i = -1;
-	while (++i < len)
-		tputs(cm_cap, 1, ft_putchar);
+	cm_cap = tgetstr("cd", NULL);
+	tputs(cm_cap, 1, ft_putchar);
 	ft_bzero(mini->history->input, ft_strlen(mini->history->input));
 	ft_bzero(buff, ft_strlen(buff));
 	*top = 0;
@@ -1659,6 +1649,18 @@ t_mini	*init_mini(char **envp_tocpy)
 int		main(int argc, char **argv, char **envp)
 {
 	t_mini *mini;
+	int		ret;
+	char	*term_type;
+	char	*cm_cap;
+	int		len;
+
+	term_type = getenv("TERM");
+	ret = tgetent(NULL, term_type);
+	if (!term_type || ret < 1)
+	{
+		printf("no termtype or pb\n");
+		return 1;
+	}
 
 	mini = init_mini(envp);
 	signal(SIGINT, sig_handler);
