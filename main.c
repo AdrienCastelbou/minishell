@@ -39,6 +39,21 @@ void	free_inputs(t_mini *mini)
 		free(mini->input);
 }
 
+void	free_history(t_history **elem)
+{
+	if (!elem || !*elem)
+		return ;
+	if ((*elem)->next)
+		free_history(&(*elem)->next);
+	if ((*elem)->input)
+	{
+		free((*elem)->input);
+		(*elem)->input = NULL;
+	}
+	free((*elem));
+	*elem = NULL;
+
+}
 int		too_args_exit_error(void)
 {
 	ft_putstr_fd("exit: too many arguments\n", STDERR_FILENO);
@@ -78,6 +93,7 @@ int		exit_minishell(char	**splited_inputs, t_mini *mini)
 		else if (splited_inputs[1])
 			return_value = ft_atoi(splited_inputs[1]);
 	}
+	free_history(&(mini->history));
 	free_inputs(mini);
 	ft_lstclear(&mini->env, free);
 	if (mini->envp)
