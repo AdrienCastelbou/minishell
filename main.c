@@ -1424,7 +1424,7 @@ void	erase_current_prompt(t_mini *mini, int *top, char *buff, t_cursor *cursor)
 	cursor->max_line = tgetnum("li");
 	cm_cap = tgetstr("cm", NULL);
 	tputs(tgoto(cm_cap, cursor->col - 1 , cursor->line - 1), 1, ft_putchar);
-	cm_cap = tgetstr("ce", NULL);
+	cm_cap = tgetstr("cd", NULL);
 	tputs(cm_cap, 1, ft_putchar);
 	ft_bzero(mini->history->input, ft_strlen(mini->history->input));
 	ft_bzero(buff, ft_strlen(buff));
