@@ -1595,9 +1595,11 @@ int		ft_get_input(t_mini *mini)
 	read_prompt(mini);
 	if (sig_catcher.should_run == 0)
 	{
+		mini->last_return = 1;
 		dup2(mini->stdin_copy, STDIN_FILENO);
 		reset_input_mode();
 		ft_bzero(mini->input, ft_strlen(mini->input));
+		ft_bzero(mini->history->input, ft_strlen(mini->history->input));
 		return(1);
 	}
 	if (ft_strchr(mini->input, '\n'))
@@ -1672,7 +1674,6 @@ int		main(int argc, char **argv, char **envp)
 		printf("no termtype or pb\n");
 		return 1;
 	}
-
 	mini = init_mini(envp);
 	signal(SIGINT, sig_handler);
 	signal(SIGQUIT, sig_handler);
