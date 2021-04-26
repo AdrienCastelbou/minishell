@@ -1163,66 +1163,66 @@ int		run(t_mini *mini, int fdin, int fdout)
 	return (1);
 }
 
+void	run_piped_child(t_mini *mini,  t_instructions *instruc, t_files_portal *fds)
+{
+	close(fds->fd[0]);
+	if (instruc->fdout.name)
+	{
+		fds->fdout = open_agreg_file(instruc->fdout.name, instruc->fdout.method);
+		dup2(fds->fdout, fds->fd[1]);
+		close(fds->fdout);
+	}
+	else if (!instruc->next)
+	{
+		close(fds->fd[1]);
+		fds->fd[1] = STDOUT_FILENO;
+	}
+	mini->cmd = get_cmd_tab(instruc->cmds);
+	run(mini, fds->fdin, fds->fd[1]);
+	free_cmds(mini);
+}
+
+void	run_piped_parent(t_mini *mini,  t_instructions *instruc, t_files_portal *fds)
+{
+	if (0 < waitpid(sig_catcher.pid, &(mini->last_return), 0) && WIFEXITED(mini->last_return))
+		mini->last_return = WEXITSTATUS(mini->last_return);
+	if (fds->fd[1] != STDOUT_FILENO)
+		close(fds->fd[1]);
+	if (fds->fdin != STDIN_FILENO)
+		close(fds->fdin);
+	if (!instruc->next)
+	{
+		dup2(mini->stdin_copy, STDIN_FILENO);
+		dup2(mini->stdout_copy, STDOUT_FILENO);
+	}
+	fds->fdin = fds->fd[0];
+}
 void	make_pipe(t_mini *mini, t_instructions *instruc)
 {
-	int	fd[2];
-	int	fdin;
-	int	fdout;
-	int	status;
+	t_files_portal	fds;
+	int				status;
 
-	fdin = STDIN_FILENO;
-	fdout = STDOUT_FILENO;
+	fds.fdin = STDIN_FILENO;
+	fds.fdout = STDOUT_FILENO;
 	if (!instruc)
 		return ;
 	while (instruc)
 	{
 		if (instruc->fdin.name)
 		{
-			if (fdin != 0)
-				close(fdin);
-			fdin = open_agreg_file(instruc->fdin.name, instruc->fdin.method);
+			if (fds.fdin != 0)
+				close(fds.fdin);
+			fds.fdin = open_agreg_file(instruc->fdin.name, instruc->fdin.method);
 		}
-		if (pipe(fd) == -1)
-			return ;
-		else if ((sig_catcher.pid = fork()) < 0)
+		if (pipe(fds.fd) == -1 || ((sig_catcher.pid = fork()) < 0))
 			return ;
 		if (sig_catcher.pid == 0)
-		{
-			close(fd[0]);
-			if (instruc->fdout.name)
-			{
-				fdout = open_agreg_file(instruc->fdout.name, instruc->fdout.method);
-				dup2(fdout, fd[1]);
-				close(fdout);
-			}
-			else if (!instruc->next)
-			{
-				close(fd[1]);
-				fd[1] = STDOUT_FILENO;
-			}
-			mini->cmd = get_cmd_tab(instruc->cmds);
-			run(mini, fdin, fd[1]);
-			free_cmds(mini);
-			return ;
-		}
+			run_piped_child(mini, instruc, &fds);
 		else
-		{
-			if (0 < waitpid(sig_catcher.pid, &(mini->last_return), 0) && WIFEXITED(mini->last_return))
-				mini->last_return = WEXITSTATUS(mini->last_return);
-			if (fd[1] != STDOUT_FILENO)
-				close(fd[1]);
-			if (fdin != STDIN_FILENO)
-				close(fdin);
-			if (!instruc->next)
-			{
-				dup2(mini->stdin_copy, STDIN_FILENO);
-				dup2(mini->stdout_copy, STDOUT_FILENO);
-			}
-			fdin = fd[0];
-		}
+			run_piped_parent(mini, instruc, &fds);
 		instruc = instruc->next;
 	}
-	close(fd[0]);
+	close(fds.fd[0]);
 }
 
 void	run_cmd(t_mini *mini, char **cmd, t_instructions *instruc)

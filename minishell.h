@@ -10,6 +10,12 @@
 #include <memory.h>
 #include <signal.h>
 
+typedef struct	s_files_portal {
+		int	fd[2];
+		int	fdin;
+		int	fdout;
+}				t_files_portal;
+
 typedef struct	s_cursor {
 		int	col;
 		int	line;
