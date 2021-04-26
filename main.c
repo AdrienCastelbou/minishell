@@ -262,6 +262,19 @@ int		export_builtin(t_mini *mini, char	**splited_inputs, t_list *env)
 		return (mini->last_return);
 }
 
+void	delete_env_var_elem(t_list **env, t_list **current, t_list **previous)
+{
+	if (!previous)
+		*env = (*current)->next;
+	else
+		(*previous)->next = (*current)->next;
+	ft_lstdelone(*current, free);
+	if (previous)
+		*current = (*previous)->next;
+	else
+		*current = *env;
+}
+
 void	delete_env_var(char *key, t_list **env)
 {
 	t_list	*previous;
@@ -275,17 +288,7 @@ void	delete_env_var(char *key, t_list **env)
 	{
 		if (ft_strnstr((char *)current->content, key, key_len) == current->content
 				&& (*(char *)(current->content + key_len) == '=' || !*(char *)(current->content + key_len)))
-		{
-			if (!previous)
-				*env = current->next;
-			else
-				previous->next = current->next;
-			ft_lstdelone(current, free);
-			if (previous)
-				current = previous->next;
-			else
-				current = *env;
-		}
+			delete_env_var_elem(env, &current, &previous);
 		else
 		{
 			previous = current;
