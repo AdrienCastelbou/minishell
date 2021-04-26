@@ -1543,39 +1543,43 @@ void	check_input_validity(t_mini *mini, char *buffchar, int *top, char *buff)
 	}
 }
 
+int		check_prompt_input(t_mini *mini, int *top, char *buffchar, char *buff)
+{
+	if (*buffchar == '\004')
+	{
+		if (!(*mini->history->input) && !*buff)
+			exit_minishell(NULL, mini);
+	}
+	else if (is_arrow(buffchar) && buffchar[2] == 65)
+		up_history(mini, top, buff, &mini->cursor);
+	else if (is_arrow(buffchar) && buffchar[2] == 66)
+		down_history(mini, top, buff, &mini->cursor);
+	else if (*buffchar == '\n')
+		return (0);
+	else if (*buffchar == 127)
+		erase_char_in_prompt(mini, top, buff);
+	else if (ft_isprint(*buffchar))
+		check_input_validity(mini, buffchar, top, buff);
+	ft_bzero(buffchar, 3);
+	return (1);
+}
+
 void	read_prompt(t_mini *mini)
 {
 	char		buffchar[3];
 	char		buff[128];
 	int			top;
-	t_cursor	cursor;
 
 	add_input_in_history(mini, NULL);
 	mini->current_hist = mini->history;
 	top = 0;
 	ft_bzero(buff, 128);
 	set_mode();
-	get_cursor_position(&cursor);
+	get_cursor_position(&mini->cursor);
 	ft_bzero(buffchar, 3);
 	while (read(STDIN_FILENO, buffchar, 3) && sig_catcher.should_run)
-	{
-		if (*buffchar == '\004')
-		{
-			if (!(*mini->history->input) && !*buff)
-				exit_minishell(NULL, mini);
-		}
-		else if (is_arrow(buffchar) && buffchar[2] == 65)
-			up_history(mini, &top, buff, &cursor);
-		else if (is_arrow(buffchar) && buffchar[2] == 66)
-			down_history(mini, &top, buff, &cursor);
-		else if (*buffchar == '\n')
+		if (!check_prompt_input(mini, &top, buffchar, buff))
 			break ;
-		else if (*buffchar == 127)
-			erase_char_in_prompt(mini, &top, buff);
-		else if (ft_isprint(*buffchar))
-			check_input_validity(mini, buffchar, &top, buff);
-		ft_bzero(buffchar, 3);
-	}
 	write(1, "\n", 1);
 	reset_input_mode();
 	join_prompt_parts(mini, buff);

@@ -51,6 +51,7 @@ typedef struct	s_mini {
 		char			*input;
 		char			*to_exec;
 		t_instructions	*instructions;
+		t_cursor		cursor;
 		t_history		*history;
 		t_history		*current_hist;
 		t_list			*cmds;
