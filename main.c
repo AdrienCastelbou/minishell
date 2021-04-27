@@ -1137,9 +1137,9 @@ int		run_bin(char **cmd, t_mini *mini)
 	path_list = get_env_var("PATH", mini->env);
 	while (*path_list)
 	{
-		path_len = (int)ft_strchr(path_list, ':') - (int)path_list;
-		if (path_len < 0)
-			path_len = ft_strlen(path_list);
+		path_len = 0;
+		while (path_list[path_len] && path_list[path_len] != ':')
+			path_len++;
 		path = ft_strndup(path_list, path_len);
 		free(cmd[0]);
 		cmd[0] = ft_strjoin_path(path, bin);
@@ -1489,8 +1489,8 @@ void	erase_current_prompt(t_mini *mini, int *top, char *buff, t_cursor *cursor)
 		tputs(tgoto(cm_cap, 0, cursor->line), 1, ft_putchar);
 		erase_cap = tgetstr("cd", NULL);
 		tputs(erase_cap, 1, ft_putchar);
+		tputs(tgoto(cm_cap, cursor->col - 1 , cursor->line - 1), 1, ft_putchar);
 	}
-	tputs(tgoto(cm_cap, cursor->col - 1 , cursor->line - 1), 1, ft_putchar);
 	ft_bzero(mini->history->input, ft_strlen(mini->history->input));
 	ft_bzero(buff, ft_strlen(buff));
 	*top = 0;
