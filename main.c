@@ -1426,6 +1426,28 @@ int		ft_putchar(int c)
 	return (1);
 }
 
+int		get_line(t_cursor *cursor, int len)
+{
+	int	result;
+
+	result = 0;
+	if (len - 1 > cursor->max_col - cursor->col)
+	{
+		result += 1;
+		len -= (cursor->max_col - cursor->col);
+	}
+	else
+		return (result);
+	while (len > cursor->max_col)
+	{
+		result += 1;
+		len -= cursor->max_col;
+	}
+	if (cursor->line + result - 1 < cursor->max_line)
+		return (0);
+	return ((cursor->line + result) - cursor->max_line);
+}
+
 void	erase_current_prompt(t_mini *mini, int *top, char *buff, t_cursor *cursor)
 {
 	char	*cm_cap;
@@ -1436,6 +1458,7 @@ void	erase_current_prompt(t_mini *mini, int *top, char *buff, t_cursor *cursor)
 	cursor->max_line = tgetnum("li");
 	cm_cap = tgetstr("cm", NULL);
 	len = ft_strlen(mini->history->input);
+	cursor->line -= get_line(cursor, len);
 	tputs(tgoto(cm_cap, cursor->col - 1 , cursor->line - 1), 1, ft_putchar);
 	len = ft_strlen(mini->history->input);
 	cm_cap = tgetstr("cd", NULL);
@@ -1478,29 +1501,7 @@ void		add_input_in_history(t_mini *mini, char *input)
 	mini->current_hist = mini->history;
 }
 
-int		get_line(t_cursor *cursor, int len)
-{
-	int	result;
-
-	result = 0;
-	if (len - 1 > cursor->max_col - cursor->col)
-	{
-		result += 1;
-		len -= (cursor->max_col - cursor->col);
-	}
-	else
-		return (result);
-	while (len > cursor->max_col)
-	{
-		result += 1;
-		len -= cursor->max_col;
-	}
-	if (cursor->line + result - 1 < cursor->max_line)
-		return (0);
-	return (result);
-}
-
-void	up_history(t_mini *mini, int *top, char * buff, t_cursor *cursor)
+void	up_history(t_mini *mini, int *top, char *buff, t_cursor *cursor)
 {
 	char	*cm_cap;
 	int		len;
