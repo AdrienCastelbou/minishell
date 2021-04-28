@@ -775,14 +775,23 @@ int		cmd_count(char *input)
 {
 	int		i;
 	int		count;
+	int		isnt_blank;
 	char	quote;
 
+	isnt_blank = 0;
 	i = 0;
 	count = 1;
 	while (input[i])
 	{
+		if (input[i] != ' ' && input[i] != 9 && input[i] != ';')
+			isnt_blank = 1;
 		if (input[i] == ';')
+		{
+			if (!isnt_blank)
+				return (0);
 			count += 1;
+			isnt_blank = 0;
+		}
 		else if (input[i] == '\"' || input[i] == '\'')
 		{
 			quote = input[i];
@@ -1105,17 +1114,6 @@ void		free_current_cmd(t_mini *mini, char *cmd_input)
 	set_mini(mini);
 }
 
-int			check_parsing_error(t_mini *mini, int cmd_nb)
-{
-		if (mini->last_return ||
-				(cmd_nb > 1 &&
-				 (!mini->instructions ||
-				  !mini->instructions->cmds ||
-				  !*(char *)mini->instructions->cmds->content)))
-			return (1);
-		return (0);
-}
-
 t_list		*ft_lst_cmds(t_mini *mini, char *s, t_list *env)
 {
 	char	*cmd_input;
@@ -1126,16 +1124,20 @@ t_list		*ft_lst_cmds(t_mini *mini, char *s, t_list *env)
 	if (!s)
 		return (NULL);
 	cmd_nb = cmd_count(s);
+	if (!cmd_nb)
+	{
+		mini->last_return = parsing_error(';');
+		free_current_cmd(mini, cmd_input);
+		return (NULL);
+	}
 	i = 0;
 	while (i < cmd_nb)
 	{
 		len = ft_cmd_size(s, ';');
 		cmd_input = ft_strndup(s, len);
 		mini->last_return = get_instructions(mini, cmd_input, env);
-		if (check_parsing_error(mini, cmd_nb))
+		if (mini->last_return)
 		{
-			if (!mini->last_return)
-				mini->last_return = parsing_error(';');
 			free_current_cmd(mini, cmd_input);
 			return (NULL);
 		}
