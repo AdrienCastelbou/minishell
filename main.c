@@ -1789,7 +1789,6 @@ int		main(int argc, char **argv, char **envp)
 	int		ret;
 	char	*term_type;
 	char	*cm_cap;
-	int		len;
 
 	term_type = getenv("TERM");
 	ret = tgetent(NULL, term_type);
