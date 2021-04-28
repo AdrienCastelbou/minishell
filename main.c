@@ -604,8 +604,11 @@ char			*update_input_with_var(char **s, char *new, int *i, t_list *env)
 
 	str = *s;
 	new = get_var_value(*s, new, *i, env);
-	while (str[++(*i)] && ft_isalnum(str[*i]))
-		;
+	if (*new != 0)
+		while (str[++(*i)] && ft_isalnum(str[*i]))
+			;
+	else
+		*i += 2;
 	*s = *s + *i;
 	*i = 0;
 	return (new);
