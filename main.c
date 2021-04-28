@@ -1045,8 +1045,6 @@ int		get_instructions(t_mini *mini, char *s, t_list *env)
 			mini->is_pipe = 1;
 		instruction = ft_strndup(s, len);
 		cmd = ft_lst_input(mini, current, instruction);
-		if (!cmd)
-			return (258);
 		if ((!cmd || !*((char *)cmd->content)) && mini->is_pipe)
 			return (parsing_error('|'));
 		current->cmds = cmd;
