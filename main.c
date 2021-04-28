@@ -846,6 +846,8 @@ int		parsing_error(char c)
 		ft_putstr_fd(" \'|\'\n", STDERR_FILENO);
 	else if (c == '>')
 		ft_putstr_fd(" \'newline\'\n", STDERR_FILENO);
+	else if (c == ';')
+		ft_putstr_fd(" \';\'\n", STDERR_FILENO);
 	return (258);
 }
 
@@ -1049,6 +1051,17 @@ int		get_instructions(t_mini *mini, char *s, t_list *env)
 
 void		make_pipe(t_mini *mini, t_instructions *instruc);
 
+int			check_parsing_error(t_mini *mini, int cmd_nb)
+{
+		if (mini->last_return ||
+				(cmd_nb > 1 &&
+				 (!mini->instructions ||
+				  !mini->instructions->cmds ||
+				  !*(char *)mini->instructions->cmds->content)))
+			return (1);
+		return (0);
+}
+
 t_list		*ft_lst_cmds(t_mini *mini, char *s, t_list *env)
 {
 	char	*cmd_input;
@@ -1065,8 +1078,10 @@ t_list		*ft_lst_cmds(t_mini *mini, char *s, t_list *env)
 		len = ft_cmd_size(s, ';');
 		cmd_input = ft_strndup(s, len);
 		mini->last_return = get_instructions(mini, cmd_input, env);
-		if (mini->last_return)
+		if (check_parsing_error(mini, cmd_nb))
 		{
+			if (!mini->last_return)
+				mini->last_return = parsing_error(';');
 			free_cmds(mini);
 			free(cmd_input);
 			set_mini(mini);
