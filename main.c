@@ -1082,6 +1082,8 @@ void	exec_cmd(t_mini *mini, char **cmd)
 		{
 			if (0 < waitpid(sig_catcher.pid, &(mini->last_return), 0) && WIFEXITED(mini->last_return))
 				mini->last_return = WEXITSTATUS(mini->last_return);
+			if (mini->last_return == 2 || mini->last_return == 3)
+				mini->last_return += 128;
 		}
 	}
 }
@@ -1205,6 +1207,8 @@ void	run_piped_parent(t_mini *mini,  t_instructions *instruc, t_files_portal *fd
 {
 	if (0 < waitpid(sig_catcher.pid, &(mini->last_return), 0) && WIFEXITED(mini->last_return))
 		mini->last_return = WEXITSTATUS(mini->last_return);
+	if (mini->last_return == 2 || mini->last_return == 3)
+		mini->last_return += 128;
 	if (fds->fd[1] != STDOUT_FILENO)
 		close(fds->fd[1]);
 	if (fds->fdin != STDIN_FILENO)
