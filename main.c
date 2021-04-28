@@ -85,6 +85,7 @@ int		exit_minishell(char	**splited_inputs, t_mini *mini)
 {
 	int	return_value;
 
+	ft_putstr_fd("exit\n", STDERR_FILENO);
 	return_value = mini->last_return;
 	if (splited_inputs)
 	{
