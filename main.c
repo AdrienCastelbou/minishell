@@ -995,7 +995,16 @@ t_instructions	*ft_instructnew(t_list *content)
 	elem->next = NULL;
 	return (elem);
 }
-void		get_instructions(t_mini *mini, char *s, t_list *env)
+
+int		parsing_error(char c)
+{
+	ft_putstr_fd("syntax error near unexpected token", STDERR_FILENO);
+	if (c == '|')
+		ft_putstr_fd(" \'|\'\n", STDERR_FILENO);
+	return (258);
+}
+
+int		get_instructions(t_mini *mini, char *s, t_list *env)
 {
 	char			*instruction;
 	t_instructions	*current;
@@ -1004,22 +1013,25 @@ void		get_instructions(t_mini *mini, char *s, t_list *env)
 
 	mini->instructions = NULL;
 	if (*s == '|')
-		return ;
+		return (parsing_error('|'));
 	while (*s)
 	{
+		if (*s == '|')
+			s+= 1;
 		current = ft_instructnew(NULL);
 		len = ft_cmd_size(s, '|');
+		if (s[len] == '|')
+			mini->is_pipe = 1;
 		instruction = ft_strndup(s, len);
 		cmd = ft_lst_input(mini, current, instruction);
+		if ((!cmd || !*((char *)cmd->content)) && mini->is_pipe)
+			return (parsing_error('|'));
 		current->cmds = cmd;
 		ft_instruct_add_back(&mini->instructions, current);
 		free(instruction);
 		s += len;
-		if (*s == '|')
-			s += 1;
 	}
-	if (mini->instructions && mini->instructions->next)
-		mini->is_pipe = 1;
+	return (0);
 }
 
 void		make_pipe(t_mini *mini, t_instructions *instruc);
@@ -1039,7 +1051,15 @@ t_list		*ft_lst_cmds(t_mini *mini, char *s, t_list *env)
 	{
 		len = ft_cmd_size(s, ';');
 		cmd_input = ft_strndup(s, len);
-		get_instructions(mini, cmd_input, env);
+		mini->last_return = get_instructions(mini, cmd_input, env);
+		if (mini->last_return)
+		{
+			free_cmds(mini);
+			free(cmd_input);
+			set_mini(mini);
+			mini->cmds = NULL;
+			return (NULL);
+		}
 		if (mini->is_pipe)
 			make_pipe(mini, mini->instructions);
 		else
