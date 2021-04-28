@@ -3,6 +3,31 @@
 
 t_sigcatch	sig_catcher;
 
+long long int	ft_atolli(const char *str)
+{
+	int			i;
+	int			is_neg;
+	long long int	result;
+
+	i = 0;
+	while ((str[i] >= 9 && str[i] <= 13) || str[i] == ' ')
+		i++;
+	is_neg = 1;
+	if (str[i] == '+' || str[i] == '-')
+	{
+		if (str[i] == '-')
+			is_neg *= -1;
+		i++;
+	}
+	result = 0;
+	while (str[i] >= '0' && str[i] <= '9')
+	{
+		result = result * 10 + (str[i] - '0');
+		i++;
+	}
+	return (result * is_neg);
+}
+
 int		ft_strcmp(char *s1, char *s2)
 {
 	while (*s1 && *s2)
@@ -81,9 +106,18 @@ int		bad_exit_arg(char *s)
 	return (255);
 }
 
+int		is_bad_num_value(char *s, long long int nb)
+{
+	if (nb > 0 && (*s == '-'))
+		return (1);
+	else if (nb < 0 && (*s != '-'))
+		return (1);
+	return (0);
+}
+
 int		exit_minishell(char	**splited_inputs, t_mini *mini)
 {
-	int	return_value;
+	long long int	return_value;
 
 	ft_putstr_fd("exit\n", STDERR_FILENO);
 	return_value = mini->last_return;
@@ -94,8 +128,10 @@ int		exit_minishell(char	**splited_inputs, t_mini *mini)
 		else if (splited_inputs[1] && splited_inputs[2])
 			return (too_args_exit_error());
 		else if (splited_inputs[1])
-			return_value = ft_atoi(splited_inputs[1]);
+			return_value = ft_atolli(splited_inputs[1]);
 	}
+	if (is_bad_num_value(splited_inputs[1], return_value))
+		return_value = bad_exit_arg(splited_inputs[1]);
 	free_history(&(mini->history));
 	free_inputs(mini);
 	ft_lstclear(&mini->env, free);
