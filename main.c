@@ -64,7 +64,9 @@ int		is_only_digit(char *s)
 {
 	int i;
 
-	i = -1;
+	i = 0;
+	if (!ft_isdigit(s[i]) && s[i] != '-' && s[i] != '+')
+		return (0);
 	while (s[++i])
 		if (!ft_isdigit(s[i]))
 			return (0);
