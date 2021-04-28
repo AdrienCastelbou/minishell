@@ -839,7 +839,17 @@ int		create_and_close_file(char *file, char *method)
 	return (0);
 }
 
-void	get_fdout_file(t_instructions *instruct, char *s, t_mini *mini)
+int		parsing_error(char c)
+{
+	ft_putstr_fd("syntax error near unexpected token", STDERR_FILENO);
+	if (c == '|')
+		ft_putstr_fd(" \'|\'\n", STDERR_FILENO);
+	else if (c == '>')
+		ft_putstr_fd(" \'newline\'\n", STDERR_FILENO);
+	return (258);
+}
+
+int		get_fdout_file(t_instructions *instruct, char *s, t_mini *mini)
 {
 	char	*method;
 	char	*file;
@@ -847,6 +857,11 @@ void	get_fdout_file(t_instructions *instruct, char *s, t_mini *mini)
 	int		size;
 
 	i = 0;
+	if (s[i] == '>' && !s[i + 1])
+	{
+		free(s);
+		return (parsing_error('>'));
+	}
 	if (s[i] == '>' && s[i + 1] != '>')
 	{
 		i += 1;
@@ -866,6 +881,7 @@ void	get_fdout_file(t_instructions *instruct, char *s, t_mini *mini)
 	instruct->fdout.is_file = 1;
 	create_and_close_file(file, method);
 	free(s);
+	return (0);
 }
 
 int		get_fdin_file(t_instructions *instruct, char *s, t_mini *mini)
@@ -906,11 +922,14 @@ t_list	*ft_lst_input(t_mini *mini, t_instructions *instruc, char *s)
 			return (cmd);
 		len = ft_word_size(s);
 		if (*s == '>')
-			get_fdout_file(instruc, ft_strndup(s, len), mini);
+		{
+			if (get_fdout_file(instruc, ft_strndup(s, len), mini))
+				return (NULL);
+		}
 		else if (*s == '<')
 		{
 			if (get_fdin_file(instruc, ft_strndup(s, len), mini) == 1)
-				return (cmd);
+				return (NULL);
 		}
 		else
 			(ft_lstadd_back(&cmd, ft_lstnew(get_real_input(ft_strndup(s, len), mini, mini->env))));
@@ -996,14 +1015,6 @@ t_instructions	*ft_instructnew(t_list *content)
 	return (elem);
 }
 
-int		parsing_error(char c)
-{
-	ft_putstr_fd("syntax error near unexpected token", STDERR_FILENO);
-	if (c == '|')
-		ft_putstr_fd(" \'|\'\n", STDERR_FILENO);
-	return (258);
-}
-
 int		get_instructions(t_mini *mini, char *s, t_list *env)
 {
 	char			*instruction;
@@ -1024,6 +1035,8 @@ int		get_instructions(t_mini *mini, char *s, t_list *env)
 			mini->is_pipe = 1;
 		instruction = ft_strndup(s, len);
 		cmd = ft_lst_input(mini, current, instruction);
+		if (!cmd)
+			return (258);
 		if ((!cmd || !*((char *)cmd->content)) && mini->is_pipe)
 			return (parsing_error('|'));
 		current->cmds = cmd;
