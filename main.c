@@ -553,7 +553,7 @@ char			*get_env_var(const char *s, t_list *env)
 
 	i = -1;
 	str = ft_strdup("");
-	while (s[++i] && ft_isalnum(s[i]))
+	while (s[++i] && ft_isenvchar(s[i]))
 		;
 	if (!(variable = ft_strndup((char *)s, i)))
 		return (NULL);
@@ -604,14 +604,21 @@ char			*update_input_with_var(char **s, char *new, int *i, t_list *env)
 
 	str = *s;
 	new = get_var_value(*s, new, *i, env);
-	if (*new != 0)
-		while (str[++(*i)] && ft_isalnum(str[*i]))
+	if (*new != 0 || ft_isalpha(str[*i + 1]))
+		while (str[++(*i)] && ft_isenvchar(str[*i]))
 			;
 	else
 		*i += 2;
 	*s = *s + *i;
 	*i = 0;
 	return (new);
+}
+
+int				ft_isenvchar(char c)
+{
+	if (ft_isalnum(c) || c == '_')
+		return (1);
+	return (0);
 }
 
 char			*update_input_with_big_quotes(char **s, char *new, int *i, t_mini *mini)
@@ -626,7 +633,7 @@ char			*update_input_with_big_quotes(char **s, char *new, int *i, t_mini *mini)
 	{
 		if (str[*i] == '\\' && (str[*i + 1] == '$' || str[*i + 1] == '\"' || str[*i + 1] == '\\'))
 			new = update_input_with_echap(&str, new, i, mini->env);
-		else if (str[*i] == '$' && str[*i + 1] && ft_isalnum(str[*i + 1]))
+		else if (str[*i] == '$' && str[*i + 1] && ft_isenvchar(str[*i + 1]))
 			new = update_input_with_var(&str, new, i, mini->env);
 		else if (str[*i] == '$' && str[*i + 1] == '?')
 			new = update_input_with_last_return(&str, new, i, mini);
@@ -709,7 +716,7 @@ char			*get_real_input(char *s, t_mini *mini, t_list *env)
 	{
 		if (s[i] == '\\')
 			new = update_input_with_echap(&s, new, &i, env);
-		else if (s[i] == '$' && s[i + 1] && ft_isalnum(s[i + 1]))
+		else if (s[i] == '$' && s[i + 1] && ft_isenvchar(s[i + 1]))
 			new = update_input_with_var(&s, new, &i, env);
 		else if (s[i] == '\"')
 			new = update_input_with_big_quotes(&s, new, &i, mini);
@@ -1068,7 +1075,7 @@ void	exec_cmd(t_mini *mini, char **cmd)
 	int		status;
 
 	mini->envp = transform_env_lst_in_tab(mini->env);
-	if (!*cmd)
+	if (!*cmd | !**cmd)
 		;
 	else if (run_builtins(cmd, mini))
 		;
@@ -1173,7 +1180,7 @@ int		run(t_mini *mini, int fdin, int fdout)
 		exit(1);
 	redirect(fdin, STDIN_FILENO);
 	redirect(fdout, STDOUT_FILENO);
-	if (!*cmd)
+	if (!*cmd || !**cmd)
 		;
 	else if (run_builtins(cmd, mini))
 		;
