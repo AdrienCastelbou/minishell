@@ -1059,6 +1059,18 @@ int		get_instructions(t_mini *mini, char *s, t_list *env)
 
 void		make_pipe(t_mini *mini, t_instructions *instruc);
 
+void		free_current_cmd(t_mini *mini, char *cmd_input)
+{
+	free_cmds(mini);
+	mini->cmds = NULL;
+	free(cmd_input);
+	cmd_input = NULL;
+	if (mini->envp)
+		free(mini->envp);
+	mini->envp = NULL;
+	set_mini(mini);
+}
+
 int			check_parsing_error(t_mini *mini, int cmd_nb)
 {
 		if (mini->last_return ||
@@ -1090,10 +1102,7 @@ t_list		*ft_lst_cmds(t_mini *mini, char *s, t_list *env)
 		{
 			if (!mini->last_return)
 				mini->last_return = parsing_error(';');
-			free_cmds(mini);
-			free(cmd_input);
-			set_mini(mini);
-			mini->cmds = NULL;
+			free_current_cmd(mini, cmd_input);
 			return (NULL);
 		}
 		if (mini->is_pipe)
@@ -1105,15 +1114,11 @@ t_list		*ft_lst_cmds(t_mini *mini, char *s, t_list *env)
 				mini->cmd = get_cmd_tab(mini->instructions->cmds);
 				run_cmd(mini, mini->cmd, mini->instructions);
 			}
-			free_cmds(mini);
 		}
-		free(cmd_input);
+		free_current_cmd(mini, cmd_input);
 		s += len + 1;
 		i++;
-		set_mini(mini);
 	}
-	mini->cmds = NULL;
-	i = -1;
 	return (mini->cmds);
 }
 
