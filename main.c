@@ -859,23 +859,23 @@ int		get_fdout_file(t_instructions *instruct, char *s, t_mini *mini)
 	int		size;
 
 	i = 0;
-	if (s[i] == '>' && !s[i + 1])
-	{
-		free(s);
-		return (parsing_error('>'));
-	}
 	if (s[i] == '>' && s[i + 1] != '>')
 	{
 		i += 1;
 		method = ">";
 	}
-	else
+	else if (s[i] == '>' && s[i + 1] == '>')
 	{
 		i += 2;
 		method = ">>";
 	}
 	while (s[i] && (s[i] == ' ' || s[i] == 9))
 		i++;
+	if (s[i] == 0)
+	{
+		free(s);
+		return (parsing_error('>'));
+	}
 	size = ft_word_size(s + i);
 	file = get_real_input(ft_strndup(s + i, size), mini, mini->env);
 	instruct->fdout.name = file;
@@ -897,6 +897,11 @@ int		get_fdin_file(t_instructions *instruct, char *s, t_mini *mini)
 	i = 1;
 	while (s[i] && (s[i] == ' ' || s[i] == 9))
 		i++;
+	if (s[i] == 0)
+	{
+		free(s);
+		return (parsing_error('>'));
+	}
 	size = ft_word_size(s + i);
 	file = get_real_input(ft_strndup(s + i, size), mini, mini->env);
 	instruct->fdin.name = file;
@@ -930,7 +935,7 @@ t_list	*ft_lst_input(t_mini *mini, t_instructions *instruc, char *s)
 		}
 		else if (*s == '<')
 		{
-			if (get_fdin_file(instruc, ft_strndup(s, len), mini) == 1)
+			if (get_fdin_file(instruc, ft_strndup(s, len), mini))
 				return (NULL);
 		}
 		else
