@@ -611,7 +611,7 @@ char			*update_input_with_var(char **s, char *new, int *i, t_list *env)
 	return (new);
 }
 
-char			*update_input_with_big_quotes(char **s, char *new, int *i, t_list *env)
+char			*update_input_with_big_quotes(char **s, char *new, int *i, t_mini *mini)
 {
 	char *str;
 
@@ -622,9 +622,11 @@ char			*update_input_with_big_quotes(char **s, char *new, int *i, t_list *env)
 	while (str[*i] != '\"' && str[*i])
 	{
 		if (str[*i] == '\\' && (str[*i + 1] == '$' || str[*i + 1] == '\"' || str[*i + 1] == '\\'))
-			new = update_input_with_echap(&str, new, i, env);
+			new = update_input_with_echap(&str, new, i, mini->env);
 		else if (str[*i] == '$' && str[*i + 1] && ft_isalnum(str[*i + 1]))
-			new = update_input_with_var(&str, new, i, env);
+			new = update_input_with_var(&str, new, i, mini->env);
+		else if (str[*i] == '$' && str[*i + 1] == '?')
+			new = update_input_with_last_return(&str, new, i, mini);
 		else
 			*i += 1;
 	}
@@ -707,7 +709,7 @@ char			*get_real_input(char *s, t_mini *mini, t_list *env)
 		else if (s[i] == '$' && s[i + 1] && ft_isalnum(s[i + 1]))
 			new = update_input_with_var(&s, new, &i, env);
 		else if (s[i] == '\"')
-			new = update_input_with_big_quotes(&s, new, &i, env);
+			new = update_input_with_big_quotes(&s, new, &i, mini);
 		else if (s[i] == '\'')
 			new = update_input_with_lil_quotes(&s, new, &i, env);
 		else if (s[i] == '$' && s[i + 1] == '?')
