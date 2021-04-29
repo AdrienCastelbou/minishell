@@ -1172,7 +1172,7 @@ void	exec_cmd(t_mini *mini, char **cmd)
 	int		status;
 
 	mini->envp = transform_env_lst_in_tab(mini->env);
-	if (!*cmd | !**cmd)
+	if (!cmd || !*cmd || !**cmd)
 		;
 	else if (run_builtins(cmd, mini))
 		;
@@ -1498,7 +1498,12 @@ void	erase_char_in_prompt(t_mini *mini, int *top, char *buff)
 		*top -= 1;
 		buff[*top] = 0;
 	}
-	write(1, "\b \b", 3);
+	get_cursor_position(&(mini->cursor.cur_col), &(mini->cursor.cur_line));
+	if (mini->cursor.cur_col)
+		tputs(tgetstr("le", NULL), 1, ft_putchar);
+	else
+		tputs(tgoto(tgetstr("cm", NULL), mini->cursor.cur_line - 2, mini->cursor.max_col -1), 1, NULL);
+	tputs(tgetstr("dc", NULL), 1, ft_putchar);
 }
 
 void	join_prompt_parts(t_mini *mini, char *buff)
@@ -1608,7 +1613,7 @@ void	erase_current_prompt(t_mini *mini, int *top, char *buff, t_cursor *cursor)
 	*top = 0;
 }
 
-void	get_cursor_position(t_cursor *cursor)
+void	get_cursor_position(int *col, int *line)
 {
 	char cmd[]="\033[6n";
 	char buff[128];
@@ -1617,11 +1622,11 @@ void	get_cursor_position(t_cursor *cursor)
 	write(1, cmd, len);
 	read(1, buff, 127);
 	int i = 2;
-	cursor->line = ft_atoi(&buff[i]);
+	*line = ft_atoi(&buff[i]);
 	while (buff[i] && buff[i] != ';')
 		i++;
 	i+= 1;
-	cursor->col = ft_atoi(&buff[i]);
+	*col = ft_atoi(&buff[i]);
 }
 
 void		add_input_in_history(t_mini *mini, char *input)
@@ -1735,7 +1740,7 @@ void	read_prompt(t_mini *mini)
 	top = 0;
 	ft_bzero(buff, 128);
 	set_mode();
-	get_cursor_position(&mini->cursor);
+	get_cursor_position(&(mini->cursor.col), &(mini->cursor.line));
 	ft_bzero(buffchar, 3);
 	while (read(STDIN_FILENO, buffchar, 3) && sig_catcher.should_run)
 		if (!check_prompt_input(mini, &top, buffchar, buff))

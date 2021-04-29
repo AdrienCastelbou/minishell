@@ -19,6 +19,8 @@ typedef struct	s_files_portal {
 typedef struct	s_cursor {
 		int	col;
 		int	line;
+		int	cur_col;
+		int	cur_line;
 		int	max_col;
 		int	max_line;
 }				t_cursor;
@@ -106,6 +108,10 @@ t_list			*ft_lst_cmds(t_mini *mini, char *s, t_list *env);
 
 int				run_bin(char **cmd, t_mini *mini);
 
+//PROMPT READER
+
+void			get_cursor_position(int *col, int *line);
+int				ft_putchar(int c);
 //UTILS
 
 char			*ft_strjoin_path(char const *s1, char const *s2);

@@ -40,16 +40,22 @@ int		ft_putchar(int c)
 
 int	main(void)
 {
+char *cm_cap; 
 	int ret = init_term();
+	int i;
 	if (ret != 0)
 		return (0);
-	int col = tgetnum("co");
-	int line = tgetnum("li");
-	printf("col = %d, li = %d", col, line);
-	char *cm_cap = tgetstr("cm", NULL);
+	printf("Hello\nWorld");
+	//tputs(tgetstr("le", NULL), 1, putchar);
+	i = -1;
+	while (++i < 10)
+	{
+		//tputs(tgetstr("le", NULL), 1, putchar);
+	}
 	cm_cap = tgetstr("dc", NULL);
+tputs(tgetstr("le", NULL), 1, putchar);
+
+		tputs(tgetstr("nd", NULL), 1, putchar);
 	tputs(cm_cap, 1, putchar);
 tputs(cm_cap, 1, putchar);
-	char *reset_cmd = tgetstr("me", NULL);
-tputs(reset_cmd, 1, putchar);
 }
