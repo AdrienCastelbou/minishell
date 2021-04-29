@@ -1309,7 +1309,7 @@ void	run_piped_child(t_mini *mini,  t_instructions *instruc, t_files_portal *fds
 	}
 	mini->cmd = get_cmd_tab(instruc->cmds);
 	run(mini, fds->fdin, fds->fd[1]);
-	free_cmds(mini);
+	exit(127);
 }
 
 void	run_piped_parent(t_mini *mini,  t_instructions *instruc, t_files_portal *fds)
@@ -1322,11 +1322,8 @@ void	run_piped_parent(t_mini *mini,  t_instructions *instruc, t_files_portal *fd
 		close(fds->fd[1]);
 	if (fds->fdin != STDIN_FILENO)
 		close(fds->fdin);
-	if (!instruc->next)
-	{
-		dup2(mini->stdin_copy, STDIN_FILENO);
-		dup2(mini->stdout_copy, STDOUT_FILENO);
-	}
+	dup2(mini->stdin_copy, STDIN_FILENO);
+	dup2(mini->stdout_copy, STDOUT_FILENO);
 	fds->fdin = fds->fd[0];
 }
 void	make_pipe(t_mini *mini, t_instructions *instruc)
@@ -1352,6 +1349,8 @@ void	make_pipe(t_mini *mini, t_instructions *instruc)
 			run_piped_child(mini, instruc, &fds);
 		else
 			run_piped_parent(mini, instruc, &fds);
+		if (mini->last_return == 127)
+			return ;
 		instruc = instruc->next;
 	}
 	close(fds.fd[0]);
