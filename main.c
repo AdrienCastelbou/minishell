@@ -1592,22 +1592,16 @@ void	erase_current_prompt(t_mini *mini, int *top, char *buff, t_cursor *cursor)
 	char	*erase_cap;
 	int		len;
 	char	*buffer;
+	int		i;
 
 	cursor->max_col = tgetnum("co");
 	cursor->max_line = tgetnum("li");
 	cm_cap = tgetstr("cm", NULL);
 	len = ft_strlen(mini->history->input);
-	cursor->line -= get_line(cursor, len);
-	tputs(tgoto(cm_cap, cursor->col - 1 , cursor->line - 1), 1, ft_putchar);
-	erase_cap = tgetstr("ce", NULL);
-	tputs(erase_cap, 1, ft_putchar);
-	if (get_lines_nb(cursor, len))
-	{
-		tputs(tgoto(cm_cap, 0, cursor->line), 1, ft_putchar);
-		erase_cap = tgetstr("cd", NULL);
-		tputs(erase_cap, 1, ft_putchar);
-		tputs(tgoto(cm_cap, cursor->col - 1 , cursor->line - 1), 1, ft_putchar);
-	}
+	i = -1;
+	while (++i < len)
+		erase_char_in_prompt(mini, top, buff);
+tputs(tgetstr("dc", NULL), 1, ft_putchar);
 	ft_bzero(mini->history->input, ft_strlen(mini->history->input));
 	ft_bzero(buff, ft_strlen(buff));
 	*top = 0;
