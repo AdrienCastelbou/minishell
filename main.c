@@ -1500,10 +1500,10 @@ void	erase_char_in_prompt(t_mini *mini, int *top, char *buff)
 	}
 	get_cursor_position(&(mini->cursor.cur_col), &(mini->cursor.cur_line));
 	if (mini->cursor.cur_col)
-		tputs(tgetstr("le", NULL), 1, ft_putchar);
+		tputs(mini->le_cap, 1, ft_putchar);
 	else
-		tputs(tgoto(tgetstr("cm", NULL), mini->cursor.cur_line - 2, mini->cursor.max_col -1), 1, NULL);
-	tputs(tgetstr("dc", NULL), 1, ft_putchar);
+		tputs(tgoto(mini->cm_cap, mini->cursor.cur_line - 2, mini->cursor.max_col -1), 1, NULL);
+	tputs(mini->dc_cap, 1, ft_putchar);
 }
 
 void	join_prompt_parts(t_mini *mini, char *buff)
@@ -1588,20 +1588,17 @@ int		get_line(t_cursor *cursor, int len)
 
 void	erase_current_prompt(t_mini *mini, int *top, char *buff, t_cursor *cursor)
 {
-	char	*cm_cap;
-	char	*erase_cap;
 	int		len;
 	char	*buffer;
 	int		i;
 
 	cursor->max_col = tgetnum("co");
 	cursor->max_line = tgetnum("li");
-	cm_cap = tgetstr("cm", NULL);
 	len = ft_strlen(mini->history->input);
 	i = -1;
 	while (++i < len)
 		erase_char_in_prompt(mini, top, buff);
-tputs(tgetstr("dc", NULL), 1, ft_putchar);
+tputs(mini->dc_cap, 1, ft_putchar);
 	ft_bzero(mini->history->input, ft_strlen(mini->history->input));
 	ft_bzero(buff, ft_strlen(buff));
 	*top = 0;
@@ -1656,11 +1653,9 @@ void	up_history(t_mini *mini, int *top, char *buff, t_cursor *cursor)
 	int i = -1;
 	while (++i < len)
 	{
-		cm_cap = tgetstr("ic", NULL);
-		tputs(cm_cap, 1, ft_putchar);
+		tputs(mini->ic_cap, 1, ft_putchar);
 		write_char_in_prompt(mini, new[i], top, buff);
-		cm_cap = tgetstr("ip", NULL);
-		tputs(cm_cap, 1, ft_putchar);
+		tputs(mini->ip_cap, 1, ft_putchar);
 	}
 	cursor->line -= get_line(cursor, len);
 }
@@ -1681,11 +1676,9 @@ void	down_history(t_mini *mini, int *top, char * buff, t_cursor *cursor)
 	int i = -1;
 	while (++i < len)
 	{
-		cm_cap = tgetstr("ic", NULL);
-		tputs(cm_cap, 1, ft_putchar);
+		tputs(mini->ic_cap, 1, ft_putchar);
 		write_char_in_prompt(mini, new[i], top, buff);
-		cm_cap = tgetstr("ip", NULL);
-		tputs(cm_cap, 1, ft_putchar);
+		tputs(mini->ip_cap, 1, ft_putchar);
 	}
 	cursor->line -= get_line(cursor, len);
 }
@@ -1818,6 +1811,11 @@ t_mini	*init_mini(char **envp_tocpy)
 	mini->instructions = NULL;
 	mini->history = NULL;
 	mini->last_return = 0;
+	mini->cm_cap = tgetstr("cm", NULL);
+	mini->dc_cap = tgetstr("dc", NULL);
+	mini->le_cap = tgetstr("le", NULL);
+	mini->ic_cap = tgetstr("ic", NULL);
+	mini->ip_cap = tgetstr("ip", NULL);
 	set_mini(mini);
 	return (mini);
 }

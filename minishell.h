@@ -62,6 +62,11 @@ typedef struct	s_mini {
 		int				stdout_copy;
 		int				is_pipe;
 		int				last_return;
+		char			*cm_cap;
+		char			*dc_cap;
+		char			*le_cap;
+		char			*ic_cap;
+		char			*ip_cap;
 }				t_mini;
 
 typedef struct	s_sigcatch {
