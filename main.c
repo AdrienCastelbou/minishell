@@ -996,12 +996,12 @@ t_list	*ft_lst_input(t_mini *mini, t_instructions *instruc, char *s)
 		if (*s == '>')
 		{
 			if (get_fdout_file(instruc, ft_strndup(s, len), mini))
-				return (NULL);
+				return (cmd);
 		}
 		else if (*s == '<')
 		{
 			if (get_fdin_file(instruc, ft_strndup(s, len), mini))
-				return (NULL);
+				return (cmd);
 		}
 		else
 			(ft_lstadd_back(&cmd, ft_lstnew(get_real_input(ft_strndup(s, len), mini, mini->env))));
