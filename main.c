@@ -1371,8 +1371,6 @@ void	make_pipe(t_mini *mini, t_instructions *instruc)
 			run_piped_child(mini, instruc, &fds);
 		else
 			run_piped_parent(mini, instruc, &fds);
-		if (mini->last_return == 127)
-			return ;
 		instruc = instruc->next;
 	}
 	close(fds.fd[0]);
@@ -1769,6 +1767,7 @@ int		ft_get_input(t_mini *mini)
 
 	sig_catcher.should_run = 1;
 	sig_catcher.pid = -1;
+	printf("%d\n", mini->last_return);
 	if (!mini->last_return)
 		ft_putstr_fd("\U0001F49A ", STDOUT_FILENO);
 	else
