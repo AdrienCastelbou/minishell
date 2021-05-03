@@ -1139,6 +1139,8 @@ t_list		*ft_lst_cmds(t_mini *mini, char *s, t_list *env)
 	{
 		if (!cmd_nb)
 			mini->last_return = parsing_error(';');
+		else
+			mini->last_return = 258;
 		free_current_cmd(mini, cmd_input);
 		return (NULL);
 	}
@@ -1759,7 +1761,11 @@ int		ft_get_input(t_mini *mini)
 
 	sig_catcher.should_run = 1;
 	sig_catcher.pid = -1;
-	ft_putstr_fd("\033[0;34mminishell> \033[0m", 1);
+	if (!mini->last_return)
+		ft_putstr_fd("\U0001F49A ", STDOUT_FILENO);
+	else
+		ft_putstr_fd("\U0001F494 ", STDOUT_FILENO);
+	ft_putstr_fd("\033[0;34mminishell> \033[0m", STDOUT_FILENO);
 	read_prompt(mini);
 	if (sig_catcher.should_run == 0)
 	{
