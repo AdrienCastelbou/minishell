@@ -520,6 +520,14 @@ int				ft_get_fd_token(const char *s)
 	return (len);
 }
 
+int			quote_error_in_parsing(char c)
+{
+	ft_putstr_fd("minishell: quote ", STDERR_FILENO);
+	ft_putchar_fd(c, STDERR_FILENO);
+	ft_putstr_fd(" is not closed\n", STDERR_FILENO);
+	return (-1);
+}
+
 static int		ft_cmd_size(const char *s, char c)
 {
 	int		len;
@@ -540,6 +548,7 @@ static int		ft_cmd_size(const char *s, char c)
 				else if (s[len] == quote)
 					break ;
 			}
+
 		}
 		else if (s[len] == '\\')
 			len += 1;
@@ -802,6 +811,8 @@ int		cmd_count(char *input)
 				else if (input[i] == quote)
 					break ;
 			}
+			if (!input[i])
+				return (quote_error_in_parsing(quote));
 		}
 		else if (input[i] == '\\')
 			i++;
@@ -1124,9 +1135,10 @@ t_list		*ft_lst_cmds(t_mini *mini, char *s, t_list *env)
 	if (!s)
 		return (NULL);
 	cmd_nb = cmd_count(s);
-	if (!cmd_nb)
+	if (cmd_nb < 1)
 	{
-		mini->last_return = parsing_error(';');
+		if (!cmd_nb)
+			mini->last_return = parsing_error(';');
 		free_current_cmd(mini, cmd_input);
 		return (NULL);
 	}
