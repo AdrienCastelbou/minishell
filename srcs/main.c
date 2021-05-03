@@ -1,7 +1,22 @@
 #include "minishell.h"
-#include <termios.h>
 
 t_sigcatch	sig_catcher;
+
+char	*ft_strndup(char *src, int size)
+{
+	int		i;
+	char	*str;
+
+	if (src == NULL)
+		return (NULL);
+	if ((str = malloc(sizeof(char) * size + 1)) == NULL)
+		return (NULL);
+	i = -1;
+	while (++i < size)
+		str[i] = src[i];
+	str[i] = '\0';
+	return (str);
+}
 
 long long int	ft_atolli(const char *str)
 {

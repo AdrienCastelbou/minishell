@@ -6,7 +6,7 @@
 /*   By: acastelb <acastelb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/11/16 16:45:31 by acastelb          #+#    #+#             */
-/*   Updated: 2021/03/16 15:22:08 by acastelb         ###   ########.fr       */
+/*   Updated: 2021/05/03 15:49:01 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,8 +22,6 @@ typedef struct	s_list
 	struct s_list	*next;
 }				t_list;
 
-
-char			*ft_strndup(char *src, int size);
 void			*ft_memset(void *b, int c, size_t len);
 void			ft_bzero(void *s, size_t n);
 void			*ft_memcpy(void *dst, const void *src, size_t n);
@@ -70,4 +68,5 @@ void			ft_lstadd_back(t_list **alst, t_list *new);
 void			ft_lstiter(t_list *lst, void (*f)(void *elem));
 t_list			*ft_lstmap(t_list *lst, void
 		*(*f)(void *), void (*del)(void *));
+char			*ft_strndup(char *s, int len);
 #endif

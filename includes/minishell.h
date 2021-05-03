@@ -1,14 +1,19 @@
+
+#ifndef MINISHELL_H
+
+#define MINISHELL_H
+#include "libft.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <curses.h>
 #include <term.h>
 #include <unistd.h>
-#include "libft.h"
 #include <string.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <memory.h>
 #include <signal.h>
+#include <wait.h>
 
 typedef struct	s_files_portal {
 		int	fd[2];
@@ -129,3 +134,5 @@ int				ft_get_input(t_mini *mini);
 t_list			*copy_env(char **envp);
 t_mini			*init_mini(char **envp_tocpy);
 int				ft_strcmp(char *s1, char *s2);
+char			*ft_strndup(char *s, int len);
+#endif
