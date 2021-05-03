@@ -81,7 +81,7 @@ void	free_history(t_history **elem)
 }
 int		too_args_exit_error(void)
 {
-	ft_putstr_fd("exit: too many arguments\n", STDERR_FILENO);
+	ft_putstr_fd("\U0000274C minishell : exit: too many arguments\n", STDERR_FILENO);
 	return (1);
 }
 
@@ -100,6 +100,7 @@ int		is_only_digit(char *s)
 
 int		bad_exit_arg(char *s)
 {
+	ft_putstr_fd("\U0000274C minishell: ", STDERR_FILENO);
 	ft_putstr_fd("exit: ", STDERR_FILENO);
 	ft_putstr_fd(s, STDERR_FILENO);
 	ft_putstr_fd(": numeric argument required\n", STDERR_FILENO);
@@ -279,6 +280,7 @@ void	print_export_var(t_list *env)
 
 int		export_error(char *env_var)
 {
+	ft_putstr_fd("\U0000274C minishell: ", STDERR_FILENO);
 	ft_putstr_fd("export: \'", STDERR_FILENO);
 	ft_putstr_fd(env_var, STDERR_FILENO);
 	ft_putstr_fd("\': not a valid identifier\n", STDERR_FILENO);
@@ -354,6 +356,7 @@ void	delete_env_var(char *key, t_list **env)
 
 int		unset_error(char *env_var)
 {
+	ft_putstr_fd("\U0000274C minishell: ", STDERR_FILENO);
 	ft_putstr_fd("unset: \'", STDERR_FILENO);
 	ft_putstr_fd(env_var, STDERR_FILENO);
 	ft_putstr_fd("\': not a valid identifier\n", STDERR_FILENO);
@@ -432,6 +435,7 @@ void	update_pwd_paths(t_mini *mini)
 
 void	cd_error(char *mov, char *error)
 {
+	ft_putstr_fd("\U0000274C minishell: ", STDERR_FILENO);
 	ft_putstr_fd("cd: ", STDERR_FILENO);
 	ft_putstr_fd(mov, STDERR_FILENO);
 	ft_putstr_fd(": ", STDERR_FILENO);
@@ -522,7 +526,7 @@ int				ft_get_fd_token(const char *s)
 
 int			quote_error_in_parsing(char c)
 {
-	ft_putstr_fd("minishell: quote ", STDERR_FILENO);
+	ft_putstr_fd("\U0000274C minishell: quote ", STDERR_FILENO);
 	ft_putchar_fd(c, STDERR_FILENO);
 	ft_putstr_fd(" is not closed\n", STDERR_FILENO);
 	return (-1);
@@ -888,6 +892,7 @@ int		create_and_close_file(char *file, char *method)
 		fd = open(file, O_WRONLY | O_APPEND | O_CREAT, S_IRWXU | S_IRGRP | S_IROTH);
 	if (fd < 0)
 	{
+		ft_putstr_fd("\U0000274C minishell: ", STDERR_FILENO);
 		ft_putstr_fd(file, STDERR_FILENO);
 		ft_putstr_fd(": ", STDERR_FILENO);
 		ft_putstr_fd(strerror(errno), STDERR_FILENO);
@@ -900,6 +905,7 @@ int		create_and_close_file(char *file, char *method)
 
 int		parsing_error(char c)
 {
+	ft_putstr_fd("\U0000274C minishell: ", STDERR_FILENO);
 	ft_putstr_fd("syntax error near unexpected token", STDERR_FILENO);
 	if (c == '|')
 		ft_putstr_fd(" \'|\'\n", STDERR_FILENO);
@@ -1174,6 +1180,7 @@ t_list		*ft_lst_cmds(t_mini *mini, char *s, t_list *env)
 
 void	print_exec_error(char *cmd)
 {
+	ft_putstr_fd("\U0000274C minishell: ", STDERR_FILENO);
 	ft_putstr_fd(cmd, STDERR_FILENO);
 	ft_putstr_fd(": ", STDERR_FILENO);
 	ft_putstr_fd(strerror(errno), STDERR_FILENO);
@@ -1274,6 +1281,7 @@ int		run_bin(char **cmd, t_mini *mini)
 		if (*path_list == ':')
 			path_list += 1;
 	}
+	ft_putstr_fd("\U0000274C minishell: ", STDERR_FILENO);
 	ft_putstr_fd(bin, STDERR_FILENO);
 	ft_putstr_fd(": command not found\n", STDERR_FILENO);
 	exit(127);
