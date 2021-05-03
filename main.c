@@ -995,11 +995,13 @@ t_list	*ft_lst_input(t_mini *mini, t_instructions *instruc, char *s)
 		len = ft_word_size(s);
 		if (*s == '>')
 		{
+			instruc->is_empty = 0;
 			if (get_fdout_file(instruc, ft_strndup(s, len), mini))
 				return (cmd);
 		}
 		else if (*s == '<')
 		{
+			instruc->is_empty = 0;
 			if (get_fdin_file(instruc, ft_strndup(s, len), mini))
 				return (cmd);
 		}
@@ -1007,6 +1009,8 @@ t_list	*ft_lst_input(t_mini *mini, t_instructions *instruc, char *s)
 			(ft_lstadd_back(&cmd, ft_lstnew(get_real_input(ft_strndup(s, len), mini, mini->env))));
 		s += len;
 	}
+	if (instruc->is_empty == 0 && cmd == NULL)
+		cmd = ft_lstnew(ft_strdup(""));
 	return (cmd);
 }
 
@@ -1080,6 +1084,7 @@ t_instructions	*ft_instructnew(t_list *content)
 	elem->fdin.fd = 0;
 	elem->fdin.name = NULL;
 	elem->fdin.is_file = 0;
+	elem->is_empty = 1;
 	elem->fdout.fd = 1;
 	elem->fdout.is_file = 0;
 	elem->fdout.name = NULL;
@@ -1107,7 +1112,7 @@ int		get_instructions(t_mini *mini, char *s, t_list *env)
 			mini->is_pipe = 1;
 		instruction = ft_strndup(s, len);
 		cmd = ft_lst_input(mini, current, instruction);
-		if ((!cmd || !*((char *)cmd->content)) && mini->is_pipe)
+		if ((!cmd || !*((char *)cmd->content)) && mini->is_pipe && current->is_empty)
 			return (parsing_error('|'));
 		current->cmds = cmd;
 		ft_instruct_add_back(&mini->instructions, current);

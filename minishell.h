@@ -41,6 +41,7 @@ typedef struct	s_history {
 }				t_history;
 
 typedef struct	s_instructions {
+		int						is_empty;
 		t_list					*cmds;
 		t_fds					fdin;
 		t_fds					fdout;
