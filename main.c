@@ -1772,7 +1772,6 @@ int		ft_get_input(t_mini *mini)
 
 	sig_catcher.should_run = 1;
 	sig_catcher.pid = -1;
-	printf("%d\n", mini->last_return);
 	if (!mini->last_return)
 		ft_putstr_fd("\U0001F49A ", STDOUT_FILENO);
 	else
