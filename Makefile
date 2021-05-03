@@ -2,7 +2,7 @@ NAME=	minishell
 SRCS=	main.c
 OBJS=	$(addprefix srcs/, $(SRCS:.c=.o))
 CC=		gcc
-CFLAGS=	-lncurses 
+CFLAGS=	-Wextra -Wall -Werror
 LIBFT_DIR= libft
 HEADER=	-I includes -I $(LIBFT_DIR)
 LDFLAGS=	-L $(LIBFT_DIR)

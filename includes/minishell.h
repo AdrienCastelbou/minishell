@@ -100,20 +100,19 @@ int				run_builtins(char	**splited_inputs, t_mini *mini);
 
 //PARSING
 static int		ft_word_size(const char *s);
-static int		ft_words_count(char const *s, char c);
 int				ft_isenvchar(char c);
 char			*get_env_var(const char *s, t_list *env);
 char			*join_input_parts(char *s, char *new, int i);
 char			*get_var_value(char *s, char *new, int i, t_list *env);
 char			*update_input_with_var(char **s, char *new, int *i, t_list *env);
 char			*update_input_with_big_quotes(char **s, char *new, int *i, t_mini *mini);
-char			*update_input_with_lil_quotes(char **s, char *new, int *i, t_list *env);
-char			*update_input_with_echap(char **s, char *new, int *i, t_list *env);
+char			*update_input_with_lil_quotes(char **s, char *new, int *i);
+char			*update_input_with_echap(char **s, char *new, int *i);
 char			*update_input_with_last_return(char **s, char *new, int*i, t_mini *mini);
 char			*get_real_input(char *s, t_mini *mini, t_list *env);
 int				cmd_count(char *input);
 t_list			*ft_lst_input(t_mini *mini, t_instructions *instruc, char *s);
-t_list			*ft_lst_cmds(t_mini *mini, char *s, t_list *env);
+t_list			*ft_lst_cmds(t_mini *mini, char *s);
 
 //RUN CMDS
 

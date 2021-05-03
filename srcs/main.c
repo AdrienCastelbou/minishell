@@ -273,7 +273,6 @@ char	**get_env_tab_for_sort(t_list *env)
 void	print_export_var(t_list *env)
 {
 	char	**tab_var;
-	char	*str;
 	int		i;
 	int		j;
 
@@ -699,7 +698,7 @@ char			*update_input_with_big_quotes(char **s, char *new, int *i, t_mini *mini)
 	while (str[*i] != '\"' && str[*i])
 	{
 		if (str[*i] == '\\' && (str[*i + 1] == '$' || str[*i + 1] == '\"' || str[*i + 1] == '\\'))
-			new = update_input_with_echap(&str, new, i, mini->env);
+			new = update_input_with_echap(&str, new, i);
 		else if (str[*i] == '$' && str[*i + 1] && ft_isenvchar(str[*i + 1]))
 			new = update_input_with_var(&str, new, i, mini->env);
 		else if (str[*i] == '$' && str[*i + 1] == '?')
@@ -716,7 +715,7 @@ char			*update_input_with_big_quotes(char **s, char *new, int *i, t_mini *mini)
 	return (new);
 }
 
-char			*update_input_with_lil_quotes(char **s, char *new, int *i, t_list *env)
+char			*update_input_with_lil_quotes(char **s, char *new, int *i)
 {
 	char	*str;
 
@@ -734,7 +733,7 @@ char			*update_input_with_lil_quotes(char **s, char *new, int *i, t_list *env)
 	return (new);
 }
 
-char			*update_input_with_echap(char **s, char *new, int *i, t_list *env)
+char			*update_input_with_echap(char **s, char *new, int *i)
 {
 	char	buff[2];
 	char	*str;
@@ -782,13 +781,13 @@ char			*get_real_input(char *s, t_mini *mini, t_list *env)
 	while (s[i] && s[i] != ' ' && s[i] != 9)
 	{
 		if (s[i] == '\\')
-			new = update_input_with_echap(&s, new, &i, env);
+			new = update_input_with_echap(&s, new, &i);
 		else if (s[i] == '$' && s[i + 1] && ft_isenvchar(s[i + 1]))
 			new = update_input_with_var(&s, new, &i, env);
 		else if (s[i] == '\"')
 			new = update_input_with_big_quotes(&s, new, &i, mini);
 		else if (s[i] == '\'')
-			new = update_input_with_lil_quotes(&s, new, &i, env);
+			new = update_input_with_lil_quotes(&s, new, &i);
 		else if (s[i] == '$' && s[i + 1] == '?')
 			new = update_input_with_last_return(&s, new, &i, mini);
 		else
@@ -993,14 +992,11 @@ int		get_fdin_file(t_instructions *instruct, char *s, t_mini *mini)
 t_list	*ft_lst_input(t_mini *mini, t_instructions *instruc, char *s)
 {
 	t_list	*cmd;
-	int		words_nb;
-	int		i;
 	int		len;
 
 	if (!s)
 		return (NULL);
 	cmd = NULL;
-	i = -1;
 	while (*s)
 	{
 		while ((*s == ' ' || *s == 9) && *s)
@@ -1049,7 +1045,7 @@ char		**get_cmd_tab(t_list *cmd)
 	return (cmd_tab);
 }
 
-t_history	*ft_historynew(char *input)
+t_history	*ft_historynew(void)
 {
 	t_history	*elem;
 
@@ -1107,7 +1103,7 @@ t_instructions	*ft_instructnew(t_list *content)
 	return (elem);
 }
 
-int		get_instructions(t_mini *mini, char *s, t_list *env)
+int		get_instructions(t_mini *mini, char *s)
 {
 	char			*instruction;
 	t_instructions	*current;
@@ -1151,7 +1147,7 @@ void		free_current_cmd(t_mini *mini, char *cmd_input)
 	set_mini(mini);
 }
 
-t_list		*ft_lst_cmds(t_mini *mini, char *s, t_list *env)
+t_list		*ft_lst_cmds(t_mini *mini, char *s)
 {
 	char	*cmd_input;
 	int		cmd_nb;
@@ -1167,7 +1163,7 @@ t_list		*ft_lst_cmds(t_mini *mini, char *s, t_list *env)
 			mini->last_return = parsing_error(';');
 		else
 			mini->last_return = 258;
-		free_current_cmd(mini, cmd_input);
+		free_current_cmd(mini, NULL);
 		return (NULL);
 	}
 	i = 0;
@@ -1175,7 +1171,7 @@ t_list		*ft_lst_cmds(t_mini *mini, char *s, t_list *env)
 	{
 		len = ft_cmd_size(s, ';');
 		cmd_input = ft_strndup(s, len);
-		mini->last_return = get_instructions(mini, cmd_input, env);
+		mini->last_return = get_instructions(mini, cmd_input);
 		if (mini->last_return)
 		{
 			free_current_cmd(mini, cmd_input);
@@ -1210,8 +1206,6 @@ void	print_exec_error(char *cmd)
 
 void	exec_cmd(t_mini *mini, char **cmd)
 {
-	int		status;
-
 	mini->envp = transform_env_lst_in_tab(mini->env);
 	if (!cmd || !*cmd || !**cmd)
 		;
@@ -1240,12 +1234,8 @@ void	exec_cmd(t_mini *mini, char **cmd)
 
 static void redirect(int oldfd, int newfd) {
 	if (oldfd != newfd)
-	{
 		if (dup2(oldfd, newfd) != -1)
 			close(oldfd);
-		else
-			;
-	}
 }
 
 char	*ft_strjoin_path(char const *s1, char const *s2)
@@ -1280,7 +1270,6 @@ char	*ft_strjoin_path(char const *s1, char const *s2)
 int		run_bin(char **cmd, t_mini *mini)
 {
 	char	*path_list;
-	char	*tmp;
 	char	*path;
 	char	*bin;
 	int		path_len;
@@ -1311,7 +1300,6 @@ int		run_bin(char **cmd, t_mini *mini)
 int		run(t_mini *mini, int fdin, int fdout)
 {
 	char	**cmd;
-	int		status;
 
 	cmd = mini->cmd;
 	mini->envp = transform_env_lst_in_tab(mini->env);
@@ -1354,7 +1342,7 @@ void	run_piped_child(t_mini *mini,  t_instructions *instruc, t_files_portal *fds
 	exit(127);
 }
 
-void	run_piped_parent(t_mini *mini,  t_instructions *instruc, t_files_portal *fds)
+void	run_piped_parent(t_mini *mini, t_files_portal *fds)
 {
 	if (0 < waitpid(sig_catcher.pid, &(mini->last_return), 0) && WIFEXITED(mini->last_return))
 		mini->last_return = WEXITSTATUS(mini->last_return);
@@ -1371,7 +1359,6 @@ void	run_piped_parent(t_mini *mini,  t_instructions *instruc, t_files_portal *fd
 void	make_pipe(t_mini *mini, t_instructions *instruc)
 {
 	t_files_portal	fds;
-	int				status;
 
 	fds.fdin = STDIN_FILENO;
 	fds.fdout = STDOUT_FILENO;
@@ -1390,7 +1377,7 @@ void	make_pipe(t_mini *mini, t_instructions *instruc)
 		if (sig_catcher.pid == 0)
 			run_piped_child(mini, instruc, &fds);
 		else
-			run_piped_parent(mini, instruc, &fds);
+			run_piped_parent(mini, &fds);
 		instruc = instruc->next;
 	}
 	close(fds.fd[0]);
@@ -1490,8 +1477,6 @@ void	ft_instruclear(t_instructions **instruc)
 
 void	free_cmds(t_mini *mini)
 {
-	int i;
-
 	ft_lstclear(&mini->cmds, free);
 	ft_instruclear(&mini->instructions);
 	free(mini->cmds);
@@ -1629,7 +1614,6 @@ int		get_line(t_cursor *cursor, int len)
 void	erase_current_prompt(t_mini *mini, int *top, char *buff, t_cursor *cursor)
 {
 	int		len;
-	char	*buffer;
 	int		i;
 
 	cursor->max_col = tgetnum("co");
@@ -1660,7 +1644,7 @@ void	get_cursor_position(int *col, int *line)
 	*col = ft_atoi(&buff[i]);
 }
 
-void		add_input_in_history(t_mini *mini, char *input)
+void		add_input_in_history(t_mini *mini)
 {
 	t_history	*elem;
 
@@ -1669,7 +1653,7 @@ void		add_input_in_history(t_mini *mini, char *input)
 		mini->current_hist = mini->history;
 		return ;
 	}
-	elem = ft_historynew(input);
+	elem = ft_historynew();
 	if (mini->history)
 		ft_history_add_front(&mini->history, elem);
 	else
@@ -1679,7 +1663,6 @@ void		add_input_in_history(t_mini *mini, char *input)
 
 void	up_history(t_mini *mini, int *top, char *buff, t_cursor *cursor)
 {
-	char	*cm_cap;
 	int		len;
 	char	*new;
 
@@ -1702,7 +1685,6 @@ void	up_history(t_mini *mini, int *top, char *buff, t_cursor *cursor)
 
 void	down_history(t_mini *mini, int *top, char * buff, t_cursor *cursor)
 {
-	char	*cm_cap;
 	int		len;
 	char	*new;
 
@@ -1762,7 +1744,7 @@ void	read_prompt(t_mini *mini)
 	char		buff[128];
 	int			top;
 
-	add_input_in_history(mini, NULL);
+	add_input_in_history(mini);
 	mini->current_hist = mini->history;
 	top = 0;
 	ft_bzero(buff, 128);
@@ -1781,10 +1763,6 @@ void	read_prompt(t_mini *mini)
 
 int		ft_get_input(t_mini *mini)
 {
-	char	buffer[2];
-	char	*tmp;
-	int		size;
-
 	sig_catcher.should_run = 1;
 	sig_catcher.pid = -1;
 	if (!mini->last_return)
@@ -1804,7 +1782,7 @@ int		ft_get_input(t_mini *mini)
 	}
 	if (ft_strchr(mini->input, '\n'))
 		*(ft_strchr(mini->input, '\n')) = '\0';
-	ft_lst_cmds(mini, mini->input, mini->env);
+	ft_lst_cmds(mini, mini->input);
 	free(mini->input);
 	mini->input = NULL;
 	return (1);
@@ -1869,8 +1847,9 @@ int		main(int argc, char **argv, char **envp)
 	t_mini *mini;
 	int		ret;
 	char	*term_type;
-	char	*cm_cap;
 
+	argc = argc;
+	argv = argv;
 	term_type = getenv("TERM");
 	ret = tgetent(NULL, term_type);
 	if (!term_type || ret < 1)
