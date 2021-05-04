@@ -983,6 +983,11 @@ int		get_fdout_file(t_instructions *instruct, char *s, t_mini *mini)
 		return (parsing_error('>'));
 	}
 	size = ft_word_size(s + i);
+	if (instruc->fdout.name)
+	{
+		free(instruc->fdout.name);
+		instruc->fdout.name = NULL;
+	}
 	file = get_real_input(ft_strndup(s + i, size), mini, mini->env);
 	instruct->fdout.name = file;
 	instruct->fdout.method = method;
