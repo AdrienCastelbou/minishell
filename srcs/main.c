@@ -1514,6 +1514,7 @@ void	reset_input_mode (void)
 
 void	erase_char_in_prompt(t_mini *mini, int *top, char *buff)
 {
+	mini->cursor.max_col = tgetnum("co");
 	if (!(*mini->history->input) && !*buff)
 		return ;
 	if (!*top && *mini->history->input)
@@ -1524,10 +1525,10 @@ void	erase_char_in_prompt(t_mini *mini, int *top, char *buff)
 		buff[*top] = 0;
 	}
 	get_cursor_position(&(mini->cursor.cur_col), &(mini->cursor.cur_line));
-	if (mini->cursor.cur_col)
+	if (mini->cursor.cur_col > 1)
 		tputs(mini->le_cap, 1, ft_putchar);
 	else
-		tputs(tgoto(mini->cm_cap, mini->cursor.cur_line - 2, mini->cursor.max_col -1), 1, NULL);
+		tputs(tgoto(mini->cm_cap, mini->cursor.max_col - 1, mini->cursor.cur_line - 2), 1, ft_putchar);
 	tputs(mini->dc_cap, 1, ft_putchar);
 }
 
