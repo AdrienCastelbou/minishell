@@ -64,7 +64,7 @@ void	ft_free_splited(char **splited_inputs)
 	free(splited_inputs);
 }
 
-void	free_inputs(t_mini *mini)
+void	free_mini_cmd(t_mini *mini)
 {
 	int i;
 
@@ -72,11 +72,38 @@ void	free_inputs(t_mini *mini)
 	if (mini->cmd)
 	{
 		while (mini->cmd[++i])
+		{
 			free(mini->cmd[i]);
+			mini->cmd[i] = NULL;
+		}
 		free(mini->cmd);
+		mini->cmd = NULL;
 	}
+}
+
+void	free_mini_tab(char **strs)
+{
+	int i;
+
+	i = -1;
+	if (strs)
+	{
+		while (strs[++i])
+		{
+			free(strs[i]);
+			strs[i] = NULL;
+		}
+		free(strs);
+		strs = NULL;
+	}
+}
+
+void	free_inputs(t_mini *mini)
+{
+	free_mini_tab(mini->cmd);
 	if (mini->input)
 		free(mini->input);
+	mini->input = NULL;
 }
 
 void	free_history(t_history **elem)
@@ -1137,13 +1164,11 @@ void		make_pipe(t_mini *mini, t_instructions *instruc);
 
 void		free_current_cmd(t_mini *mini, char *cmd_input)
 {
+	free_mini_tab(mini->envp);
 	free_cmds(mini);
 	mini->cmds = NULL;
 	free(cmd_input);
 	cmd_input = NULL;
-	if (mini->envp)
-		free(mini->envp);
-	mini->envp = NULL;
 	set_mini(mini);
 }
 
@@ -1479,6 +1504,7 @@ void	free_cmds(t_mini *mini)
 {
 	ft_lstclear(&mini->cmds, free);
 	ft_instruclear(&mini->instructions);
+	free_mini_cmd(mini);
 	free(mini->cmds);
 	mini->cmds = NULL;
 	set_mini(mini);
