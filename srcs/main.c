@@ -983,10 +983,10 @@ int		get_fdout_file(t_instructions *instruct, char *s, t_mini *mini)
 		return (parsing_error('>'));
 	}
 	size = ft_word_size(s + i);
-	if (instruc->fdout.name)
+	if (instruct->fdout.name)
 	{
-		free(instruc->fdout.name);
-		instruc->fdout.name = NULL;
+		free(instruct->fdout.name);
+		instruct->fdout.name = NULL;
 	}
 	file = get_real_input(ft_strndup(s + i, size), mini, mini->env);
 	instruct->fdout.name = file;
@@ -1492,6 +1492,13 @@ void	ft_instrucdelone(t_instructions *instruc)
 	if (!instruc)
 		return ;
 	ft_lstclear(&(instruc->cmds), free);
+	if (instruc->fdin.name)
+		free(instruc->fdin.name);
+	instruc->fdin.name = NULL;
+	if (instruc->fdout.name)
+		free(instruc->fdout.name);
+	instruc->fdout.name = NULL;
+
 	free(instruc);
 }
 
