@@ -1864,9 +1864,6 @@ t_mini	*init_mini(char **envp_tocpy)
 
 	if (!(mini = malloc(sizeof(t_mini))))
 		return (NULL);
-	if (!(mini->input = malloc(sizeof(char) * 1)))
-		return (NULL);
-	*(mini->input) = 0;
 	mini->env = copy_env(envp_tocpy);
 	mini->stdin_copy = dup(STDIN_FILENO);
 	mini->stdout_copy = dup(STDOUT_FILENO);
