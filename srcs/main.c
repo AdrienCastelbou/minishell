@@ -644,8 +644,8 @@ char			*get_env_var(const char *s, t_list *env)
 	char	*variable;
 	char	*str;
 
+	str = NULL;
 	i = -1;
-	str = ft_strdup("");
 	while (s[++i] && ft_isenvchar(s[i]))
 		;
 	if (!(variable = ft_strndup((char *)s, i)))
