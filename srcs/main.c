@@ -1018,6 +1018,7 @@ int		get_fdin_file(t_instructions *instruct, char *s, t_mini *mini)
 	instruct->fdin.name = file;
 	instruct->fdin.method = method;
 	instruct->fdin.is_file = 1;
+	free(s);
 	return (create_and_close_file(file, method));
 }
 
