@@ -486,7 +486,6 @@ void	cd_error(char *mov, char *error)
 
 int		cd_oldpwd(t_mini *mini, char *mov)
 {
-	free(mov);
 	mov = get_env_var("OLDPWD", mini->env);
 	if (!*mov)
 	{
