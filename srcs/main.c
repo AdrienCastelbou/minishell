@@ -1607,28 +1607,6 @@ int		ft_putchar(int c)
 	return (1);
 }
 
-int		get_line(t_cursor *cursor, int len)
-{
-	int	result;
-
-	result = 0;
-	if (len - 1 > cursor->max_col - cursor->col)
-	{
-		result += 1;
-		len -= (cursor->max_col - cursor->col);
-	}
-	else
-		return (result);
-	while (len > cursor->max_col)
-	{
-		result += 1;
-		len -= cursor->max_col;
-	}
-	if (cursor->line + result - 1 < cursor->max_line)
-		return (0);
-	return ((cursor->line + result) - cursor->max_line);
-}
-
 void	erase_current_prompt(t_mini *mini, int *top, char *buff, t_cursor *cursor)
 {
 	int		len;
@@ -1711,7 +1689,6 @@ void	up_history(t_mini *mini, int *top, char *buff, t_cursor *cursor)
 		write_char_in_prompt(mini, new[i], top, buff);
 		tputs(mini->ip_cap, 1, ft_putchar);
 	}
-	cursor->line -= get_line(cursor, len);
 }
 
 void	down_history(t_mini *mini, int *top, char * buff, t_cursor *cursor)
@@ -1733,7 +1710,6 @@ void	down_history(t_mini *mini, int *top, char * buff, t_cursor *cursor)
 		write_char_in_prompt(mini, new[i], top, buff);
 		tputs(mini->ip_cap, 1, ft_putchar);
 	}
-	cursor->line -= get_line(cursor, len);
 }
 
 void	check_input_validity(t_mini *mini, char *buffchar, int *top, char *buff)
