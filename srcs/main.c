@@ -1017,6 +1017,11 @@ int		get_fdin_file(t_instructions *instruct, char *s, t_mini *mini)
 		return (parsing_error('>'));
 	}
 	size = ft_word_size(s + i);
+	if (instruct->fdin.name)
+	{
+		free(instruct->fdin.name);
+		instruct->fdin.name = NULL;
+	}
 	file = get_real_input(ft_strndup(s + i, size), mini, mini->env);
 	instruct->fdin.name = file;
 	instruct->fdin.method = method;
