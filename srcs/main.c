@@ -100,7 +100,11 @@ void	free_mini_tab(char **strs)
 
 void	free_inputs(t_mini *mini)
 {
-	free_mini_tab(mini->cmd);
+	if (!mini)
+		return ;
+	if (mini->cmd)
+		free_mini_tab(mini->cmd);
+	mini->cmd = NULL;
 	if (mini->input)
 		free(mini->input);
 	mini->input = NULL;
@@ -172,9 +176,9 @@ int		exit_minishell(char	**splited_inputs, t_mini *mini)
 			return (too_args_exit_error());
 		else if (splited_inputs[1])
 			return_value = ft_atolli(splited_inputs[1]);
-	}
-	if (is_bad_num_value(splited_inputs[1], return_value))
+		else if (is_bad_num_value(splited_inputs[1], return_value))
 		return_value = bad_exit_arg(splited_inputs[1]);
+	}
 	free_history(&(mini->history));
 	free_inputs(mini);
 	ft_lstclear(&mini->env, free);
@@ -1831,6 +1835,7 @@ t_mini	*init_mini(char **envp_tocpy)
 
 	if (!(mini = malloc(sizeof(t_mini))))
 		return (NULL);
+	mini->input = NULL;
 	mini->env = copy_env(envp_tocpy);
 	mini->stdin_copy = dup(STDIN_FILENO);
 	mini->stdout_copy = dup(STDOUT_FILENO);
