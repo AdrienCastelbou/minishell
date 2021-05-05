@@ -1688,11 +1688,7 @@ void	up_history(t_mini *mini, int *top, char *buff, t_cursor *cursor)
 	len = ft_strlen(new);
 	int i = -1;
 	while (++i < len)
-	{
-		tputs(mini->ic_cap, 1, ft_putchar);
 		write_char_in_prompt(mini, new[i], top, buff);
-		tputs(mini->ip_cap, 1, ft_putchar);
-	}
 }
 
 void	down_history(t_mini *mini, int *top, char * buff, t_cursor *cursor)
@@ -1709,11 +1705,7 @@ void	down_history(t_mini *mini, int *top, char * buff, t_cursor *cursor)
 	len = ft_strlen(new);
 	int i = -1;
 	while (++i < len)
-	{
-		tputs(mini->ic_cap, 1, ft_putchar);
 		write_char_in_prompt(mini, new[i], top, buff);
-		tputs(mini->ip_cap, 1, ft_putchar);
-	}
 }
 
 void	check_input_validity(t_mini *mini, char *buffchar, int *top, char *buff)
@@ -1846,8 +1838,6 @@ t_mini	*init_mini(char **envp_tocpy)
 	mini->dc_cap = tgetstr("dc", NULL);
 	mini->le_cap = tgetstr("le", NULL);
 	mini->ce_cap = tgetstr("ce", NULL);
-	mini->ic_cap = tgetstr("ic", NULL);
-	mini->ip_cap = tgetstr("ip", NULL);
 	set_mini(mini);
 	return (mini);
 }

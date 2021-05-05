@@ -72,8 +72,6 @@ typedef struct	s_mini {
 		char			*dc_cap;
 		char			*le_cap;
 		char			*ce_cap;
-		char			*ic_cap;
-		char			*ip_cap;
 }				t_mini;
 
 typedef struct	s_sigcatch {
