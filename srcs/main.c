@@ -1607,27 +1607,6 @@ int		ft_putchar(int c)
 	return (1);
 }
 
-int		get_lines_nb(t_cursor *cursor, int len)
-{
-	int	result;
-
-	result = 0;
-	if (len - 1 > cursor->max_col - cursor->col)
-	{
-		result += 1;
-		len -= (cursor->max_col - cursor->col);
-	}
-	else
-		return (result);
-	while (len > cursor->max_col)
-	{
-		result += 1;
-		len -= cursor->max_col;
-	}
-	return (result);
-}
-
-
 int		get_line(t_cursor *cursor, int len)
 {
 	int	result;
@@ -1657,11 +1636,24 @@ void	erase_current_prompt(t_mini *mini, int *top, char *buff, t_cursor *cursor)
 
 	cursor->max_col = tgetnum("co");
 	cursor->max_line = tgetnum("li");
+	get_cursor_position(&cursor->cur_col, &cursor->cur_line);
 	len = ft_strlen(mini->history->input);
 	i = -1;
 	while (++i < len)
-		erase_char_in_prompt(mini, top, buff);
-tputs(mini->dc_cap, 1, ft_putchar);
+	{
+		if (cursor->cur_col > 0)
+			cursor->cur_col -= 1;
+		else
+		{
+			tputs(tgoto(mini->cm_cap, 0, cursor->cur_line - 1), 1, ft_putchar);
+			tputs(mini->ce_cap, 1, ft_putchar);
+			cursor->cur_col = cursor->max_col - 1;
+			cursor->cur_line -= 1;
+			tputs(tgoto(mini->cm_cap, cursor->cur_col , cursor->cur_line - 1), 1, ft_putchar);
+		}
+	}
+	tputs(tgoto(mini->cm_cap, cursor->cur_col - 1, cursor->cur_line - 1), 1, ft_putchar);
+	tputs(mini->ce_cap, 1, ft_putchar);
 	ft_bzero(mini->history->input, ft_strlen(mini->history->input));
 	ft_bzero(buff, ft_strlen(buff));
 	*top = 0;
@@ -1872,6 +1864,7 @@ t_mini	*init_mini(char **envp_tocpy)
 	mini->cm_cap = tgetstr("cm", NULL);
 	mini->dc_cap = tgetstr("dc", NULL);
 	mini->le_cap = tgetstr("le", NULL);
+	mini->ce_cap = tgetstr("ce", NULL);
 	mini->ic_cap = tgetstr("ic", NULL);
 	mini->ip_cap = tgetstr("ip", NULL);
 	set_mini(mini);
