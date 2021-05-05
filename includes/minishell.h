@@ -134,4 +134,9 @@ t_list			*copy_env(char **envp);
 t_mini			*init_mini(char **envp_tocpy);
 int				ft_strcmp(char *s1, char *s2);
 char			*ft_strndup(char *s, int len);
+
+
+// FREE
+
+void	ft_instruclear(t_instructions **instruc);
 #endif

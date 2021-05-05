@@ -184,6 +184,8 @@ int		exit_minishell(char	**splited_inputs, t_mini *mini)
 	ft_lstclear(&mini->env, free);
 	if (mini->envp)
 		ft_free_splited(mini->envp);
+	if (mini->instructions)
+		ft_instruclear(&mini->instructions);
 	close(mini->stdin_copy);
 	close(mini->stdout_copy);
 	free(mini);
@@ -1181,7 +1183,8 @@ void		free_current_cmd(t_mini *mini, char *cmd_input)
 	free_mini_tab(mini->envp);
 	free_cmds(mini);
 	mini->cmds = NULL;
-	free(cmd_input);
+	if (cmd_input)
+		free(cmd_input);
 	cmd_input = NULL;
 	set_mini(mini);
 }
@@ -1211,6 +1214,8 @@ t_list		*ft_lst_cmds(t_mini *mini, char *s)
 		len = ft_cmd_size(s, ';');
 		cmd_input = ft_strndup(s, len);
 		mini->last_return = get_instructions(mini, cmd_input);
+		free(cmd_input);
+		cmd_input = NULL;
 		if (mini->last_return)
 		{
 			free_current_cmd(mini, cmd_input);
@@ -1247,7 +1252,6 @@ void	exec_cmd(t_mini *mini, char **cmd)
 {
 	char	*path_list;
 
-	path_list = get_env_var("PATH", mini->env);
 	mini->envp = transform_env_lst_in_tab(mini->env);
 	if (!cmd || !*cmd || !**cmd)
 		;
@@ -1255,6 +1259,7 @@ void	exec_cmd(t_mini *mini, char **cmd)
 		;
 	else
 	{
+		path_list = get_env_var("PATH", mini->env);
 		sig_catcher.pid = fork();
 		if (sig_catcher.pid == 0)
 		{
@@ -1270,9 +1275,11 @@ void	exec_cmd(t_mini *mini, char **cmd)
 				mini->last_return = WEXITSTATUS(mini->last_return);
 			if (mini->last_return == 2 || mini->last_return == 3)
 				mini->last_return += 128;
+			if (path_list)
+				free(path_list);
 		}
 	}
-	free(path_list);
+
 }
 
 static void redirect(int oldfd, int newfd) {
