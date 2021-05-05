@@ -58,6 +58,7 @@ typedef struct	s_mini {
 		char			**envp;
 		char			*input;
 		char			*to_exec;
+		char			*bin;
 		t_instructions	*instructions;
 		t_cursor		cursor;
 		t_history		*history;
@@ -115,7 +116,7 @@ t_list			*ft_lst_cmds(t_mini *mini, char *s);
 
 //RUN CMDS
 
-int				run_bin(char **cmd, t_mini *mini);
+int				run_bin(char **cmd, t_mini *mini, char *path_list);
 
 //PROMPT READER
 

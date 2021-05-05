@@ -1240,6 +1240,9 @@ void	print_exec_error(char *cmd)
 
 void	exec_cmd(t_mini *mini, char **cmd)
 {
+	char	*path_list;
+
+	path_list = get_env_var("PATH", mini->env);
 	mini->envp = transform_env_lst_in_tab(mini->env);
 	if (!cmd || !*cmd || !**cmd)
 		;
@@ -1251,7 +1254,7 @@ void	exec_cmd(t_mini *mini, char **cmd)
 		if (sig_catcher.pid == 0)
 		{
 			if (!ft_strchr(cmd[0], '/'))
-				run_bin(cmd, mini);
+				run_bin(cmd, mini, path_list);
 			else
 				execve(cmd[0], cmd, mini->envp);
 			print_exec_error(cmd[0]);
@@ -1264,6 +1267,7 @@ void	exec_cmd(t_mini *mini, char **cmd)
 				mini->last_return += 128;
 		}
 	}
+	free(path_list);
 }
 
 static void redirect(int oldfd, int newfd) {
@@ -1301,15 +1305,12 @@ char	*ft_strjoin_path(char const *s1, char const *s2)
 	return (str);
 }
 
-int		run_bin(char **cmd, t_mini *mini)
+int		run_bin(char **cmd, t_mini *mini, char *path_list)
 {
-	char	*path_list;
 	char	*path;
-	char	*bin;
 	int		path_len;
 
-	bin = ft_strdup(cmd[0]);
-	path_list = get_env_var("PATH", mini->env);
+	mini->bin = ft_strdup(cmd[0]);
 	while (*path_list)
 	{
 		path_len = 0;
@@ -1317,7 +1318,7 @@ int		run_bin(char **cmd, t_mini *mini)
 			path_len++;
 		path = ft_strndup(path_list, path_len);
 		free(cmd[0]);
-		cmd[0] = ft_strjoin_path(path, bin);
+		cmd[0] = ft_strjoin_path(path, mini->bin);
 		free(path);
 		execve(cmd[0], cmd, mini->envp);
 		path_list += path_len;
@@ -1325,7 +1326,7 @@ int		run_bin(char **cmd, t_mini *mini)
 			path_list += 1;
 	}
 	ft_putstr_fd("\U0000274C minishell: ", STDERR_FILENO);
-	ft_putstr_fd(bin, STDERR_FILENO);
+	ft_putstr_fd(mini->bin, STDERR_FILENO);
 	ft_putstr_fd(": command not found\n", STDERR_FILENO);
 	exit(127);
 	return (0);
@@ -1334,9 +1335,11 @@ int		run_bin(char **cmd, t_mini *mini)
 int		run(t_mini *mini, int fdin, int fdout)
 {
 	char	**cmd;
+	char	*path_list;
 
 	cmd = mini->cmd;
 	mini->envp = transform_env_lst_in_tab(mini->env);
+	path_list = get_env_var("PATH", mini->env);
 	if (fdin == -1)
 		exit(1);
 	redirect(fdin, STDIN_FILENO);
@@ -1348,7 +1351,7 @@ int		run(t_mini *mini, int fdin, int fdout)
 	else
 	{
 		if (!ft_strchr(cmd[0], '/'))
-			run_bin(cmd, mini);
+			run_bin(cmd, mini, path_list);
 		else
 			execve(cmd[0], cmd, mini->envp);
 		print_exec_error(cmd[0]);
@@ -1469,6 +1472,7 @@ void	set_mini(t_mini *mini)
 	mini->cmd = NULL;
 	mini->envp = NULL;
 	mini->cmds = NULL;
+	mini->bin = NULL;
 	mini->is_pipe = 0;
 }
 
@@ -1520,6 +1524,8 @@ void	free_cmds(t_mini *mini)
 {
 	ft_lstclear(&mini->cmds, free);
 	ft_instruclear(&mini->instructions);
+	if (mini->bin)
+		free(mini->bin);
 	free_mini_cmd(mini);
 	free(mini->cmds);
 	mini->cmds = NULL;
