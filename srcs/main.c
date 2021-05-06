@@ -1814,16 +1814,36 @@ int		ft_get_input(t_mini *mini)
 	return (1);
 }
 
+char	*get_shlvl(char *shlvl)
+{
+	char	*value;
+	int		inted_value;
+	char	*env_var;
+
+	while (!ft_isdigit(*shlvl))
+		shlvl++;
+	inted_value = ft_atoi(shlvl) + 1;
+	value = ft_itoa(inted_value);
+	env_var = ft_strjoin("SHLVL=", value);
+	free(value);
+	return (env_var);
+}
+
 t_list	*copy_env(char **envp)
 {
 	t_list	*env;
 	t_list	*elem;
+	char	*env_var;
 
 	env = NULL;
 	elem = NULL;
 	while (*envp)
 	{
-		elem = ft_lstnew(ft_strdup(*envp));
+		if (ft_strnstr(*envp, "SHLVL=", 6) == *envp)
+			env_var = get_shlvl(*envp);
+		else
+			env_var = ft_strdup(*envp);
+		elem = ft_lstnew(env_var);
 		ft_lstadd_back(&env, elem);
 		envp++;
 	}
@@ -1909,6 +1929,7 @@ int		main(int argc, char **argv, char **envp)
 		printf("no termtype or pb\n");
 		return 1;
 	}
+	free(term_type);
 	mini = init_mini(env);
 	signal(SIGINT, sig_handler);
 	signal(SIGQUIT, sig_handler);
