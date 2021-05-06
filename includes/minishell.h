@@ -129,7 +129,7 @@ void			get_cmds_tab(t_mini *mini);
 void			run_cmd(t_mini *mini, char **cmd, t_instructions *instruc);
 int				ft_get_input(t_mini *mini);
 t_list			*copy_env(char **envp);
-t_mini			*init_mini(char **envp_tocpy);
+t_mini			*init_mini(t_list *env);
 int				ft_strcmp(char *s1, char *s2);
 char			*ft_strndup(char *s, int len);
 

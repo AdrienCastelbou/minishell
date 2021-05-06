@@ -455,7 +455,7 @@ char	*get_user_dir(t_mini *mini)
 	char	*user_path;
 
 	user = get_env_var("USER", mini->env);
-	user_path = ft_strjoin_path("/Users", user);
+	user_path = ft_strjoin_path("/home", user);
 	free(user);
 	return (user_path);
 }
@@ -1844,14 +1844,14 @@ void sig_handler(int signum)
 	}
 }
 
-t_mini	*init_mini(char **envp_tocpy)
+t_mini	*init_mini(t_list *env)
 {
 	t_mini	*mini;
 
 	if (!(mini = malloc(sizeof(t_mini))))
 		return (NULL);
 	mini->input = NULL;
-	mini->env = copy_env(envp_tocpy);
+	mini->env = env;
 	mini->stdin_copy = dup(STDIN_FILENO);
 	mini->stdout_copy = dup(STDOUT_FILENO);
 	mini->instructions = NULL;
@@ -1865,22 +1865,51 @@ t_mini	*init_mini(char **envp_tocpy)
 	return (mini);
 }
 
+t_list		*set_basic_env(void)
+{
+	char	*value;
+	char	*pwd;
+	char	*envp[5];
+	t_list	*env;
+
+	value = getcwd(NULL, 0);
+	if (!value)
+		return (NULL);
+	pwd = ft_strjoin("PWD=", value);
+	if (!pwd)
+		return (NULL);
+	envp[0] = pwd;
+	envp[1] = "SHLVL=0";
+	envp[2] = "TERM=xterm-256color";
+	envp[3] = "PATH=/bin";
+	envp[4] = NULL;
+	env = copy_env(envp);
+	free(value);
+	free(pwd);
+	return (env);
+}
+
 int		main(int argc, char **argv, char **envp)
 {
 	t_mini *mini;
 	int		ret;
 	char	*term_type;
+	t_list	*env;
 
-	argc = argc;
-	argv = argv;
-	term_type = getenv("TERM");
+	(void) argc;
+	(void) argv;
+	if (!envp || !*envp)
+		env = set_basic_env();
+	else
+		env = copy_env(envp);
+	term_type = get_env_var("TERM", env);
 	ret = tgetent(NULL, term_type);
 	if (!term_type || ret < 1)
 	{
 		printf("no termtype or pb\n");
 		return 1;
 	}
-	mini = init_mini(envp);
+	mini = init_mini(env);
 	signal(SIGINT, sig_handler);
 	signal(SIGQUIT, sig_handler);
 	while (1)
