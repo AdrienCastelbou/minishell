@@ -14,6 +14,7 @@
 #include <memory.h>
 #include <signal.h>
 #include <wait.h>
+#include <sys/ioctl.h>
 
 typedef struct	s_files_portal {
 		int	fd[2];

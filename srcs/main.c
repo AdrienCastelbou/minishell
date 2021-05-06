@@ -1634,7 +1634,9 @@ void	erase_current_prompt(t_mini *mini, int *top, char *buff, t_cursor *cursor)
 	int		len;
 	int		i;
 	int		isnt_endline;
+	struct	winsize ws;
 
+	ioctl(STDIN_FILENO, TIOCGWINSZ, &ws);
 	isnt_endline = 1;
 	cursor->max_col = tgetnum("co");
 	cursor->max_line = tgetnum("li");
@@ -1643,7 +1645,7 @@ void	erase_current_prompt(t_mini *mini, int *top, char *buff, t_cursor *cursor)
 	i = -1;
 	while (++i < len)
 	{
-		if (cursor->cur_col == cursor->col)
+		if (cursor->cur_col == ws.ws_col)
 			isnt_endline = 0;
 		if (cursor->cur_col > 0)
 			cursor->cur_col -= 1;
@@ -1651,7 +1653,7 @@ void	erase_current_prompt(t_mini *mini, int *top, char *buff, t_cursor *cursor)
 		{
 			tputs(tgoto(mini->cm_cap, 0, cursor->cur_line - 1), 1, ft_putchar);
 			tputs(mini->ce_cap, 1, ft_putchar);
-			cursor->cur_col = cursor->max_col - 1;
+			cursor->cur_col = ws.ws_col - 1;
 			cursor->cur_line -= 1;
 			tputs(tgoto(mini->cm_cap, cursor->cur_col, cursor->cur_line - 1), 1, ft_putchar);
 		}
