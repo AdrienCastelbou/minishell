@@ -1633,7 +1633,9 @@ void	erase_current_prompt(t_mini *mini, int *top, char *buff, t_cursor *cursor)
 {
 	int		len;
 	int		i;
+	int		isnt_endline;
 
+	isnt_endline = 1;
 	cursor->max_col = tgetnum("co");
 	cursor->max_line = tgetnum("li");
 	get_cursor_position(&cursor->cur_col, &cursor->cur_line);
@@ -1641,6 +1643,8 @@ void	erase_current_prompt(t_mini *mini, int *top, char *buff, t_cursor *cursor)
 	i = -1;
 	while (++i < len)
 	{
+		if (cursor->cur_col == cursor->col)
+			isnt_endline = 0;
 		if (cursor->cur_col > 0)
 			cursor->cur_col -= 1;
 		else
@@ -1649,10 +1653,10 @@ void	erase_current_prompt(t_mini *mini, int *top, char *buff, t_cursor *cursor)
 			tputs(mini->ce_cap, 1, ft_putchar);
 			cursor->cur_col = cursor->max_col - 1;
 			cursor->cur_line -= 1;
-			tputs(tgoto(mini->cm_cap, cursor->cur_col , cursor->cur_line - 1), 1, ft_putchar);
+			tputs(tgoto(mini->cm_cap, cursor->cur_col, cursor->cur_line - 1), 1, ft_putchar);
 		}
 	}
-	tputs(tgoto(mini->cm_cap, cursor->cur_col - 1, cursor->cur_line - 1), 1, ft_putchar);
+	tputs(tgoto(mini->cm_cap, cursor->cur_col - isnt_endline, cursor->cur_line - 1), 1, ft_putchar);
 	tputs(mini->ce_cap, 1, ft_putchar);
 	ft_bzero(mini->history->input, ft_strlen(mini->history->input));
 	ft_bzero(buff, ft_strlen(buff));
