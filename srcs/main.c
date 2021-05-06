@@ -1326,7 +1326,7 @@ int		run_bin(char **cmd, t_mini *mini, char *path_list)
 	int		path_len;
 
 	mini->bin = ft_strdup(cmd[0]);
-	while (*path_list)
+	while (path_list && *path_list)
 	{
 		path_len = 0;
 		while (path_list[path_len] && path_list[path_len] != ':')
