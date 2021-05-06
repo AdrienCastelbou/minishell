@@ -23,12 +23,8 @@ typedef struct	s_files_portal {
 }				t_files_portal;
 
 typedef struct	s_cursor {
-		int	col;
-		int	line;
 		int	cur_col;
 		int	cur_line;
-		int	max_col;
-		int	max_line;
 }				t_cursor;
 
 typedef struct	s_fds {
@@ -60,6 +56,7 @@ typedef struct	s_mini {
 		char			*input;
 		char			*to_exec;
 		char			*bin;
+		struct	winsize	ws;
 		t_instructions	*instructions;
 		t_cursor		cursor;
 		t_history		*history;

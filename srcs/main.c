@@ -1574,7 +1574,7 @@ void	reset_input_mode (void)
 
 void	erase_char_in_prompt(t_mini *mini, int *top, char *buff)
 {
-	mini->cursor.max_col = tgetnum("co");
+	ioctl(STDIN_FILENO, TIOCGWINSZ, &mini->ws);
 	if (!(*mini->history->input) && !*buff)
 		return ;
 	if (!*top && *mini->history->input)
@@ -1588,7 +1588,7 @@ void	erase_char_in_prompt(t_mini *mini, int *top, char *buff)
 	if (mini->cursor.cur_col > 1)
 		tputs(mini->le_cap, 1, ft_putchar);
 	else
-		tputs(tgoto(mini->cm_cap, mini->cursor.max_col - 1, mini->cursor.cur_line - 2), 1, ft_putchar);
+		tputs(tgoto(mini->cm_cap, mini->ws.ws_col - 1, mini->cursor.cur_line - 2), 1, ft_putchar);
 	tputs(mini->dc_cap, 1, ft_putchar);
 }
 
@@ -1634,18 +1634,15 @@ void	erase_current_prompt(t_mini *mini, int *top, char *buff, t_cursor *cursor)
 	int		len;
 	int		i;
 	int		isnt_endline;
-	struct	winsize ws;
 
-	ioctl(STDIN_FILENO, TIOCGWINSZ, &ws);
+	ioctl(STDIN_FILENO, TIOCGWINSZ, &mini->ws);
 	isnt_endline = 1;
-	cursor->max_col = tgetnum("co");
-	cursor->max_line = tgetnum("li");
 	get_cursor_position(&cursor->cur_col, &cursor->cur_line);
 	len = ft_strlen(mini->history->input);
 	i = -1;
 	while (++i < len)
 	{
-		if (cursor->cur_col == ws.ws_col)
+		if (cursor->cur_col == mini->ws.ws_col)
 			isnt_endline = 0;
 		if (cursor->cur_col > 0)
 			cursor->cur_col -= 1;
@@ -1653,7 +1650,7 @@ void	erase_current_prompt(t_mini *mini, int *top, char *buff, t_cursor *cursor)
 		{
 			tputs(tgoto(mini->cm_cap, 0, cursor->cur_line - 1), 1, ft_putchar);
 			tputs(mini->ce_cap, 1, ft_putchar);
-			cursor->cur_col = ws.ws_col - 1;
+			cursor->cur_col = mini->ws.ws_col - 1;
 			cursor->cur_line -= 1;
 			tputs(tgoto(mini->cm_cap, cursor->cur_col, cursor->cur_line - 1), 1, ft_putchar);
 		}
@@ -1776,7 +1773,6 @@ void	read_prompt(t_mini *mini)
 	top = 0;
 	ft_bzero(buff, 128);
 	set_mode();
-	get_cursor_position(&(mini->cursor.col), &(mini->cursor.line));
 	ft_bzero(buffchar, 3);
 	while (read(STDIN_FILENO, buffchar, 3) && sig_catcher.should_run)
 		if (!check_prompt_input(mini, &top, buffchar, buff))
