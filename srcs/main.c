@@ -702,7 +702,7 @@ char			*update_input_with_var(char **s, char *new, int *i, t_list *env)
 
 	str = *s;
 	new = get_var_value(*s, new, *i, env);
-	if (*new != 0 || ft_isalpha(str[*i + 1]))
+	if ((!new || *new != 0) || ft_isalpha(str[*i + 1]))
 		while (str[++(*i)] && ft_isenvchar(str[*i]))
 			;
 	else
@@ -1081,7 +1081,10 @@ char		**get_cmd_tab(t_list *cmd)
 	i = -1;
 	while (++i > -1 && elem)
 	{
-		cmd_tab[i] = ft_strdup((char *)elem->content);
+		if (elem->content)
+			cmd_tab[i] = ft_strdup((char *)elem->content);
+		else
+			--i;
 		elem = elem->next;
 	}
 	cmd_tab[i] = NULL;
