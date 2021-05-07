@@ -1422,7 +1422,7 @@ void	run_piped_parent(t_mini *mini, t_files_portal *fds)
 {
 	if (0 < waitpid(sig_catcher.pid, &(mini->last_return), 0) && WIFEXITED(mini->last_return))
 		mini->last_return = WEXITSTATUS(mini->last_return);
-	if (mini->last_return == 2 || mini->last_return == 3)
+	if ((mini->last_return == 2 || mini->last_return == 3) && sig_catcher.should_run == 0)
 		mini->last_return += 128;
 	if (fds->fd[1] != STDOUT_FILENO)
 		close(fds->fd[1]);
@@ -1431,6 +1431,7 @@ void	run_piped_parent(t_mini *mini, t_files_portal *fds)
 	dup2(mini->stdin_copy, STDIN_FILENO);
 	dup2(mini->stdout_copy, STDOUT_FILENO);
 	fds->fdin = fds->fd[0];
+		sig_catcher.should_run = 1; 
 }
 void	make_pipe(t_mini *mini, t_instructions *instruc)
 {
