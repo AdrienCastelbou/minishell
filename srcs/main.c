@@ -1193,7 +1193,7 @@ int		get_instructions(t_mini *mini, char *s)
 			mini->is_pipe = 1;
 		instruction = ft_strndup(s, len);
 		cmd = ft_lst_input(mini, current, instruction);
-		if ((!cmd || !*((char *)cmd->content)) && mini->is_pipe && current->is_empty)
+		if (mini->is_pipe && current->is_empty && (!cmd || !*((char *)cmd->content)))
 			return (parsing_error('|'));
 		current->cmds = cmd;
 		ft_instruct_add_back(&mini->instructions, current);
