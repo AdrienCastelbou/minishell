@@ -1300,7 +1300,7 @@ void	exec_cmd(t_mini *mini, char **cmd)
 		{
 			if (0 < waitpid(sig_catcher.pid, &(mini->last_return), 0) && WIFEXITED(mini->last_return))
 				mini->last_return = WEXITSTATUS(mini->last_return);
-			if (mini->last_return == 2 || mini->last_return == 3)
+			if ((mini->last_return == 2 || mini->last_return == 3) && sig_catcher.should_run == 0)
 				mini->last_return += 128;
 			if (path_list)
 				free(path_list);
@@ -1883,6 +1883,7 @@ void sig_handler(int signum)
 	}
 	else if (signum == SIGQUIT && sig_catcher.pid > -1)
 	{
+		sig_catcher.should_run = 0;
 		ft_putstr_fd("Quit\n", STDERR_FILENO);
 		kill(sig_catcher.pid, SIGQUIT);
 	}
