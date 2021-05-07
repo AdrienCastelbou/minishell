@@ -485,7 +485,8 @@ void	cd_error(char *mov, char *error)
 	ft_putstr_fd("\U0000274C minishell: ", STDERR_FILENO);
 	ft_putstr_fd("cd: ", STDERR_FILENO);
 	ft_putstr_fd(mov, STDERR_FILENO);
-	ft_putstr_fd(": ", STDERR_FILENO);
+	if (*mov)
+		ft_putstr_fd(": ", STDERR_FILENO);
 	ft_putstr_fd(error, STDERR_FILENO);
 	ft_putchar_fd('\n', STDERR_FILENO);
 }
@@ -505,10 +506,16 @@ int		cd_oldpwd(t_mini *mini, char *mov)
 	return (0);
 }
 
-int		cd_builtin(t_mini *mini, char *mov)
+int		cd_builtin(t_mini *mini, char *mov, char **inputs)
 {
 	int		mov_usr;
 
+	if (mov && inputs[2])
+	{
+		cd_error("", "to many arguments");
+		mini->last_return = 1;
+		return (mini->last_return);
+	}
 	mov_usr = 0;
 	if (mov == NULL)
 	{
@@ -537,7 +544,7 @@ int		run_builtins(char	**splited_inputs, t_mini *mini)
 	if (ft_strcmp(splited_inputs[0], "echo") == 0)
 		mini->last_return = echo_builtin(splited_inputs);
 	else if (ft_strcmp(splited_inputs[0], "cd") == 0)
-		mini->last_return = cd_builtin(mini, splited_inputs[1]);
+		mini->last_return = cd_builtin(mini, splited_inputs[1], splited_inputs);
 	else if (ft_strcmp(splited_inputs[0], "pwd") == 0)
 		mini->last_return = pwd_builtin();
 	else if (ft_strcmp(splited_inputs[0], "export") == 0)

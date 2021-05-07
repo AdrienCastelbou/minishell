@@ -93,7 +93,7 @@ int				export_builtin(t_mini *mini, char	**splited_inputs, t_list *env);
 void			delete_env_var(char *key, t_list **env);
 int				unset_builtin(t_mini *mini, char	**splited_inputs, t_list *env);
 int				pwd_builtin(void);
-int				cd_builtin(t_mini *mini, char *mov);
+int				cd_builtin(t_mini *mini, char *mov, char **inputs);
 int				run_builtins(char	**splited_inputs, t_mini *mini);
 
 //PARSING
