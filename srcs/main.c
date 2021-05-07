@@ -506,9 +506,26 @@ int		cd_oldpwd(t_mini *mini, char *mov)
 	return (0);
 }
 
+int		cwd_exist(void)
+{
+	char	buff[128];
+
+	if (getcwd(buff, 128) == NULL)
+		return (0);
+	return (1);
+}
+
+
 int		cd_builtin(t_mini *mini, char *mov, char **inputs)
 {
 	int		mov_usr;
+
+	if (cwd_exist() == 0)
+	{
+		cd_error("error", "getcwd cant access to parents directories");
+		mini->last_return = 0;
+		return (mini->last_return);
+	}
 
 	if (mov && inputs[2])
 	{
