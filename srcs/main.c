@@ -1398,7 +1398,7 @@ int		run(t_mini *mini, int fdin, int fdout)
 	exit(0);
 	return (1);
 }
-
+/*
 void	run_piped_child(t_mini *mini,  t_instructions *instruc, t_files_portal *fds)
 {
 	close(fds->fd[0]);
@@ -1433,7 +1433,7 @@ void	run_piped_parent(t_mini *mini, t_files_portal *fds)
 	fds->fdin = fds->fd[0];
 		sig_catcher.should_run = 1; 
 }
-
+*/
 void	pipe_loop(t_mini *mini, t_instructions *instruc, int fdin);
 
 void	run_tpiped_child(t_mini *mini,  t_instructions *instruc, int fdin, int *pfd)
@@ -1444,15 +1444,15 @@ void	run_tpiped_child(t_mini *mini,  t_instructions *instruc, int fdin, int *pfd
 	exit(127);
 }
 
-void	run_tpiped_parent(t_mini *mini, t_instructions *instruc, int fdin, int *pfd, int pid)
+void	run_tpiped_parent(t_mini *mini, t_instructions *instruc, t_files_portal	fds, int pid)
 {
 	int	status;
 
-	close(pfd[1]);
-	close(fdin);
-	fdin = pfd[0];
+	close(fds.pfd[1]);
+	close(fds.fdin);
+	fds.fdin = fds.pfd[0];
 	if (instruc)
-		pipe_loop(mini, instruc->next, fdin);
+		pipe_loop(mini, instruc->next, fds.fdin);
 	if (0 < waitpid(pid, &status, 0) && WIFEXITED(status))
 	{
 		if (!instruc->next)
@@ -1462,7 +1462,7 @@ void	run_tpiped_parent(t_mini *mini, t_instructions *instruc, int fdin, int *pfd
 			mini->last_return += 128;
 		}
 	}
-	close(pfd[0]);
+	close(fds.pfd[0]);
 	sig_catcher.should_run = 1;
 	close(STDIN_FILENO);
 	close(STDOUT_FILENO);
@@ -1472,37 +1472,37 @@ void	run_tpiped_parent(t_mini *mini, t_instructions *instruc, int fdin, int *pfd
 
 void	pipe_loop(t_mini *mini, t_instructions *instruc, int fdin)
 {
-	int	pfd[2];
+	t_files_portal	fds;
 	int	pid;
-	int	fdout;
 
+	fds.fdin = fdin;
 	if (!instruc)
 		return ;
-	if (pipe(pfd) == -1)
+	if (pipe(fds.pfd) == -1)
 		return ;
 	if (instruc->fdin.name)
 	{
-		if (fdin != STDIN_FILENO)
-			close(fdin);
-		fdin = open_agreg_file(instruc->fdin.name, instruc->fdin.method);
+		if (fds.fdin != STDIN_FILENO)
+			close(fds.fdin);
+		fds.fdin = open_agreg_file(instruc->fdin.name, instruc->fdin.method);
 	}
 	if (instruc->fdout.name)
 	{
-		fdout = open_agreg_file(instruc->fdout.name, instruc->fdout.method);
-		dup2(fdout, pfd[1]);
-		close(fdout);
+		fds.fdout = open_agreg_file(instruc->fdout.name, instruc->fdout.method);
+		dup2(fds.fdout, fds.pfd[1]);
+		close(fds.fdout);
 	}
 	else if (!instruc->next)
 	{
-		close(pfd[1]);
-		pfd[1] = STDOUT_FILENO;
+		close(fds.pfd[1]);
+		fds.pfd[1] = STDOUT_FILENO;
 	}
 	if ((pid = fork()) < 0)
 		return ;
 	if (pid == 0)
-		run_tpiped_child(mini, instruc, fdin, pfd);
+		run_tpiped_child(mini, instruc, fds.fdin, fds.pfd);
 	else
-		run_tpiped_parent(mini, instruc, fdin, pfd, pid);
+		run_tpiped_parent(mini, instruc, fds, pid);
 }
 
 void	make_pipe(t_mini *mini, t_instructions *instruc)

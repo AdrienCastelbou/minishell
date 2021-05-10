@@ -17,7 +17,7 @@
 #include <sys/ioctl.h>
 
 typedef struct	s_files_portal {
-		int	fd[2];
+		int	pfd[2];
 		int	fdin;
 		int	fdout;
 }				t_files_portal;
