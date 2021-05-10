@@ -1464,12 +1464,25 @@ void	pipe_loop(t_mini *mini, t_instructions *instruc, int fdin)
 {
 	int	pfd[2];
 	int	pid;
+	int	fdout;
 
 	if (!instruc)
 		return ;
 	if (pipe(pfd) == -1)
 		return ;
-	if (!instruc->next)
+	if (instruc->fdin.name)
+	{
+		if (fdin != STDIN_FILENO)
+			close(fdin);
+		fdin = open_agreg_file(instruc->fdin.name, instruc->fdin.method);
+	}
+	if (instruc->fdout.name)
+	{
+		fdout = open_agreg_file(instruc->fdout.name, instruc->fdout.method);
+		dup2(fdout, pfd[1]);
+		close(fdout);
+	}
+	else if (!instruc->next)
 	{
 		close(pfd[1]);
 		pfd[1] = STDOUT_FILENO;
