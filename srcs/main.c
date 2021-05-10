@@ -1433,8 +1433,60 @@ void	run_piped_parent(t_mini *mini, t_files_portal *fds)
 	fds->fdin = fds->fd[0];
 		sig_catcher.should_run = 1; 
 }
+
+void	pipe_loop(t_mini *mini, t_instructions *instruc, int fdin);
+
+void	run_tpiped_child(t_mini *mini,  t_instructions *instruc, int fdin, int *pfd)
+{
+	close(pfd[0]);
+	mini->cmd = get_cmd_tab(instruc->cmds);
+	run(mini, fdin, pfd[1]);
+	exit(127);
+}
+
+void	run_tpiped_parent(t_mini *mini, t_instructions *instruc, int fdin, int *pfd, int pid)
+{
+	close(pfd[1]);
+	close(fdin);
+	fdin = pfd[0];
+	if (instruc)
+		pipe_loop(mini, instruc->next, fdin);
+	if (0 < waitpid(pid, &(mini->last_return), 0) && WIFEXITED(mini->last_return))
+		mini->last_return = WEXITSTATUS(mini->last_return);
+	if ((mini->last_return == 2 || mini->last_return == 3) && sig_catcher.should_run == 0)
+		mini->last_return += 128;
+	sig_catcher.should_run = 1; 
+	dup2(mini->stdin_copy, STDIN_FILENO);
+	dup2(mini->stdout_copy, STDOUT_FILENO);
+}
+
+void	pipe_loop(t_mini *mini, t_instructions *instruc, int fdin)
+{
+	int	pfd[2];
+	int	pid;
+
+	if (!instruc)
+		return ;
+	if (pipe(pfd) == -1)
+		return ;
+	if (!instruc->next)
+	{
+		close(pfd[1]);
+		pfd[1] = STDOUT_FILENO;
+	}
+	if ((pid = fork()) < 0)
+		return ;
+	if (pid == 0)
+		run_tpiped_child(mini, instruc, fdin, pfd);
+	else
+		run_tpiped_parent(mini, instruc, fdin, pfd, pid);
+}
+
 void	make_pipe(t_mini *mini, t_instructions *instruc)
 {
+	pipe_loop(mini, instruc, STDIN_FILENO);
+}
+/*{
 	t_files_portal	fds;
 
 	fds.fdin = STDIN_FILENO;
@@ -1458,7 +1510,7 @@ void	make_pipe(t_mini *mini, t_instructions *instruc)
 		instruc = instruc->next;
 	}
 	close(fds.fd[0]);
-}
+}*/
 
 void	run_cmd(t_mini *mini, char **cmd, t_instructions *instruc)
 {
