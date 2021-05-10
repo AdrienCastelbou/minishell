@@ -1462,7 +1462,10 @@ void	run_tpiped_parent(t_mini *mini, t_instructions *instruc, int fdin, int *pfd
 			mini->last_return += 128;
 		}
 	}
-	sig_catcher.should_run = 1; 
+	close(pfd[0]);
+	sig_catcher.should_run = 1;
+	close(STDIN_FILENO);
+	close(STDOUT_FILENO);
 	dup2(mini->stdin_copy, STDIN_FILENO);
 	dup2(mini->stdout_copy, STDOUT_FILENO);
 }
