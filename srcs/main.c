@@ -944,14 +944,7 @@ int		create_and_close_file(char *file, char *method)
 	else
 		fd = open(file, O_WRONLY | O_APPEND | O_CREAT, S_IRWXU | S_IRGRP | S_IROTH);
 	if (fd < 0)
-	{
-		ft_putstr_fd("\U0000274C minishell: ", STDERR_FILENO);
-		ft_putstr_fd(file, STDERR_FILENO);
-		ft_putstr_fd(": ", STDERR_FILENO);
-		ft_putstr_fd(strerror(errno), STDERR_FILENO);
-		ft_putchar_fd('\n', STDERR_FILENO);
-		return (1);
-	}
+		return (print_errors(file, strerror(errno), NULL, 1));
 	close(fd);
 	return (0);
 }
@@ -1277,7 +1270,8 @@ void	exec_cmd(t_mini *mini, char **cmd)
 				run_bin(cmd, mini, path_list);
 			else
 				execve(cmd[0], cmd, mini->envp);
-			print_exec_error(cmd[0]);
+			print_errors(cmd[0], strerror(errno), NULL, 127);
+			exit(127);
 		}
 		else
 		{
