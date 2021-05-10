@@ -125,10 +125,24 @@ void	free_history(t_history **elem)
 	*elem = NULL;
 
 }
-int		too_args_exit_error(void)
+
+int		print_errors(char *cmd, char *error, char *more, int nb)
 {
-	ft_putstr_fd("\U0000274C minishell : exit: too many arguments\n", STDERR_FILENO);
-	return (1);
+	ft_putstr_fd("\U0000274C minishell: ", STDERR_FILENO);
+	if (cmd && *cmd)
+	{
+		ft_putstr_fd(cmd, STDERR_FILENO);
+		ft_putstr_fd(": ", STDERR_FILENO);
+	}
+	if (cmd && *cmd)
+		ft_putstr_fd(error, STDERR_FILENO);
+	if (more && *more)
+	{
+		ft_putstr_fd(": ", STDERR_FILENO);
+		ft_putstr_fd(more, STDERR_FILENO);
+	}
+	ft_putchar_fd('\n', STDERR_FILENO);
+	return (nb);
 }
 
 int		is_only_digit(char *s)
@@ -142,15 +156,6 @@ int		is_only_digit(char *s)
 		if (!ft_isdigit(s[i]))
 			return (0);
 	return (1);
-}
-
-int		bad_exit_arg(char *s)
-{
-	ft_putstr_fd("\U0000274C minishell: ", STDERR_FILENO);
-	ft_putstr_fd("exit: ", STDERR_FILENO);
-	ft_putstr_fd(s, STDERR_FILENO);
-	ft_putstr_fd(": numeric argument required\n", STDERR_FILENO);
-	return (255);
 }
 
 int		is_bad_num_value(char *s, long long int nb)
@@ -173,11 +178,11 @@ int		exit_minishell(char	**splited_inputs, t_mini *mini)
 		if (splited_inputs[1] && !is_only_digit(splited_inputs[1]))
 			return_value = bad_exit_arg(splited_inputs[1]);
 		else if (splited_inputs[1] && splited_inputs[2])
-			return (too_args_exit_error());
+			return (print_errors("exit", "too many arguments", NULL, 1));
 		else if (splited_inputs[1])
 			return_value = ft_atolli(splited_inputs[1]);
 		else if (is_bad_num_value(splited_inputs[1], return_value))
-		return_value = bad_exit_arg(splited_inputs[1]);
+			return_value = print_errors("exit", splited_inputs[1], "numeric argument required", 255);
 	}
 	free_history(&(mini->history));
 	free_inputs(mini);
@@ -1967,8 +1972,10 @@ int		main(int argc, char **argv, char **envp)
 	ret = tgetent(NULL, term_type);
 	if (!term_type || ret < 1)
 	{
-		printf("no termtype or pb\n");
-		return 1;
+		free(env);
+		free(term_type);
+		
+		return (1);
 	}
 	free(term_type);
 	mini = init_mini(env);
