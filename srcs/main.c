@@ -1241,16 +1241,6 @@ t_list		*ft_lst_cmds(t_mini *mini, char *s)
 	return (mini->cmds);
 }
 
-void	print_exec_error(char *cmd)
-{
-	ft_putstr_fd("\U0000274C minishell: ", STDERR_FILENO);
-	ft_putstr_fd(cmd, STDERR_FILENO);
-	ft_putstr_fd(": ", STDERR_FILENO);
-	ft_putstr_fd(strerror(errno), STDERR_FILENO);
-	ft_putchar_fd('\n', STDERR_FILENO);
-	exit(127);
-}
-
 void	exec_cmd(t_mini *mini, char **cmd)
 {
 	char	*path_list;
@@ -1370,7 +1360,8 @@ int		run(t_mini *mini, int fdin, int fdout)
 			run_bin(cmd, mini, path_list);
 		else
 			execve(cmd[0], cmd, mini->envp);
-		print_exec_error(cmd[0]);
+		print_errors(cmd[0], strerror(errno), NULL, 127);
+		exit(127);
 	}
 	exit(0);
 	return (1);
