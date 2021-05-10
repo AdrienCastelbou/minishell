@@ -1446,15 +1446,22 @@ void	run_tpiped_child(t_mini *mini,  t_instructions *instruc, int fdin, int *pfd
 
 void	run_tpiped_parent(t_mini *mini, t_instructions *instruc, int fdin, int *pfd, int pid)
 {
+	int	status;
+
 	close(pfd[1]);
 	close(fdin);
 	fdin = pfd[0];
 	if (instruc)
 		pipe_loop(mini, instruc->next, fdin);
-	if (0 < waitpid(pid, &(mini->last_return), 0) && WIFEXITED(mini->last_return))
-		mini->last_return = WEXITSTATUS(mini->last_return);
-	if ((mini->last_return == 2 || mini->last_return == 3) && sig_catcher.should_run == 0)
-		mini->last_return += 128;
+	if (0 < waitpid(pid, &status, 0) && WIFEXITED(status))
+	{
+		if (!instruc->next)
+		{
+			mini->last_return = WEXITSTATUS(status);
+			if ((mini->last_return == 2 || mini->last_return == 3) && sig_catcher.should_run == 0)
+			mini->last_return += 128;
+		}
+	}
 	sig_catcher.should_run = 1; 
 	dup2(mini->stdin_copy, STDIN_FILENO);
 	dup2(mini->stdout_copy, STDOUT_FILENO);
