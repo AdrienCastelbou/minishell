@@ -134,8 +134,12 @@ int		print_errors(char *cmd, char *error, char *more, int nb)
 		ft_putstr_fd(cmd, STDERR_FILENO);
 		ft_putstr_fd(": ", STDERR_FILENO);
 	}
+	if (!ft_strcmp("export", cmd) || !ft_strcmp("unset", cmd))
+		ft_putchar_fd('\'', STDERR_FILENO);
 	if (cmd && *cmd)
 		ft_putstr_fd(error, STDERR_FILENO);
+	if (!ft_strcmp("export", cmd) || !ft_strcmp("unset", cmd))
+		ft_putchar_fd('\'', STDERR_FILENO);
 	if (more && *more)
 	{
 		ft_putstr_fd(": ", STDERR_FILENO);
@@ -176,7 +180,7 @@ int		exit_minishell(char	**splited_inputs, t_mini *mini)
 	if (splited_inputs)
 	{
 		if (splited_inputs[1] && !is_only_digit(splited_inputs[1]))
-			return_value = bad_exit_arg(splited_inputs[1]);
+			return_value = print_errors("exit", splited_inputs[1], "numeric argument required", 255);
 		else if (splited_inputs[1] && splited_inputs[2])
 			return (print_errors("exit", "too many arguments", NULL, 1));
 		else if (splited_inputs[1])
@@ -330,14 +334,6 @@ void	print_export_var(t_list *env)
 	free(tab_var);
 }
 
-int		export_error(char *env_var)
-{
-	ft_putstr_fd("\U0000274C minishell: ", STDERR_FILENO);
-	ft_putstr_fd("export: \'", STDERR_FILENO);
-	ft_putstr_fd(env_var, STDERR_FILENO);
-	ft_putstr_fd("\': not a valid identifier\n", STDERR_FILENO);
-	return (1);
-}
 int		is_valid_env_char(char c, int i)
 {
 	if (i == 0 && (ft_isdigit(c) || c == 0))
@@ -366,7 +362,7 @@ int		export_builtin(t_mini *mini, char	**splited_inputs, t_list *env)
 		if (j > 0 && (splited_inputs[i][j] == '=' || (!splited_inputs[i][j])))
 			add_env_var(splited_inputs[i], env, ft_strndup(splited_inputs[i], j));
 		else
-			mini->last_return = export_error(splited_inputs[i]);
+			mini->last_return = print_errors("export", splited_inputs[i], "not a valid identifier", 1);
 	}
 		return (mini->last_return);
 }
@@ -406,16 +402,6 @@ void	delete_env_var(char *key, t_list **env)
 	}
 }
 
-int		unset_error(char *env_var)
-{
-	ft_putstr_fd("\U0000274C minishell: ", STDERR_FILENO);
-	ft_putstr_fd("unset: \'", STDERR_FILENO);
-	ft_putstr_fd(env_var, STDERR_FILENO);
-	ft_putstr_fd("\': not a valid identifier\n", STDERR_FILENO);
-	return (1);
-}
-
-
 int		unset_builtin(t_mini *mini, char	**splited_inputs, t_list *env)
 {
 	int	i;
@@ -431,7 +417,7 @@ int		unset_builtin(t_mini *mini, char	**splited_inputs, t_list *env)
 		if (!splited_inputs[i][j] && j > 0)
 			delete_env_var(splited_inputs[i], &env);
 		else
-			mini->last_return = unset_error(splited_inputs[i]);
+			mini->last_return = print_errors("export", splited_inputs[i], "not a valid identifier", 1);
 	}
 		return (mini->last_return);
 }
@@ -485,24 +471,16 @@ void	update_pwd_paths(t_mini *mini)
 	free(pwd[0]);
 }
 
-void	cd_error(char *mov, char *error)
+int		cd_oldpwd(t_mini *mini)
 {
-	ft_putstr_fd("\U0000274C minishell: ", STDERR_FILENO);
-	ft_putstr_fd("cd: ", STDERR_FILENO);
-	ft_putstr_fd(mov, STDERR_FILENO);
-	if (*mov)
-		ft_putstr_fd(": ", STDERR_FILENO);
-	ft_putstr_fd(error, STDERR_FILENO);
-	ft_putchar_fd('\n', STDERR_FILENO);
-}
+	char *mov;
 
-int		cd_oldpwd(t_mini *mini, char *mov)
-{
 	mov = get_env_var("OLDPWD", mini->env);
-	if (!*mov)
+	if (!mov || !*mov)
 	{
-		free(mov);
-		cd_error("OLDPWD", "not set");
+		if (mov)
+			free(mov);
+		print_errors("cd", "OLDPWD", "not set", 1);
 		return (1);
 	}
 	mini->last_return = chdir(mov);
@@ -527,14 +505,14 @@ int		cd_builtin(t_mini *mini, char *mov, char **inputs)
 
 	if (cwd_exist() == 0)
 	{
-		cd_error("error", "getcwd cant access to parents directories");
+		print_errors("error", "getcwd cant access to parents directories", NULL, 0);
 		mini->last_return = 0;
 		return (mini->last_return);
 	}
 
 	if (mov && inputs[2])
 	{
-		cd_error("", "to many arguments");
+		print_errors("cd", "to many arguments", NULL, 1);
 		mini->last_return = 1;
 		return (mini->last_return);
 	}
@@ -545,13 +523,13 @@ int		cd_builtin(t_mini *mini, char *mov, char **inputs)
 		mov_usr = 1;
 	}
 	else if (ft_strcmp(mov, "-") == 0)
-		return (cd_oldpwd(mini, mov));
+		return (cd_oldpwd(mini));
 	mini->last_return = chdir(mov);
 	if (!mini->last_return)
 		update_pwd_paths(mini);
 	else if (mini->last_return == -1)
 	{
-		cd_error(mov, strerror(errno));
+		print_errors("cd", mov, strerror(errno), 1);
 		mini->last_return = 1;
 	}
 	if (mov_usr)
