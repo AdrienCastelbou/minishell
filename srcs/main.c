@@ -880,47 +880,6 @@ int		cmd_count(char *input)
 	return (count);
 }
 
-
-void	ft_fdsadd_back(t_fds **afds, t_fds *new)
-{
-	t_fds *elem;
-
-	if (!afds)
-		return ;
-	if (!*afds)
-	{
-		*afds = new;
-		return ;
-	}
-	elem = *afds;
-	while (elem->next)
-		elem = elem->next;
-	elem->next = new;
-}
-
-t_fds	*ft_fdnew(char *file, char *method)
-{
-	t_fds	*elem;
-
-	if (!(elem = (t_fds *)malloc(sizeof(t_fds))))
-		return (NULL);
-	if (strcmp(method, ">") == 0)
-		elem->fd = open(file, O_WRONLY | O_TRUNC | O_CREAT, S_IRWXU | S_IRGRP | S_IROTH);
-	else
-		elem->fd = open(file, O_WRONLY | O_APPEND | O_CREAT, S_IRWXU | S_IRGRP | S_IROTH);
-	elem->next = NULL;
-	return (elem);
-}
-
-t_fds	*ft_fdlast(t_fds *fd)
-{
-	if (!fd)
-		return (NULL);
-	while (fd->next)
-		fd = fd->next;
-	return (fd);
-}
-
 int		open_agreg_file(char *file, char *method)
 {
 	int fd;
