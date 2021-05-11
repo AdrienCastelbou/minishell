@@ -1077,12 +1077,17 @@ char		**get_cmd_tab(t_list *cmd)
 
 	size = ft_lstsize(cmd);
 	cmd_tab = malloc(sizeof(char *) * (size + 1));
+	if (cmd_tab == NULL)
+		return (NULL);
 	elem = cmd;
 	i = -1;
 	while (++i > -1 && elem)
 	{
 		if (elem->content)
-			cmd_tab[i] = ft_strdup((char *)elem->content);
+		{
+			if (!(cmd_tab[i] = ft_strdup((char *)elem->content)))
+				break;
+		}
 		else
 			--i;
 		elem = elem->next;
@@ -1167,13 +1172,17 @@ int		get_instructions(t_mini *mini, char *s)
 		len = ft_cmd_size(s, '|');
 		if (s[len] == '|')
 			mini->is_pipe = 1;
-		instruction = ft_strndup(s, len);
+		if (!(instruction = ft_strndup(s, len)))
+		{
+			print_errors("malloc", strerror(errno), NULL, 1);
+			return (1);
+		}
 		cmd = ft_lst_input(mini, current, instruction);
-		if (mini->is_pipe && current->is_empty && (!cmd || !*((char *)cmd->content)))
-			return (parsing_error('|'));
 		current->cmds = cmd;
 		ft_instruct_add_back(&mini->instructions, current);
 		free(instruction);
+		if (mini->is_pipe && current->is_empty && (!cmd || !*((char *)cmd->content)))
+			return (parsing_error('|'));
 		s += len;
 	}
 	return (0);
