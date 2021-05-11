@@ -1363,7 +1363,7 @@ int		run(t_mini *mini, int fdin, int fdout)
 		print_errors(cmd[0], strerror(errno), NULL, 127);
 		exit(127);
 	}
-	exit(0);
+	exit(mini->last_return);
 	return (1);
 }
 
