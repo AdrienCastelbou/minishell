@@ -1574,9 +1574,14 @@ int		set_mode(void)
 	return (1);
 }
 
-void	reset_input_mode (void)
+int		reset_input_mode (void)
 {
-	tcsetattr(STDIN_FILENO, TCSAFLUSH, &sig_catcher.saved_attributes);
+	int	r;
+
+	r = tcsetattr(STDIN_FILENO, TCSAFLUSH, &sig_catcher.saved_attributes);
+	if (r)
+		return (0);
+	return (1);
 }
 
 void	erase_char_in_prompt(t_mini *mini, int *top, char *buff)
@@ -1783,13 +1788,17 @@ int		read_prompt(t_mini *mini)
 	top = 0;
 	ft_bzero(buff, 128);
 	if (set_mode() == 0)
+	{
+		write(1, "\n", 1);
 		return (0);
+	}
 	ft_bzero(buffchar, 3);
 	while (read(STDIN_FILENO, buffchar, 3) && sig_catcher.should_run)
 		if (!check_prompt_input(mini, &top, buffchar, buff))
 			break ;
 	write(1, "\n", 1);
-	reset_input_mode();
+	if (reset_input_mode() == 0)
+		return (0);
 	if (!(join_prompt_parts(mini, buff)))
 		return (0);
 	if (!(mini->input = ft_strdup(mini->history->input)))
