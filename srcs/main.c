@@ -1392,7 +1392,7 @@ void	run_piped_parent(t_mini *mini, t_instructions *instruc, t_files_portal	fds,
 		{
 			mini->last_return = WEXITSTATUS(status);
 			if ((mini->last_return == 2 || mini->last_return == 3) && sig_catcher.should_run == 0)
-			mini->last_return += 128;
+				mini->last_return += 128;
 		}
 	}
 	close(fds.pfd[0]);
@@ -1432,6 +1432,7 @@ void	pipe_loop(t_mini *mini, t_instructions *instruc, int fdin)
 	}
 	if ((pid = fork()) < 0)
 		return ;
+	sig_catcher.pid = pid;
 	if (pid == 0)
 		run_piped_child(mini, instruc, fds.fdin, fds.pfd);
 	else
