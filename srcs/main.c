@@ -603,7 +603,6 @@ static int		ft_cmd_size(const char *s, char c)
 				else if (s[len] == quote)
 					break ;
 			}
-
 		}
 		else if (s[len] == '\\')
 			len += 1;
@@ -624,9 +623,8 @@ static int		ft_word_size(const char *s)
 		return (ft_get_fd_token(s));
 	while (s[len])
 	{
-		if (s[len] == ' ' || s[len] == 9)
-			return (len);
-		else if (s[len] == '>' || s[len] == '<')
+		if (s[len] == ' ' || s[len] == 9 ||
+				s[len] == '>' || s[len] == '<')
 			return (len);
 		else if (s[len] == '\"' || s[len] == '\'')
 		{
@@ -641,9 +639,8 @@ static int		ft_word_size(const char *s)
 		}
 		else if (s[len] == '\\')
 			len += 1;
-		if (!s[len])
-			return (len);
-		len++;
+		if (s[len])
+			len++;
 	}
 	return (len);
 }
@@ -734,9 +731,11 @@ char			*update_input_with_big_quotes(char **s, char *new, int *i, t_mini *mini)
 	*i = 0;
 	while (str[*i] != '\"' && str[*i])
 	{
-		if (str[*i] == '\\' && (str[*i + 1] == '$' || str[*i + 1] == '\"' || str[*i + 1] == '\\'))
+		if (str[*i] == '\\' && (str[*i + 1] == '$'
+					|| str[*i + 1] == '\"' || str[*i + 1] == '\\'))
 			new = update_input_with_echap(&str, new, i);
-		else if (str[*i] == '$' && str[*i + 1] && ft_isenvchar(str[*i + 1]))
+		else if (str[*i] == '$' &&
+				str[*i + 1] && ft_isenvchar(str[*i + 1]))
 			new = update_input_with_var(&str, new, i, mini->env);
 		else if (str[*i] == '$' && str[*i + 1] == '?')
 			new = update_input_with_last_return(&str, new, i, mini);
@@ -812,8 +811,7 @@ char			*get_real_input(char *s, t_mini *mini, t_list *env)
 	char	*str;
 
 	str = s;
-	new = malloc(sizeof(char) * 1);
-	*new = 0;
+	new = ft_strdup("");
 	i = 0;
 	while (s[i] && s[i] != ' ' && s[i] != 9)
 	{
