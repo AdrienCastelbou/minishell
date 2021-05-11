@@ -134,11 +134,11 @@ int		print_errors(char *cmd, char *error, char *more, int nb)
 		ft_putstr_fd(cmd, STDERR_FILENO);
 		ft_putstr_fd(": ", STDERR_FILENO);
 	}
-	if (!ft_strcmp("export", cmd) || !ft_strcmp("unset", cmd))
+	if (cmd && (!ft_strcmp("export", cmd) || !ft_strcmp("unset", cmd)))
 		ft_putchar_fd('\'', STDERR_FILENO);
-	if (cmd && *cmd)
+	if (error && *error)
 		ft_putstr_fd(error, STDERR_FILENO);
-	if (!ft_strcmp("export", cmd) || !ft_strcmp("unset", cmd))
+	if (cmd && (!ft_strcmp("export", cmd) || !ft_strcmp("unset", cmd)))
 		ft_putchar_fd('\'', STDERR_FILENO);
 	if (more && *more)
 	{
