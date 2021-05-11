@@ -100,6 +100,7 @@ int				run_builtins(char	**splited_inputs, t_mini *mini);
 //PARSING
 static int		ft_word_size(const char *s);
 int				ft_isenvchar(char c);
+int				jump_quotes_in_parsing(char *input, char quote, int *i);
 char			*get_env_var(const char *s, t_list *env);
 char			*join_input_parts(char *s, char *new, int i);
 char			*get_var_value(char *s, char *new, int i, t_list *env);

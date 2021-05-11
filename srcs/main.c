@@ -616,7 +616,6 @@ static int		ft_cmd_size(const char *s, char c)
 static int		ft_word_size(const char *s)
 {
 	int		len;
-	char	quote;
 
 	len = 0;
 	if ((s[len] == '>' || s[len] == '<'))
@@ -627,16 +626,7 @@ static int		ft_word_size(const char *s)
 				s[len] == '>' || s[len] == '<')
 			return (len);
 		else if (s[len] == '\"' || s[len] == '\'')
-		{
-			quote = s[len];
-			while (s[++len])
-			{
-				if (s[len] == '\\')
-					len += 1;
-				else if (s[len] == quote)
-					break ;
-			}
-		}
+			jump_quotes_in_parsing((char *) s, s[len], &len);
 		else if (s[len] == '\\')
 			len += 1;
 		if (s[len])
@@ -833,39 +823,56 @@ char			*get_real_input(char *s, t_mini *mini, t_list *env)
 	return (new);
 }
 
+int		check_cmd_end(char c, int *isnt_blank, int *count)
+{
+	if (c != ' ' && c != 9 && c != ';')
+			*isnt_blank = 1;
+	if (c == ';')
+	{
+		if (!*isnt_blank)
+			return (0);
+		*count += 1;
+		*isnt_blank = 0;
+	}
+	return (1);
+}
+
+int		jump_quotes_in_parsing(char *input, char quote, int *i)
+{
+	while (input[++(*i)])
+	{
+		if (input[*i] == '\\')
+			*i += 1;
+		else if (input[*i] == quote)
+				break ;
+	}
+	return (1);
+}
+
+int		detect_quotes_in_input(char *input, char quote, int *i)
+{
+	jump_quotes_in_parsing(input, quote, i);
+	if (!input[*i])
+		return (quote_error_in_parsing(quote));
+	return (1);
+}
 int		cmd_count(char *input)
 {
 	int		i;
 	int		count;
 	int		isnt_blank;
-	char	quote;
 
 	isnt_blank = 0;
 	i = 0;
 	count = 1;
 	while (input[i])
 	{
-		if (input[i] != ' ' && input[i] != 9 && input[i] != ';')
-			isnt_blank = 1;
-		if (input[i] == ';')
-		{
-			if (!isnt_blank)
-				return (0);
-			count += 1;
-			isnt_blank = 0;
-		}
+		if (!check_cmd_end(input[i], &isnt_blank, &count))
+			return (0);
 		else if (input[i] == '\"' || input[i] == '\'')
 		{
-			quote = input[i];
-			while (input[++i])
-			{
-				if (input[i] == '\\')
-					i += 1;
-				else if (input[i] == quote)
-					break ;
-			}
-			if (!input[i])
-				return (quote_error_in_parsing(quote));
+			if (detect_quotes_in_input(input, input[i], &i) == -1)
+				return (-1);
 		}
 		else if (input[i] == '\\')
 			i++;
