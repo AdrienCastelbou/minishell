@@ -1530,7 +1530,6 @@ void	ft_instrucdelone(t_instructions *instruc)
 	if (instruc->fdout.name)
 		free(instruc->fdout.name);
 	instruc->fdout.name = NULL;
-
 	free(instruc);
 }
 
@@ -1696,21 +1695,24 @@ void	get_cursor_position(int *col, int *line)
 	*col = ft_atoi(&buff[i]);
 }
 
-void		add_input_in_history(t_mini *mini)
+int		add_input_in_history(t_mini *mini)
 {
 	t_history	*elem;
 
 	if (mini->history && !*mini->history->input)
 	{
 		mini->current_hist = mini->history;
-		return ;
+		return (1);
 	}
 	elem = ft_historynew();
+	if (!elem)
+		return (0);
 	if (mini->history)
 		ft_history_add_front(&mini->history, elem);
 	else
 		mini->history = elem;
 	mini->current_hist = mini->history;
+	return (1);
 }
 
 int		up_history(t_mini *mini, int *top, char *buff, t_cursor *cursor)
@@ -1799,7 +1801,11 @@ int		read_prompt(t_mini *mini)
 	int			top;
 	int			ret;
 
-	add_input_in_history(mini);
+	if (!add_input_in_history(mini))
+	{
+		write(1, "\n", 1);
+		return (0);
+	}
 	mini->current_hist = mini->history;
 	top = 0;
 	ft_bzero(buff, 128);
