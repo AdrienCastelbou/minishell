@@ -171,6 +171,20 @@ int		is_bad_num_value(char *s, long long int nb)
 	return (0);
 }
 
+void	free_mini(t_mini *mini)
+{
+	free_history(&(mini->history));
+	free_inputs(mini);
+	ft_lstclear(&mini->env, free);
+	if (mini->envp)
+		ft_free_splited(mini->envp);
+	if (mini->instructions)
+		ft_instruclear(&mini->instructions);
+	close(mini->stdin_copy);
+	close(mini->stdout_copy);
+	free(mini);
+}
+
 int		exit_minishell(char	**splited_inputs, t_mini *mini)
 {
 	long long int	return_value;
@@ -188,16 +202,7 @@ int		exit_minishell(char	**splited_inputs, t_mini *mini)
 		else if (is_bad_num_value(splited_inputs[1], return_value))
 			return_value = print_errors("exit", splited_inputs[1], "numeric argument required", 255);
 	}
-	free_history(&(mini->history));
-	free_inputs(mini);
-	ft_lstclear(&mini->env, free);
-	if (mini->envp)
-		ft_free_splited(mini->envp);
-	if (mini->instructions)
-		ft_instruclear(&mini->instructions);
-	close(mini->stdin_copy);
-	close(mini->stdout_copy);
-	free(mini);
+	free_mini(mini);
 	exit(return_value);
 	return (0);
 }
@@ -342,6 +347,7 @@ int		is_valid_env_char(char c, int i)
 		return (1);
 	return (0);
 }
+
 int		export_builtin(t_mini *mini, char	**splited_inputs, t_list *env)
 {
 	int	i;
@@ -359,10 +365,13 @@ int		export_builtin(t_mini *mini, char	**splited_inputs, t_list *env)
 		j = -1;
 		while (splited_inputs[i][++j] && is_valid_env_char(splited_inputs[i][j], j))
 			;
-		if (j > 0 && (splited_inputs[i][j] == '=' || (!splited_inputs[i][j])))
-			add_env_var(splited_inputs[i], env, ft_strndup(splited_inputs[i], j));
+		if (j > 0 && (splited_inputs[i][j] == '=' ||
+					(!splited_inputs[i][j])))
+			add_env_var(splited_inputs[i], env,
+					ft_strndup(splited_inputs[i], j));
 		else
-			mini->last_return = print_errors("export", splited_inputs[i], "not a valid identifier", 1);
+			mini->last_return = print_errors("export",
+					splited_inputs[i], "not a valid identifier", 1);
 	}
 		return (mini->last_return);
 }
@@ -504,18 +513,9 @@ int		cd_builtin(t_mini *mini, char *mov, char **inputs)
 	int		mov_usr;
 
 	if (cwd_exist() == 0)
-	{
-		print_errors("error", "getcwd cant access to parents directories", NULL, 0);
-		mini->last_return = 0;
-		return (mini->last_return);
-	}
-
+		return (print_errors("error", "getcwd cant access to parents directories", NULL, 0));
 	if (mov && inputs[2])
-	{
-		print_errors("cd", "to many arguments", NULL, 1);
-		mini->last_return = 1;
-		return (mini->last_return);
-	}
+		return (print_errors("cd", "to many arguments", NULL, 1));
 	mov_usr = 0;
 	if (mov == NULL)
 	{
@@ -528,10 +528,8 @@ int		cd_builtin(t_mini *mini, char *mov, char **inputs)
 	if (!mini->last_return)
 		update_pwd_paths(mini);
 	else if (mini->last_return == -1)
-	{
-		print_errors("cd", mov, strerror(errno), 1);
-		mini->last_return = 1;
-	}
+		mini->last_return =
+			print_errors("cd", mov, strerror(errno), 1);
 	if (mov_usr)
 		free(mov);
 	return (mini->last_return);
