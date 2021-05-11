@@ -1604,7 +1604,7 @@ void	erase_char_in_prompt(t_mini *mini, int *top, char *buff)
 	tputs(mini->dc_cap, 1, ft_putchar);
 }
 
-void	join_prompt_parts(t_mini *mini, char *buff)
+int		join_prompt_parts(t_mini *mini, char *buff)
 {
 	char *tmp;
 
@@ -1612,6 +1612,9 @@ void	join_prompt_parts(t_mini *mini, char *buff)
 	mini->history->input = ft_strjoin(tmp, buff);
 	free(tmp);
 	ft_bzero(buff, ft_strlen(buff));
+	if (!mini->history->input)
+		return (0);
+	return (1);
 }
 
 void	write_char_in_prompt(t_mini *mini, char c, int *top, char *buff)
@@ -1774,7 +1777,7 @@ int		check_prompt_input(t_mini *mini, int *top, char *buffchar, char *buff)
 	return (1);
 }
 
-void	read_prompt(t_mini *mini)
+int		read_prompt(t_mini *mini)
 {
 	char		buffchar[3];
 	char		buff[128];
@@ -1791,9 +1794,12 @@ void	read_prompt(t_mini *mini)
 			break ;
 	write(1, "\n", 1);
 	reset_input_mode();
-	join_prompt_parts(mini, buff);
-	mini->input = ft_strdup(mini->history->input);
+	if (!(join_prompt_parts(mini, buff)))
+		return (0);
+	if (!(mini->input = ft_strdup(mini->history->input)))
+		return (0);
 	mini->history->is_prompt = 0;
+	return (1);
 }
 
 int		ft_get_input(t_mini *mini)
@@ -1805,11 +1811,19 @@ int		ft_get_input(t_mini *mini)
 	else
 		ft_putstr_fd("\U0001F494 ", STDOUT_FILENO);
 	ft_putstr_fd("\033[0;34mminishell> \033[0m", STDOUT_FILENO);
-	read_prompt(mini);
+	if (!(read_prompt(mini)))
+	{
+		print_errors("prompt", strerror(errno), NULL, 1);
+		exit_minishell(NULL, mini);
+	}
 	if (sig_catcher.should_run == 0)
 	{
 		mini->last_return = 1;
-		dup2(mini->stdin_copy, STDIN_FILENO);
+		if (dup2(mini->stdin_copy, STDIN_FILENO) == -1)
+		{
+			print_errors("dup", strerror(errno), NULL, 1);
+			exit_minishell(NULL, mini);
+		}
 		reset_input_mode();
 		ft_bzero(mini->input, ft_strlen(mini->input));
 		ft_bzero(mini->history->input, ft_strlen(mini->history->input));
@@ -1832,7 +1846,8 @@ char	*get_shlvl(char *shlvl)
 	while (!ft_isdigit(*shlvl))
 		shlvl++;
 	inted_value = ft_atoi(shlvl) + 1;
-	value = ft_itoa(inted_value);
+	if (!(value = ft_itoa(inted_value)))
+		return (NULL);
 	env_var = ft_strjoin("SHLVL=", value);
 	free(value);
 	return (env_var);
@@ -1852,7 +1867,17 @@ t_list	*copy_env(char **envp)
 			env_var = get_shlvl(*envp);
 		else
 			env_var = ft_strdup(*envp);
-		elem = ft_lstnew(env_var);
+		if (!env_var)
+		{
+			ft_lstclear(&env, free);
+			return (NULL);
+		}
+		if (!(elem = ft_lstnew(env_var)))
+		{
+			free(env_var);
+			ft_lstclear(&env, free);
+			return (NULL);
+		}
 		ft_lstadd_back(&env, elem);
 		envp++;
 	}
@@ -1892,7 +1917,18 @@ t_mini	*init_mini(t_list *env)
 	mini->le_cap = tgetstr("le", NULL);
 	mini->ce_cap = tgetstr("ce", NULL);
 	set_mini(mini);
-	return (mini);
+	if (mini->stdin_copy == -1 || mini->stdout_copy == -1
+			|| !mini->cm_cap || !mini->dc_cap || !mini->le_cap || !mini->ce_cap)
+	{
+		free(mini->env);
+		if (mini->stdin_copy >= 0)
+			close(mini->stdin_copy);
+		if (mini->stdout_copy >= 0)
+			close(mini->stdout_copy);
+		free(mini);
+		mini = NULL;
+	}
+	return (NULL);
 }
 
 t_list		*set_basic_env(void)
@@ -1932,17 +1968,19 @@ int		main(int argc, char **argv, char **envp)
 		env = set_basic_env();
 	else
 		env = copy_env(envp);
+	if (!env)
+		return (print_errors("malloc", strerror(errno), NULL, 1));
 	term_type = get_env_var("TERM", env);
 	ret = tgetent(NULL, term_type);
 	if (!term_type || ret < 1)
 	{
 		free(env);
 		free(term_type);
-		
-		return (1);
+		return (print_errors("termcaps", "bad terminal type", NULL, 1));
 	}
 	free(term_type);
-	mini = init_mini(env);
+	if (!(mini = init_mini(env)))
+		return (print_errors("init minishell", strerror(errno), NULL, 1));
 	signal(SIGINT, sig_handler);
 	signal(SIGQUIT, sig_handler);
 	while (1)
