@@ -1584,11 +1584,11 @@ int		reset_input_mode (void)
 	return (1);
 }
 
-void	erase_char_in_prompt(t_mini *mini, int *top, char *buff)
+int		erase_char_in_prompt(t_mini *mini, int *top, char *buff)
 {
 	ioctl(STDIN_FILENO, TIOCGWINSZ, &mini->ws);
 	if (!(*mini->history->input) && !*buff)
-		return ;
+		return (1);
 	if (!*top && *mini->history->input)
 		mini->history->input[ft_strlen(mini->history->input) - 1] = 0;
 	else if (*top)
@@ -1602,6 +1602,7 @@ void	erase_char_in_prompt(t_mini *mini, int *top, char *buff)
 	else
 		tputs(tgoto(mini->cm_cap, mini->ws.ws_col - 1, mini->cursor.cur_line - 2), 1, ft_putchar);
 	tputs(mini->dc_cap, 1, ft_putchar);
+	return (1);
 }
 
 int		join_prompt_parts(t_mini *mini, char *buff)
@@ -1617,16 +1618,18 @@ int		join_prompt_parts(t_mini *mini, char *buff)
 	return (1);
 }
 
-void	write_char_in_prompt(t_mini *mini, char c, int *top, char *buff)
+int		write_char_in_prompt(t_mini *mini, char c, int *top, char *buff)
 {
 	buff[*top] = c;
 	write(1, &c, 1);
 	*top += 1;
 	if (*top >= 128 - 1)
 	{
-		join_prompt_parts(mini, buff);
+		if (join_prompt_parts(mini, buff) == 0)
+			return (-1);
 		*top = 0;
 	}
+	return (1);
 }
 
 int		is_arrow(char *buff)
@@ -1710,41 +1713,49 @@ void		add_input_in_history(t_mini *mini)
 	mini->current_hist = mini->history;
 }
 
-void	up_history(t_mini *mini, int *top, char *buff, t_cursor *cursor)
+int		up_history(t_mini *mini, int *top, char *buff, t_cursor *cursor)
 {
 	int		len;
+	int		i;
 	char	*new;
 
+	i = -1;
 	if (!mini->current_hist->next)
-		return ;
-	join_prompt_parts(mini, buff);
+		return (1);
+	if (!(join_prompt_parts(mini, buff)))
+		return (-1);
 	erase_current_prompt(mini, top, buff, cursor);
 	mini->current_hist = mini->current_hist->next;
 	new = mini->current_hist->input;
 	len = ft_strlen(new);
-	int i = -1;
 	while (++i < len)
-		write_char_in_prompt(mini, new[i], top, buff);
+		if (write_char_in_prompt(mini, new[i], top, buff) == 0)
+			return (-1);
+	return (1);
 }
 
-void	down_history(t_mini *mini, int *top, char * buff, t_cursor *cursor)
+int		down_history(t_mini *mini, int *top, char * buff, t_cursor *cursor)
 {
 	int		len;
+	int		i;
 	char	*new;
 
+	i = -1;
 	if (!mini->current_hist->previous)
-		return ;
-	join_prompt_parts(mini, buff);
+		return (1);
+	if (!(join_prompt_parts(mini, buff)))
+		return (-1);
 	erase_current_prompt(mini, top, buff, cursor);
 	mini->current_hist = mini->current_hist->previous;
 	new = mini->current_hist->input;
 	len = ft_strlen(new);
-	int i = -1;
 	while (++i < len)
-		write_char_in_prompt(mini, new[i], top, buff);
+		if (write_char_in_prompt(mini, new[i], top, buff) == 0)
+			return (-1);
+	return (1);
 }
 
-void	check_input_validity(t_mini *mini, char *buffchar, int *top, char *buff)
+int		check_input_validity(t_mini *mini, char *buffchar, int *top, char *buff)
 {
 	int	i;
 
@@ -1752,29 +1763,33 @@ void	check_input_validity(t_mini *mini, char *buffchar, int *top, char *buff)
 	while (++i < 3 && buffchar[i])
 	{
 		if (ft_isprint(buffchar[i]))
-			write_char_in_prompt(mini, buffchar[i], top, buff);
+			if (write_char_in_prompt(mini, buffchar[i], top, buff) == 0)
+				return (-1);
 	}
+	return (1);
 }
 
 int		check_prompt_input(t_mini *mini, int *top, char *buffchar, char *buff)
 {
+	int ret;
+
 	if (*buffchar == '\004')
 	{
 		if (!(*mini->history->input) && !*buff)
 			exit_minishell(NULL, mini);
 	}
 	else if (is_arrow(buffchar) && buffchar[2] == 65)
-		up_history(mini, top, buff, &mini->cursor);
+		ret = up_history(mini, top, buff, &mini->cursor);
 	else if (is_arrow(buffchar) && buffchar[2] == 66)
-		down_history(mini, top, buff, &mini->cursor);
+		ret = down_history(mini, top, buff, &mini->cursor);
 	else if (*buffchar == '\n')
 		return (0);
 	else if (*buffchar == 127)
-		erase_char_in_prompt(mini, top, buff);
+		ret = erase_char_in_prompt(mini, top, buff);
 	else if (ft_isprint(*buffchar))
-		check_input_validity(mini, buffchar, top, buff);
+		ret = check_input_validity(mini, buffchar, top, buff);
 	ft_bzero(buffchar, 3);
-	return (1);
+	return (ret);
 }
 
 int		read_prompt(t_mini *mini)
@@ -1782,6 +1797,7 @@ int		read_prompt(t_mini *mini)
 	char		buffchar[3];
 	char		buff[128];
 	int			top;
+	int			ret;
 
 	add_input_in_history(mini);
 	mini->current_hist = mini->history;
@@ -1794,9 +1810,11 @@ int		read_prompt(t_mini *mini)
 	}
 	ft_bzero(buffchar, 3);
 	while (read(STDIN_FILENO, buffchar, 3) && sig_catcher.should_run)
-		if (!check_prompt_input(mini, &top, buffchar, buff))
+		if ((ret = check_prompt_input(mini, &top, buffchar, buff)) < 1)
 			break ;
 	write(1, "\n", 1);
+	if (ret == -1)
+		return (0);
 	if (reset_input_mode() == 0)
 		return (0);
 	if (!(join_prompt_parts(mini, buff)))
