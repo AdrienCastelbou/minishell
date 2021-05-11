@@ -56,6 +56,7 @@ typedef struct	s_mini {
 		char			*input;
 		char			*to_exec;
 		char			*bin;
+		char			*path_list;
 		struct	winsize	ws;
 		t_instructions	*instructions;
 		t_cursor		cursor;

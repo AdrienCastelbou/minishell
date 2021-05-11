@@ -1341,11 +1341,8 @@ int		run_bin(char **cmd, t_mini *mini, char *path_list)
 int		run(t_mini *mini, int fdin, int fdout)
 {
 	char	**cmd;
-	char	*path_list;
 
 	cmd = mini->cmd;
-	mini->envp = transform_env_lst_in_tab(mini->env);
-	path_list = get_env_var("PATH", mini->env);
 	if (fdin == -1)
 		exit(1);
 	redirect(fdin, STDIN_FILENO);
@@ -1357,7 +1354,7 @@ int		run(t_mini *mini, int fdin, int fdout)
 	else
 	{
 		if (!ft_strchr(cmd[0], '/'))
-			run_bin(cmd, mini, path_list);
+			run_bin(cmd, mini, mini->path_list);
 		else
 			execve(cmd[0], cmd, mini->envp);
 		print_errors(cmd[0], strerror(errno), NULL, 127);
@@ -1441,7 +1438,12 @@ void	pipe_loop(t_mini *mini, t_instructions *instruc, int fdin)
 
 void	make_pipe(t_mini *mini, t_instructions *instruc)
 {
+	mini->envp = transform_env_lst_in_tab(mini->env);
+	mini->path_list = get_env_var("PATH", mini->env);
 	pipe_loop(mini, instruc, STDIN_FILENO);
+	if (mini->path_list)
+		free(mini->path_list);
+	mini->path_list = NULL;
 }
 
 void	run_cmd(t_mini *mini, char **cmd, t_instructions *instruc)
@@ -1463,10 +1465,13 @@ void	run_cmd(t_mini *mini, char **cmd, t_instructions *instruc)
 	redirect(fdin, STDIN_FILENO);
 	redirect(fdout, STDOUT_FILENO);
 	exec_cmd(mini, cmd);
-	dup2(mini->stdin_copy, STDIN_FILENO);
-	dup2(mini->stdout_copy, STDOUT_FILENO);
+	if (dup2(mini->stdin_copy, STDIN_FILENO) == - 1 ||
+			dup2(mini->stdout_copy, STDOUT_FILENO) == -1)
+	{
+		print_errors("dup", strerror(errno), NULL, 1);
+		exit_minishell(NULL, mini);
+	}
 }
-
 
 char	**transform_env_lst_in_tab(t_list *env)
 {
@@ -1483,6 +1488,8 @@ char	**transform_env_lst_in_tab(t_list *env)
 		if (ft_strchr((char *)env->content, '='))
 		{
 			envp[i] = ft_strdup((char *)env->content);
+			if (!envp[i])
+				break;
 			i++;
 		}
 		env = env->next;
