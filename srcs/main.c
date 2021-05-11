@@ -1556,27 +1556,22 @@ void	free_cmds(t_mini *mini)
 	set_mini(mini);
 }
 
-void	set_mode(void)
+int		set_mode(void)
 {
 	struct termios	t;
 	int				r;
 
-	tcgetattr (STDIN_FILENO, &sig_catcher.saved_attributes);
+	tcgetattr(STDIN_FILENO, &sig_catcher.saved_attributes);
 	r = tcgetattr(STDIN_FILENO, &t);
 	if (r)
-	{
-		printf("Oh no...\n");
-		exit(0);
-	}
+		return (0);
 	t.c_lflag &= ~(ICANON|ECHO);
 	t.c_cc[VMIN] = 1;
 	t.c_cc[VTIME] = 0;
 	r = tcsetattr(STDIN_FILENO, TCSANOW, &t);
 	if (r)
-	{
-		printf("Oh no...\n");
-		exit(0);
-	}
+		return (0);
+	return (1);
 }
 
 void	reset_input_mode (void)
@@ -1787,7 +1782,8 @@ int		read_prompt(t_mini *mini)
 	mini->current_hist = mini->history;
 	top = 0;
 	ft_bzero(buff, 128);
-	set_mode();
+	if (set_mode() == 0)
+		return (0);
 	ft_bzero(buffchar, 3);
 	while (read(STDIN_FILENO, buffchar, 3) && sig_catcher.should_run)
 		if (!check_prompt_input(mini, &top, buffchar, buff))
@@ -1928,7 +1924,7 @@ t_mini	*init_mini(t_list *env)
 		free(mini);
 		mini = NULL;
 	}
-	return (NULL);
+	return (mini);
 }
 
 t_list		*set_basic_env(void)
