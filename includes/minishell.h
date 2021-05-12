@@ -102,7 +102,11 @@ int				exit_minishell(char	**splited_inputs, t_mini *mini);
 int				echo_builtin(char	**splited_inputs);
 int				env_builtin(t_list *env);
 void			add_env_var(char *env_var, t_list *env, char *key);
+int		is_valid_env_char(char c, int i);
 int				export_builtin(t_mini *mini, char	**splited_inputs, t_list *env);
+
+//UNSET 
+void	delete_env_var_elem(t_list **env, t_list **current, t_list **previous);
 void			delete_env_var(char *key, t_list **env);
 int				unset_builtin(t_mini *mini, char	**splited_inputs, t_list *env);
 int				pwd_builtin(void);
