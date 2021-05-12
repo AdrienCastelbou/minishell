@@ -163,10 +163,14 @@ int		open_agreg_file(char *file, char *method);
 
 //RUN
 
+void	run_exec(t_mini *mini, char **cmd);
+void	exec_cmd(t_mini *mini, char **cmd);
+int		run_bin(char **cmd, t_mini *mini, char *path_list);
 int		run(t_mini *mini, int fdin, int fdout);
-
+void	run_cmd(t_mini *mini, char **cmd, t_instructions *instruc);
 //PIPE
 
+void redirect(int oldfd, int newfd);
 void	run_piped_child(t_mini *mini, t_instructions *instruc,
 		int fdin, int *pfd);
 void	run_piped_parent(t_mini *mini, t_instructions *instruc,
@@ -176,7 +180,7 @@ void	pipe_loop(t_mini *mini, t_instructions *instruc, int fdin);
 void	make_pipe(t_mini *mini, t_instructions *instruc);
 
 //UTILS
-
+int		print_errors(char *cmd, char *error, char *more, int nb);
 char			*ft_strjoin_path(char const *s1, char const *s2);
 char			**transform_env_lst_in_tab(t_list *env);
 void			set_mini(t_mini *mini);
