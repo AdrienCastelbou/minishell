@@ -4,7 +4,7 @@ SRCS=	main.c historic.c prompt.c prompt_utils.c set_term.c instructions.c \
 		cd_builtin.c unset_builtin.c export_builtin.c \
 		env_builtin.c pwd_builtin.c get_real_input.c \
 		get_real_input_utils.c get_tokens_size.c \
-		ft_free.c
+		ft_free.c errors.c history_utils.c
 OBJS=	$(addprefix srcs/, $(SRCS:.c=.o))
 CC=		gcc
 CFLAGS=	-Wextra -Wall -Werror

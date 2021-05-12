@@ -27,66 +27,6 @@ int		ft_strcmp(char *s1, char *s2)
 	return (*s1 - *s2);
 }
 
-
-
-void	free_history(t_history **elem)
-{
-	if (!elem || !*elem)
-		return ;
-	if ((*elem)->next)
-		free_history(&(*elem)->next);
-	if ((*elem)->input)
-	{
-		free((*elem)->input);
-		(*elem)->input = NULL;
-	}
-	free((*elem));
-	*elem = NULL;
-
-}
-
-int		print_errors(char *cmd, char *error, char *more, int nb)
-{
-	ft_putstr_fd("\U0000274C minishell: ", STDERR_FILENO);
-	if (cmd && *cmd)
-	{
-		ft_putstr_fd(cmd, STDERR_FILENO);
-		ft_putstr_fd(": ", STDERR_FILENO);
-	}
-	if (cmd && (!ft_strcmp("export", cmd) || !ft_strcmp("unset", cmd)))
-		ft_putchar_fd('\'', STDERR_FILENO);
-	if (error && *error)
-		ft_putstr_fd(error, STDERR_FILENO);
-	if (cmd && (!ft_strcmp("export", cmd) || !ft_strcmp("unset", cmd)))
-		ft_putchar_fd('\'', STDERR_FILENO);
-	if (more && *more)
-	{
-		ft_putstr_fd(": ", STDERR_FILENO);
-		ft_putstr_fd(more, STDERR_FILENO);
-	}
-	ft_putchar_fd('\n', STDERR_FILENO);
-	return (nb);
-}
-
-char	**get_env_tab_for_sort(t_list *env)
-{
-	char	**envp;
-	int		i;
-	int		size;
-
-	size = ft_lstsize(env);
-	if (!(envp = malloc(sizeof(char *) * (size + 1))))
-		return (NULL);
-	i = -1;
-	while (++i < size)
-	{
-		envp[i] = ((char *)env->content);
-		env = env->next;
-	}
-	envp[i] = NULL;
-	return (envp);
-}
-
 int		run_builtins(char	**splited_inputs, t_mini *mini)
 {
 	if (!splited_inputs || !(*splited_inputs))
@@ -127,14 +67,6 @@ int				ft_get_fd_token(const char *s)
 	return (len);
 }
 
-int			quote_error_in_parsing(char c)
-{
-	ft_putstr_fd("\U0000274C minishell: quote ", STDERR_FILENO);
-	ft_putchar_fd(c, STDERR_FILENO);
-	ft_putstr_fd(" is not closed\n", STDERR_FILENO);
-	return (-1);
-}
-
 int		ft_cmd_size(const char *s, char c)
 {
 	int		len;
@@ -163,19 +95,6 @@ int		ft_cmd_size(const char *s, char c)
 		len++;
 	}
 	return (len);
-}
-
-int		parsing_error(char c)
-{
-	ft_putstr_fd("\U0000274C minishell: ", STDERR_FILENO);
-	ft_putstr_fd("syntax error near unexpected token", STDERR_FILENO);
-	if (c == '|')
-		ft_putstr_fd(" \'|\'\n", STDERR_FILENO);
-	else if (c == '>')
-		ft_putstr_fd(" \'newline\'\n", STDERR_FILENO);
-	else if (c == ';')
-		ft_putstr_fd(" \';\'\n", STDERR_FILENO);
-	return (258);
 }
 
 t_list	*ft_lst_input(t_mini *mini, t_instructions *instruc, char *s)
@@ -240,29 +159,6 @@ char		**get_cmd_tab(t_list *cmd)
 	}
 	cmd_tab[i] = NULL;
 	return (cmd_tab);
-}
-
-t_history	*ft_historynew(void)
-{
-	t_history	*elem;
-
-	if (!(elem = malloc(sizeof(t_history) * 1)))
-		return (NULL);
-	elem->input = malloc(sizeof(char) *1);
-	*elem->input = 0;
-	elem->is_prompt = 1;
-	elem->previous = NULL;
-	elem->next = NULL;
-	return (elem);
-}
-
-void	ft_history_add_front(t_history **ahist, t_history *new)
-{
-	if (!ahist)
-		return ;
-	(*ahist)->previous = new;
-	new->next = *ahist;
-	*ahist = new;
 }
 
 int		get_instructions(t_mini *mini, char *s)

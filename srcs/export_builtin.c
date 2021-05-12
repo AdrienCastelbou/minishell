@@ -6,7 +6,7 @@
 /*   By: acastelb <acastelb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/12 14:26:28 by acastelb          #+#    #+#             */
-/*   Updated: 2021/05/12 14:29:48 by acastelb         ###   ########.fr       */
+/*   Updated: 2021/05/12 15:30:44 by acastelb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,7 +75,7 @@ void	print_export_var(t_list *env)
 	int		i;
 	int		j;
 
-	tab_var = get_env_tab_for_sort(env);
+	tab_var = transform_env_lst_in_tab(env);
 	i = -1;
 	while (tab_var[++i])
 	{
