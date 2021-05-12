@@ -80,6 +80,8 @@ typedef struct	s_sigcatch {
 		struct termios	saved_attributes;
 }		t_sigcatch;
 
+t_sigcatch	sig_catcher;
+
 //FREE
 void			ft_free_splited(char **splited_inputs);
 void			free_inputs(t_mini *mini);
@@ -98,7 +100,7 @@ int				cd_builtin(t_mini *mini, char *mov, char **inputs);
 int				run_builtins(char	**splited_inputs, t_mini *mini);
 
 //PARSING
-static int		ft_word_size(const char *s);
+int		ft_word_size(const char *s);
 int				ft_isenvchar(char c);
 int				jump_quotes_in_parsing(char *input, char quote, int *i);
 char			*get_env_var(const char *s, t_list *env);
@@ -118,10 +120,31 @@ t_list			*ft_lst_cmds(t_mini *mini, char *s);
 
 int				run_bin(char **cmd, t_mini *mini, char *path_list);
 
+//TERM MODE
+int		set_mode(void);
+int		reset_input_mode (void);
 //PROMPT READER
 
+int		read_prompt(t_mini *mini);
+int		check_prompt_input(t_mini *mini, int *top, char *buffchar, char *buff);
+int		check_input_validity(t_mini *mini, char *buffchar, int *top, char *buff);
+int		is_arrow(char *buff);
 void			get_cursor_position(int *col, int *line);
 int				ft_putchar(int c);
+int		write_char_in_prompt(t_mini *mini, char c, int *top, char *buff);
+int		erase_char_in_prompt(t_mini *mini, int *top, char *buff);
+int		join_prompt_parts(t_mini *mini, char *buff);
+void	ft_history_add_front(t_history **ahist, t_history *new);
+t_history	*ft_historynew(void);
+
+//HISTORICS FCTNS
+
+void	erase_current_line(t_mini *mini, t_cursor *curs);
+void	erase_current_prompt(t_mini *mini, int *top, char *buff, t_cursor *curs);
+int		add_input_in_history(t_mini *mini);
+int		up_history(t_mini *mini, int *top, char *buff, t_cursor *cursor);
+int		down_history(t_mini *mini, int *top, char *buff, t_cursor *cursor);
+
 //UTILS
 
 char			*ft_strjoin_path(char const *s1, char const *s2);
