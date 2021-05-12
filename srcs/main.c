@@ -135,20 +135,6 @@ void	free_mini(t_mini *mini)
 	free(mini);
 }
 
-int		env_builtin(t_list *env)
-{
-	while (env)
-	{
-		if (ft_strchr((char *)env->content, '='))
-		{
-			ft_putstr_fd((char *)(env->content), STDOUT_FILENO);
-			ft_putchar_fd('\n', STDOUT_FILENO);
-		}
-		env = env->next;
-	}
-	return (0);
-}
-
 char	**get_env_tab_for_sort(t_list *env)
 {
 	char	**envp;
@@ -166,24 +152,6 @@ char	**get_env_tab_for_sort(t_list *env)
 	}
 	envp[i] = NULL;
 	return (envp);
-}
-
-int		pwd_builtin(void)
-{
-	char	buff[128];
-	char	*buff_copy;
-	int		status;
-
-	status = 0;
-	ft_bzero(buff, 128);
-	if ((buff_copy = getcwd(buff, 128)) != NULL)
-	{
-		ft_putstr_fd(buff_copy, STDOUT_FILENO);
-		ft_putchar_fd('\n', STDOUT_FILENO);
-	}
-	else
-		status = 1;
-	return (status);
 }
 
 int		run_builtins(char	**splited_inputs, t_mini *mini)
