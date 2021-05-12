@@ -2,6 +2,7 @@
 #ifndef MINISHELL_H
 
 #define MINISHELL_H
+#define GETCWD_ERR "getcwd cant access to parents directories"
 #include "libft.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -105,6 +106,13 @@ int				export_builtin(t_mini *mini, char	**splited_inputs, t_list *env);
 void			delete_env_var(char *key, t_list **env);
 int				unset_builtin(t_mini *mini, char	**splited_inputs, t_list *env);
 int				pwd_builtin(void);
+
+//CD
+
+char	*get_user_dir(t_mini *mini);
+void	update_pwd_paths(t_mini *mini);
+int		cd_oldpwd(t_mini *mini);
+int		cwd_exist(void);
 int				cd_builtin(t_mini *mini, char *mov, char **inputs);
 int				run_builtins(char	**splited_inputs, t_mini *mini);
 
