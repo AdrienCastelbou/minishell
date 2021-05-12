@@ -88,6 +88,31 @@ int		ft_cmd_size(const char *s, char c)
 	return (len);
 }
 
+int		parse_fd(t_mini *mini, t_instructions *instruc, char *s, int len)
+{
+	if (*s == '>')
+	{
+		instruc->is_empty = 0;
+		return (get_fdout_file(instruc, ft_strndup(s, len), mini));
+	}
+	else if (*s == '<')
+	{
+		instruc->is_empty = 0;
+		return ((get_fdin_file(instruc, ft_strndup(s, len), mini)));
+	}
+	return (0);
+}
+
+void	get_cmd_token(t_mini *mini, t_list **cmd, char *s, int len)
+{
+	t_list	*new;
+	char	*token;
+
+	token = get_real_input(ft_strndup(s, len), mini, mini->env);
+	new = ft_lstnew(token);
+	ft_lstadd_back(cmd, new);
+}
+
 t_list	*ft_lst_input(t_mini *mini, t_instructions *instruc, char *s)
 {
 	t_list	*cmd;
@@ -103,20 +128,13 @@ t_list	*ft_lst_input(t_mini *mini, t_instructions *instruc, char *s)
 		if (!(*s))
 			return (cmd);
 		len = ft_word_size(s);
-		if (*s == '>')
+		if ((*s == '>' || *s == '<'))
 		{
-			instruc->is_empty = 0;
-			if (get_fdout_file(instruc, ft_strndup(s, len), mini))
-				return (cmd);
-		}
-		else if (*s == '<')
-		{
-			instruc->is_empty = 0;
-			if (get_fdin_file(instruc, ft_strndup(s, len), mini))
+			if (parse_fd(mini, instruc, s, len))
 				return (cmd);
 		}
 		else
-			(ft_lstadd_back(&cmd, ft_lstnew(get_real_input(ft_strndup(s, len), mini, mini->env))));
+			get_cmd_token(mini, &cmd, s, len);
 		s += len;
 	}
 	if (instruc->is_empty == 0 && cmd == NULL)
