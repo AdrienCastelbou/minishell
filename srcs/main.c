@@ -15,32 +15,6 @@ char	*ft_strndup(char *src, int size)
 	str[i] = '\0';
 	return (str);
 }
-
-long long int	ft_atolli(const char *str)
-{
-	int			i;
-	int			is_neg;
-	long long int	result;
-
-	i = 0;
-	while ((str[i] >= 9 && str[i] <= 13) || str[i] == ' ')
-		i++;
-	is_neg = 1;
-	if (str[i] == '+' || str[i] == '-')
-	{
-		if (str[i] == '-')
-			is_neg *= -1;
-		i++;
-	}
-	result = 0;
-	while (str[i] >= '0' && str[i] <= '9')
-	{
-		result = result * 10 + (str[i] - '0');
-		i++;
-	}
-	return (result * is_neg);
-}
-
 int		ft_strcmp(char *s1, char *s2)
 {
 	while (*s1 && *s2)
@@ -147,28 +121,6 @@ int		print_errors(char *cmd, char *error, char *more, int nb)
 	return (nb);
 }
 
-int		is_only_digit(char *s)
-{
-	int i;
-
-	i = 0;
-	if (!ft_isdigit(s[i]) && s[i] != '-' && s[i] != '+')
-		return (0);
-	while (s[++i])
-		if (!ft_isdigit(s[i]))
-			return (0);
-	return (1);
-}
-
-int		is_bad_num_value(char *s, long long int nb)
-{
-	if (nb > 0 && (*s == '-'))
-		return (1);
-	else if (nb < 0 && (*s != '-'))
-		return (1);
-	return (0);
-}
-
 void	free_mini(t_mini *mini)
 {
 	free_history(&(mini->history));
@@ -181,49 +133,6 @@ void	free_mini(t_mini *mini)
 	close(mini->stdin_copy);
 	close(mini->stdout_copy);
 	free(mini);
-}
-
-int		exit_minishell(char	**splited_inputs, t_mini *mini)
-{
-	long long int	return_value;
-
-	ft_putstr_fd("exit\n", STDERR_FILENO);
-	return_value = mini->last_return;
-	if (splited_inputs)
-	{
-		if (splited_inputs[1] && !is_only_digit(splited_inputs[1]))
-			return_value = print_errors("exit", splited_inputs[1], "numeric argument required", 255);
-		else if (splited_inputs[1] && splited_inputs[2])
-			return (print_errors("exit", "too many arguments", NULL, 1));
-		else if (splited_inputs[1])
-			return_value = ft_atolli(splited_inputs[1]);
-		else if (is_bad_num_value(splited_inputs[1], return_value))
-			return_value = print_errors("exit", splited_inputs[1], "numeric argument required", 255);
-	}
-	free_mini(mini);
-	exit(return_value);
-	return (0);
-}
-
-int		echo_builtin(char	**splited_inputs)
-{
-	int	i;
-	int	is_flag;
-
-	i = 0;
-	is_flag = 0;
-	if (splited_inputs[1] && ft_strcmp(splited_inputs[1], "-n") == 0)
-		is_flag = 1;
-	i += is_flag;
-	while (splited_inputs[++i])
-	{
-		ft_putstr_fd(splited_inputs[i], 1);
-		if (splited_inputs[i + 1])
-			write(1, " ", 1);
-	}
-	if (!is_flag)
-		write(1, "\n", 1);
-	return (0);
 }
 
 int		env_builtin(t_list *env)

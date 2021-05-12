@@ -91,8 +91,12 @@ char	*get_shlvl(char *shlvl);
 void			ft_free_splited(char **splited_inputs);
 void			free_inputs(t_mini *mini);
 void			free_cmds(t_mini *mini);
-
+void	free_mini(t_mini *mini);
 //BUILTINS
+//EXIT
+long long int	ft_atolli(const char *str);
+int				is_only_digit(char *s);
+int				is_bad_num_value(char *s, long long int nb);
 int				exit_minishell(char	**splited_inputs, t_mini *mini);
 int				echo_builtin(char	**splited_inputs);
 int				env_builtin(t_list *env);
