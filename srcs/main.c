@@ -71,7 +71,6 @@ int				ft_get_fd_token(const char *s)
 int		ft_cmd_size(const char *s, char c)
 {
 	int		len;
-	char	quote;
 
 	len = 0;
 	while (s[len])
@@ -79,16 +78,7 @@ int		ft_cmd_size(const char *s, char c)
 		if (s[len] == c)
 			return (len);
 		else if (s[len] == '\"' || s[len] == '\'')
-		{
-			quote = s[len];
-			while (s[++len])
-			{
-				if (s[len] == '\\')
-					len += 1;
-				else if (s[len] == quote)
-					break ;
-			}
-		}
+			jump_quotes_in_parsing((char *)s, s[len], &len);
 		else if (s[len] == '\\')
 			len += 1;
 		if (!s[len])
@@ -181,10 +171,7 @@ int		get_instructions(t_mini *mini, char *s)
 		if (s[len] == '|')
 			mini->is_pipe = 1;
 		if (!(instruction = ft_strndup(s, len)))
-		{
-			print_errors("malloc", strerror(errno), NULL, 1);
-			return (1);
-		}
+			return (print_errors("malloc", strerror(errno), NULL, 1));
 		cmd = ft_lst_input(mini, current, instruction);
 		current->cmds = cmd;
 		ft_instruct_add_back(&mini->instructions, current);
