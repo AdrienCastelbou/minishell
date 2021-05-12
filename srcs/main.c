@@ -195,12 +195,38 @@ void		free_current_cmd(t_mini *mini, char *cmd_input)
 	set_mini(mini);
 }
 
-t_list		*ft_lst_cmds(t_mini *mini, char *s)
+void	parse_and_run(t_mini *mini, char *s, int cmd_nb)
 {
 	char	*cmd_input;
-	int		cmd_nb;
 	int		i;
 	int		len;
+
+	i = -1;
+	while (++i < cmd_nb)
+	{
+		len = ft_cmd_size(s, ';');
+		cmd_input = ft_strndup(s, len);
+		mini->last_return = get_instructions(mini, cmd_input);
+		if (mini->last_return)
+		{
+			free_current_cmd(mini, cmd_input);
+			return ;
+		}
+		if (mini->is_pipe)
+			make_pipe(mini, mini->instructions);
+		else if (mini->instructions)
+		{
+			mini->cmd = get_cmd_tab(mini->instructions->cmds);
+			run_cmd(mini, mini->cmd, mini->instructions);
+		}
+		free_current_cmd(mini, cmd_input);
+		s += len + 1;
+	}
+}
+
+t_list		*ft_lst_cmds(t_mini *mini, char *s)
+{
+	int		cmd_nb;
 
 	if (!s)
 		return (NULL);
@@ -214,33 +240,7 @@ t_list		*ft_lst_cmds(t_mini *mini, char *s)
 		free_current_cmd(mini, NULL);
 		return (NULL);
 	}
-	i = 0;
-	while (i < cmd_nb)
-	{
-		len = ft_cmd_size(s, ';');
-		cmd_input = ft_strndup(s, len);
-		mini->last_return = get_instructions(mini, cmd_input);
-		free(cmd_input);
-		cmd_input = NULL;
-		if (mini->last_return)
-		{
-			free_current_cmd(mini, cmd_input);
-			return (NULL);
-		}
-		if (mini->is_pipe)
-			make_pipe(mini, mini->instructions);
-		else
-		{
-			if (mini->instructions)
-			{
-				mini->cmd = get_cmd_tab(mini->instructions->cmds);
-				run_cmd(mini, mini->cmd, mini->instructions);
-			}
-		}
-		free_current_cmd(mini, cmd_input);
-		s += len + 1;
-		i++;
-	}
+	parse_and_run(mini, s, cmd_nb);
 	return (mini->cmds);
 }
 
