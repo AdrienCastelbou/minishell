@@ -15,11 +15,12 @@ char	*ft_strndup(char *src, int size)
 	str[i] = '\0';
 	return (str);
 }
+
 int		ft_strcmp(char *s1, char *s2)
 {
 	while (*s1 && *s2)
 	{
-		if (*s1 !=  *s2)
+		if (*s1 != *s2)
 			return (*s1 - *s2);
 		s1++;
 		s2++;
@@ -27,7 +28,7 @@ int		ft_strcmp(char *s1, char *s2)
 	return (*s1 - *s2);
 }
 
-int		run_builtins(char	**splited_inputs, t_mini *mini)
+int		run_builtins(char **splited_inputs, t_mini *mini)
 {
 	if (!splited_inputs || !(*splited_inputs))
 		return (0);
@@ -38,9 +39,9 @@ int		run_builtins(char	**splited_inputs, t_mini *mini)
 	else if (ft_strcmp(splited_inputs[0], "pwd") == 0)
 		mini->last_return = pwd_builtin();
 	else if (ft_strcmp(splited_inputs[0], "export") == 0)
-			mini->last_return = export_builtin(mini, &splited_inputs[1], mini->env);
+		mini->last_return = export_builtin(mini, &splited_inputs[1], mini->env);
 	else if (ft_strcmp(splited_inputs[0], "unset") == 0)
-			mini->last_return = unset_builtin(mini, &splited_inputs[1], mini->env);
+		mini->last_return = unset_builtin(mini, &splited_inputs[1], mini->env);
 	else if (ft_strcmp(splited_inputs[0], "exit") == 0)
 		mini->last_return = exit_minishell(splited_inputs, mini);
 	else if (ft_strcmp(splited_inputs[0], "env") == 0)
@@ -151,7 +152,7 @@ char		**get_cmd_tab(t_list *cmd)
 		if (elem->content)
 		{
 			if (!(cmd_tab[i] = ft_strdup((char *)elem->content)))
-				break;
+				break ;
 		}
 		else
 			--i;
@@ -174,7 +175,7 @@ int		get_instructions(t_mini *mini, char *s)
 	while (*s)
 	{
 		if (*s == '|')
-			s+= 1;
+			s += 1;
 		current = ft_instructnew(NULL);
 		len = ft_cmd_size(s, '|');
 		if (s[len] == '|')
@@ -188,7 +189,8 @@ int		get_instructions(t_mini *mini, char *s)
 		current->cmds = cmd;
 		ft_instruct_add_back(&mini->instructions, current);
 		free(instruction);
-		if (mini->is_pipe && current->is_empty && (!cmd || !*((char *)cmd->content)))
+		if (mini->is_pipe && current->is_empty &&
+				(!cmd || !*((char *)cmd->content)))
 			return (parsing_error('|'));
 		s += len;
 	}
@@ -255,7 +257,8 @@ t_list		*ft_lst_cmds(t_mini *mini, char *s)
 	return (mini->cmds);
 }
 
-void redirect(int oldfd, int newfd) {
+void	redirect(int oldfd, int newfd)
+{
 	if (oldfd != newfd)
 		if (dup2(oldfd, newfd) != -1)
 			close(oldfd);
@@ -306,7 +309,7 @@ char	**transform_env_lst_in_tab(t_list *env)
 		{
 			envp[i] = ft_strdup((char *)env->content);
 			if (!envp[i])
-				break;
+				break ;
 			i++;
 		}
 		env = env->next;
@@ -336,6 +339,20 @@ void	free_cmds(t_mini *mini)
 	set_mini(mini);
 }
 
+int		interrupt_prompt(t_mini *mini)
+{
+	mini->last_return = 1;
+	if (dup2(mini->stdin_copy, STDIN_FILENO) == -1)
+	{
+		print_errors("dup", strerror(errno), NULL, 1);
+		exit_minishell(NULL, mini);
+	}
+	reset_input_mode();
+	ft_bzero(mini->input, ft_strlen(mini->input));
+	ft_bzero(mini->history->input, ft_strlen(mini->history->input));
+	return (1);
+}
+
 int		ft_get_input(t_mini *mini)
 {
 	sig_catcher.should_run = 1;
@@ -351,24 +368,24 @@ int		ft_get_input(t_mini *mini)
 		exit_minishell(NULL, mini);
 	}
 	if (sig_catcher.should_run == 0)
-	{
-		mini->last_return = 1;
-		if (dup2(mini->stdin_copy, STDIN_FILENO) == -1)
-		{
-			print_errors("dup", strerror(errno), NULL, 1);
-			exit_minishell(NULL, mini);
-		}
-		reset_input_mode();
-		ft_bzero(mini->input, ft_strlen(mini->input));
-		ft_bzero(mini->history->input, ft_strlen(mini->history->input));
-		return(1);
-	}
+		return (interrupt_prompt(mini));
 	if (ft_strchr(mini->input, '\n'))
 		*(ft_strchr(mini->input, '\n')) = '\0';
 	ft_lst_cmds(mini, mini->input);
 	free(mini->input);
 	mini->input = NULL;
 	return (1);
+}
+
+void	error_init_mini(t_mini *mini)
+{
+	free(mini->env);
+	if (mini->stdin_copy >= 0)
+		close(mini->stdin_copy);
+	if (mini->stdout_copy >= 0)
+		close(mini->stdout_copy);
+	free(mini);
+	mini = NULL;
 }
 
 t_mini	*init_mini(t_list *env)
@@ -391,15 +408,7 @@ t_mini	*init_mini(t_list *env)
 	set_mini(mini);
 	if (mini->stdin_copy == -1 || mini->stdout_copy == -1
 			|| !mini->cm_cap || !mini->dc_cap || !mini->le_cap || !mini->ce_cap)
-	{
-		free(mini->env);
-		if (mini->stdin_copy >= 0)
-			close(mini->stdin_copy);
-		if (mini->stdout_copy >= 0)
-			close(mini->stdout_copy);
-		free(mini);
-		mini = NULL;
-	}
+		error_init_mini(mini);
 	return (mini);
 }
 
@@ -427,15 +436,22 @@ t_list		*set_basic_env(void)
 	return (env);
 }
 
+int		termcaps_error(t_list *env, char *term_type)
+{
+	ft_lstclear(&env, free);
+	free(term_type);
+	return (print_errors("termcaps", "bad terminal type", NULL, 1));
+}
+
 int		main(int argc, char **argv, char **envp)
 {
-	t_mini *mini;
+	t_mini	*mini;
 	int		ret;
 	char	*term_type;
 	t_list	*env;
 
-	(void) argc;
-	(void) argv;
+	(void)argc;
+	(void)argv;
 	if (!envp || !*envp)
 		env = set_basic_env();
 	else
@@ -445,11 +461,7 @@ int		main(int argc, char **argv, char **envp)
 	term_type = get_env_var("TERM", env);
 	ret = tgetent(NULL, term_type);
 	if (!term_type || ret < 1)
-	{
-		free(env);
-		free(term_type);
-		return (print_errors("termcaps", "bad terminal type", NULL, 1));
-	}
+		return (termcaps_error(env, term_type));
 	free(term_type);
 	if (!(mini = init_mini(env)))
 		return (print_errors("init minishell", strerror(errno), NULL, 1));
