@@ -105,6 +105,8 @@ int				cd_builtin(t_mini *mini, char *mov, char **inputs);
 int				run_builtins(char	**splited_inputs, t_mini *mini);
 
 //PARSING
+
+int		parsing_error(char c);
 int		ft_word_size(const char *s);
 int				ft_isenvchar(char c);
 int				jump_quotes_in_parsing(char *input, char quote, int *i);
@@ -158,7 +160,10 @@ void			ft_instrucdelone(t_instructions *instruc);
 void			ft_instruclear(t_instructions **instruc);
 
 //FDS
-
+int		create_and_close_file(char *file, char *method);
+char	*get_open_method(char *s, int *i);
+int		get_fdout_file(t_instructions *instruct, char *s, t_mini *mini);
+int		get_fdin_file(t_instructions *instruct, char *s, t_mini *mini);
 int		open_agreg_file(char *file, char *method);
 
 //RUN

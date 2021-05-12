@@ -854,6 +854,7 @@ int		detect_quotes_in_input(char *input, char quote, int *i)
 		return (quote_error_in_parsing(quote));
 	return (1);
 }
+
 int		cmd_count(char *input)
 {
 	int		i;
@@ -881,34 +882,6 @@ int		cmd_count(char *input)
 	return (count);
 }
 
-int		open_agreg_file(char *file, char *method)
-{
-	int fd;
-
-	if (strcmp(method, ">") == 0)
-		fd = open(file, O_WRONLY | O_TRUNC | O_CREAT, S_IRWXU | S_IRGRP | S_IROTH);
-	else if (strcmp(method, "<") == 0)
-		fd = open(file, O_RDONLY);
-	else
-		fd = open(file, O_WRONLY | O_APPEND | O_CREAT, S_IRWXU | S_IRGRP | S_IROTH);
-	return (fd);
-}
-int		create_and_close_file(char *file, char *method)
-{
-	int fd;
-
-	if (strcmp(method, ">") == 0)
-		fd = open(file, O_WRONLY | O_TRUNC | O_CREAT, S_IRWXU | S_IRGRP | S_IROTH);
-	else if (strcmp(method, "<") == 0)
-		fd = open(file, O_RDONLY);
-	else
-		fd = open(file, O_WRONLY | O_APPEND | O_CREAT, S_IRWXU | S_IRGRP | S_IROTH);
-	if (fd < 0)
-		return (print_errors(file, strerror(errno), NULL, 1));
-	close(fd);
-	return (0);
-}
-
 int		parsing_error(char c)
 {
 	ft_putstr_fd("\U0000274C minishell: ", STDERR_FILENO);
@@ -920,76 +893,6 @@ int		parsing_error(char c)
 	else if (c == ';')
 		ft_putstr_fd(" \';\'\n", STDERR_FILENO);
 	return (258);
-}
-
-int		get_fdout_file(t_instructions *instruct, char *s, t_mini *mini)
-{
-	char	*method;
-	char	*file;
-	int		i;
-	int		size;
-
-	i = 0;
-	if (s[i] == '>' && s[i + 1] != '>')
-	{
-		i += 1;
-		method = ">";
-	}
-	else if (s[i] == '>' && s[i + 1] == '>')
-	{
-		i += 2;
-		method = ">>";
-	}
-	while (s[i] && (s[i] == ' ' || s[i] == 9))
-		i++;
-	if (s[i] == 0)
-	{
-		free(s);
-		return (parsing_error('>'));
-	}
-	size = ft_word_size(s + i);
-	if (instruct->fdout.name)
-	{
-		free(instruct->fdout.name);
-		instruct->fdout.name = NULL;
-	}
-	file = get_real_input(ft_strndup(s + i, size), mini, mini->env);
-	instruct->fdout.name = file;
-	instruct->fdout.method = method;
-	instruct->fdout.is_file = 1;
-	create_and_close_file(file, method);
-	free(s);
-	return (0);
-}
-
-int		get_fdin_file(t_instructions *instruct, char *s, t_mini *mini)
-{
-	char	*method;
-	char	*file;
-	int		size;
-	int		i;
-
-	method = "<";
-	i = 1;
-	while (s[i] && (s[i] == ' ' || s[i] == 9))
-		i++;
-	if (s[i] == 0)
-	{
-		free(s);
-		return (parsing_error('>'));
-	}
-	size = ft_word_size(s + i);
-	if (instruct->fdin.name)
-	{
-		free(instruct->fdin.name);
-		instruct->fdin.name = NULL;
-	}
-	file = get_real_input(ft_strndup(s + i, size), mini, mini->env);
-	instruct->fdin.name = file;
-	instruct->fdin.method = method;
-	instruct->fdin.is_file = 1;
-	free(s);
-	return (create_and_close_file(file, method));
 }
 
 t_list	*ft_lst_input(t_mini *mini, t_instructions *instruc, char *s)
