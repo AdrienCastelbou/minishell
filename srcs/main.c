@@ -27,60 +27,7 @@ int		ft_strcmp(char *s1, char *s2)
 	return (*s1 - *s2);
 }
 
-void	ft_free_splited(char **splited_inputs)
-{
-	int i;
-	i = -1;
-	while (splited_inputs[++i])
-		free(splited_inputs[i]);
-	free(splited_inputs);
-}
 
-void	free_mini_cmd(t_mini *mini)
-{
-	int i;
-
-	i = -1;
-	if (mini->cmd)
-	{
-		while (mini->cmd[++i])
-		{
-			free(mini->cmd[i]);
-			mini->cmd[i] = NULL;
-		}
-		free(mini->cmd);
-		mini->cmd = NULL;
-	}
-}
-
-void	free_mini_tab(char **strs)
-{
-	int i;
-
-	i = -1;
-	if (strs)
-	{
-		while (strs[++i])
-		{
-			free(strs[i]);
-			strs[i] = NULL;
-		}
-		free(strs);
-		strs = NULL;
-	}
-}
-
-void	free_inputs(t_mini *mini)
-{
-	if (!mini)
-		return ;
-	if (mini->cmd)
-		free_mini_tab(mini->cmd);
-	mini->cmd = NULL;
-	if (mini->input)
-		free(mini->input);
-	mini->input = NULL;
-}
 
 void	free_history(t_history **elem)
 {
@@ -119,20 +66,6 @@ int		print_errors(char *cmd, char *error, char *more, int nb)
 	}
 	ft_putchar_fd('\n', STDERR_FILENO);
 	return (nb);
-}
-
-void	free_mini(t_mini *mini)
-{
-	free_history(&(mini->history));
-	free_inputs(mini);
-	ft_lstclear(&mini->env, free);
-	if (mini->envp)
-		ft_free_splited(mini->envp);
-	if (mini->instructions)
-		ft_instruclear(&mini->instructions);
-	close(mini->stdin_copy);
-	close(mini->stdout_copy);
-	free(mini);
 }
 
 char	**get_env_tab_for_sort(t_list *env)

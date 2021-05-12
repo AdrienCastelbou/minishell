@@ -89,6 +89,8 @@ void	sig_handler(int signum);
 char	*get_shlvl(char *shlvl);
 
 //FREE
+void	free_mini_cmd(t_mini *mini);
+void	free_mini_tab(char **strs);
 void			ft_free_splited(char **splited_inputs);
 void			free_inputs(t_mini *mini);
 void			free_cmds(t_mini *mini);
@@ -173,7 +175,7 @@ void	ft_history_add_front(t_history **ahist, t_history *new);
 t_history	*ft_historynew(void);
 
 //HISTORICS FCTNS
-
+void	free_history(t_history **elem);
 void	erase_current_line(t_mini *mini, t_cursor *curs);
 void	erase_current_prompt(t_mini *mini, int *top, char *buff, t_cursor *curs);
 int		add_input_in_history(t_mini *mini);
