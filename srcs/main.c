@@ -1371,6 +1371,27 @@ void	run_piped_parent(t_mini *mini, t_instructions *instruc, t_files_portal	fds,
 	dup2(mini->stdout_copy, STDOUT_FILENO);
 }
 
+void	define_pipe_in_out(t_files_portal *fds, t_instructions *instruc)
+{
+	if (instruc->fdin.name)
+	{
+		if (fds->fdin != STDIN_FILENO)
+			close(fds->fdin);
+		fds->fdin = open_agreg_file(instruc->fdin.name, instruc->fdin.method);
+	}
+	if (instruc->fdout.name)
+	{
+		fds->fdout = open_agreg_file(instruc->fdout.name, instruc->fdout.method);
+		dup2(fds->fdout, fds->pfd[1]);
+		close(fds->fdout);
+	}
+	else if (!instruc->next)
+	{
+		close(fds->pfd[1]);
+		fds->pfd[1] = STDOUT_FILENO;
+	}
+}
+
 void	pipe_loop(t_mini *mini, t_instructions *instruc, int fdin)
 {
 	t_files_portal	fds;
@@ -1381,23 +1402,7 @@ void	pipe_loop(t_mini *mini, t_instructions *instruc, int fdin)
 		return ;
 	if (pipe(fds.pfd) == -1)
 		return ;
-	if (instruc->fdin.name)
-	{
-		if (fds.fdin != STDIN_FILENO)
-			close(fds.fdin);
-		fds.fdin = open_agreg_file(instruc->fdin.name, instruc->fdin.method);
-	}
-	if (instruc->fdout.name)
-	{
-		fds.fdout = open_agreg_file(instruc->fdout.name, instruc->fdout.method);
-		dup2(fds.fdout, fds.pfd[1]);
-		close(fds.fdout);
-	}
-	else if (!instruc->next)
-	{
-		close(fds.pfd[1]);
-		fds.pfd[1] = STDOUT_FILENO;
-	}
+	define_pipe_in_out(&fds, instruc);
 	if ((pid = fork()) < 0)
 		return ;
 	sig_catcher.pid = pid;
@@ -1624,6 +1629,15 @@ int		ft_putchar(int c)
 	return (1);
 }
 
+void	erase_current_line(t_mini *mini, t_cursor *cursor)
+{
+	tputs(tgoto(mini->cm_cap, 0, cursor->cur_line - 1), 1, ft_putchar);
+	tputs(mini->ce_cap, 1, ft_putchar);
+	cursor->cur_col = mini->ws.ws_col - 1;
+	cursor->cur_line -= 1;
+	tputs(tgoto(mini->cm_cap, cursor->cur_col, cursor->cur_line - 1), 1, ft_putchar);
+}
+
 void	erase_current_prompt(t_mini *mini, int *top, char *buff, t_cursor *cursor)
 {
 	int		len;
@@ -1642,13 +1656,7 @@ void	erase_current_prompt(t_mini *mini, int *top, char *buff, t_cursor *cursor)
 		if (cursor->cur_col > 0)
 			cursor->cur_col -= 1;
 		else
-		{
-			tputs(tgoto(mini->cm_cap, 0, cursor->cur_line - 1), 1, ft_putchar);
-			tputs(mini->ce_cap, 1, ft_putchar);
-			cursor->cur_col = mini->ws.ws_col - 1;
-			cursor->cur_line -= 1;
-			tputs(tgoto(mini->cm_cap, cursor->cur_col, cursor->cur_line - 1), 1, ft_putchar);
-		}
+			erase_current_line(mini, cursor);
 	}
 	tputs(tgoto(mini->cm_cap, cursor->cur_col - isnt_endline, cursor->cur_line - 1), 1, ft_putchar);
 	tputs(mini->ce_cap, 1, ft_putchar);
