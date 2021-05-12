@@ -128,7 +128,7 @@ int				cd_builtin(t_mini *mini, char *mov, char **inputs);
 int				run_builtins(char	**splited_inputs, t_mini *mini);
 
 //PARSING
-
+int				ft_isenvchar(char c);
 int		parsing_error(char c);
 int		ft_word_size(const char *s);
 int				ft_isenvchar(char c);
