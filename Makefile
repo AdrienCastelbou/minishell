@@ -1,5 +1,6 @@
 NAME=	minishell
-SRCS=	main.c historic.c prompt.c prompt_utils.c set_term.c
+SRCS=	main.c historic.c prompt.c prompt_utils.c set_term.c instructions.c \
+		pipe.c
 OBJS=	$(addprefix srcs/, $(SRCS:.c=.o))
 CC=		gcc
 CFLAGS=	-Wextra -Wall -Werror

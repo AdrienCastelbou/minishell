@@ -1079,41 +1079,6 @@ void	ft_history_add_front(t_history **ahist, t_history *new)
 	*ahist = new;
 }
 
-void	ft_instruct_add_back(t_instructions **alst, t_instructions *new)
-{
-	t_instructions *elem;
-
-	if (!alst)
-		return ;
-	if (!*alst)
-	{
-		*alst = new;
-		return ;
-	}
-	elem = *alst;
-	while (elem->next)
-		elem = elem->next;
-	elem->next = new;
-}
-
-t_instructions	*ft_instructnew(t_list *content)
-{
-	t_instructions	*elem;
-
-	if (!(elem = (t_instructions*)malloc(sizeof(t_instructions))))
-		return (NULL);
-	elem->cmds = content;
-	elem->fdin.fd = 0;
-	elem->fdin.name = NULL;
-	elem->fdin.is_file = 0;
-	elem->is_empty = 1;
-	elem->fdout.fd = 1;
-	elem->fdout.is_file = 0;
-	elem->fdout.name = NULL;
-	elem->next = NULL;
-	return (elem);
-}
-
 int		get_instructions(t_mini *mini, char *s)
 {
 	char			*instruction;
@@ -1333,93 +1298,6 @@ int		run(t_mini *mini, int fdin, int fdout)
 	return (1);
 }
 
-void	pipe_loop(t_mini *mini, t_instructions *instruc, int fdin);
-
-void	run_piped_child(t_mini *mini,  t_instructions *instruc, int fdin, int *pfd)
-{
-	close(pfd[0]);
-	mini->cmd = get_cmd_tab(instruc->cmds);
-	run(mini, fdin, pfd[1]);
-	exit(127);
-}
-
-void	run_piped_parent(t_mini *mini, t_instructions *instruc, t_files_portal	fds, int pid)
-{
-	int	status;
-
-	close(fds.pfd[1]);
-	close(fds.fdin);
-	fds.fdin = fds.pfd[0];
-	if (instruc)
-		pipe_loop(mini, instruc->next, fds.fdin);
-	if (0 < waitpid(pid, &status, 0) && WIFEXITED(status))
-	{
-		if (!instruc->next)
-		{
-			mini->last_return = WEXITSTATUS(status);
-			if ((mini->last_return == 2 || mini->last_return == 3) && sig_catcher.should_run == 0)
-				mini->last_return += 128;
-		}
-	}
-	close(fds.pfd[0]);
-	sig_catcher.should_run = 1;
-	close(STDIN_FILENO);
-	close(STDOUT_FILENO);
-	dup2(mini->stdin_copy, STDIN_FILENO);
-	dup2(mini->stdout_copy, STDOUT_FILENO);
-}
-
-void	define_pipe_in_out(t_files_portal *fds, t_instructions *instruc)
-{
-	if (instruc->fdin.name)
-	{
-		if (fds->fdin != STDIN_FILENO)
-			close(fds->fdin);
-		fds->fdin = open_agreg_file(instruc->fdin.name, instruc->fdin.method);
-	}
-	if (instruc->fdout.name)
-	{
-		fds->fdout = open_agreg_file(instruc->fdout.name, instruc->fdout.method);
-		dup2(fds->fdout, fds->pfd[1]);
-		close(fds->fdout);
-	}
-	else if (!instruc->next)
-	{
-		close(fds->pfd[1]);
-		fds->pfd[1] = STDOUT_FILENO;
-	}
-}
-
-void	pipe_loop(t_mini *mini, t_instructions *instruc, int fdin)
-{
-	t_files_portal	fds;
-	int	pid;
-
-	fds.fdin = fdin;
-	if (!instruc)
-		return ;
-	if (pipe(fds.pfd) == -1)
-		return ;
-	define_pipe_in_out(&fds, instruc);
-	if ((pid = fork()) < 0)
-		return ;
-	sig_catcher.pid = pid;
-	if (pid == 0)
-		run_piped_child(mini, instruc, fds.fdin, fds.pfd);
-	else
-		run_piped_parent(mini, instruc, fds, pid);
-}
-
-void	make_pipe(t_mini *mini, t_instructions *instruc)
-{
-	mini->envp = transform_env_lst_in_tab(mini->env);
-	mini->path_list = get_env_var("PATH", mini->env);
-	pipe_loop(mini, instruc, STDIN_FILENO);
-	if (mini->path_list)
-		free(mini->path_list);
-	mini->path_list = NULL;
-}
-
 void	run_cmd(t_mini *mini, char **cmd, t_instructions *instruc)
 {
 	int	fdin;
@@ -1479,49 +1357,6 @@ void	set_mini(t_mini *mini)
 	mini->cmds = NULL;
 	mini->bin = NULL;
 	mini->is_pipe = 0;
-}
-
-void	ft_fddelone(t_fds *fd)
-{
-	if (!fd)
-		return ;
-	if (fd)
-		close(fd->fd);
-	free(fd);
-}
-
-void	ft_fdclear(t_fds **fds)
-{
-	if (!fds || !*fds)
-		return ;
-	if ((*fds)->next != NULL)
-		ft_fdclear(&((*fds)->next));
-	ft_fddelone((*fds));
-	*fds = NULL;
-}
-
-void	ft_instrucdelone(t_instructions *instruc)
-{
-	if (!instruc)
-		return ;
-	ft_lstclear(&(instruc->cmds), free);
-	if (instruc->fdin.name)
-		free(instruc->fdin.name);
-	instruc->fdin.name = NULL;
-	if (instruc->fdout.name)
-		free(instruc->fdout.name);
-	instruc->fdout.name = NULL;
-	free(instruc);
-}
-
-void	ft_instruclear(t_instructions **instruc)
-{
-	if (!instruc || !*instruc)
-		return ;
-	if ((*instruc)->next != NULL)
-		ft_instruclear(&((*instruc)->next));
-	ft_instrucdelone((*instruc));
-	*instruc = NULL;
 }
 
 void	free_cmds(t_mini *mini)

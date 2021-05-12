@@ -150,6 +150,31 @@ int		add_input_in_history(t_mini *mini);
 int		up_history(t_mini *mini, int *top, char *buff, t_cursor *cursor);
 int		down_history(t_mini *mini, int *top, char *buff, t_cursor *cursor);
 
+//INSTRUCTIONS
+
+t_instructions	*ft_instructnew(t_list *content);
+void			ft_instruct_add_back(t_instructions **alst, t_instructions *new);
+void			ft_instrucdelone(t_instructions *instruc);
+void			ft_instruclear(t_instructions **instruc);
+
+//FDS
+
+int		open_agreg_file(char *file, char *method);
+
+//RUN
+
+int		run(t_mini *mini, int fdin, int fdout);
+
+//PIPE
+
+void	run_piped_child(t_mini *mini, t_instructions *instruc,
+		int fdin, int *pfd);
+void	run_piped_parent(t_mini *mini, t_instructions *instruc,
+		t_files_portal fds, int pid);
+void	define_pipe_in_out(t_files_portal *fds, t_instructions *instruc);
+void	pipe_loop(t_mini *mini, t_instructions *instruc, int fdin);
+void	make_pipe(t_mini *mini, t_instructions *instruc);
+
 //UTILS
 
 char			*ft_strjoin_path(char const *s1, char const *s2);
@@ -162,6 +187,7 @@ t_list			*copy_env(char **envp);
 t_mini			*init_mini(t_list *env);
 int				ft_strcmp(char *s1, char *s2);
 char			*ft_strndup(char *s, int len);
+char			**get_cmd_tab(t_list *cmd);
 
 
 // FREE
