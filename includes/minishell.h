@@ -128,6 +128,8 @@ int				cd_builtin(t_mini *mini, char *mov, char **inputs);
 int				run_builtins(char	**splited_inputs, t_mini *mini);
 
 //PARSING
+int				ft_get_fd_token(const char *s);
+int			quote_error_in_parsing(char c);
 int				ft_isenvchar(char c);
 int		parsing_error(char c);
 int		ft_word_size(const char *s);
@@ -142,6 +144,9 @@ char			*update_input_with_lil_quotes(char **s, char *new, int *i);
 char			*update_input_with_echap(char **s, char *new, int *i);
 char			*update_input_with_last_return(char **s, char *new, int*i, t_mini *mini);
 char			*get_real_input(char *s, t_mini *mini, t_list *env);
+int		check_cmd_end(char c, int *isnt_blank, int *count);
+int		jump_quotes_in_parsing(char *input, char quote, int *i);
+int		detect_quotes_in_input(char *input, char quote, int *i);
 int				cmd_count(char *input);
 t_list			*ft_lst_input(t_mini *mini, t_instructions *instruc, char *s);
 t_list			*ft_lst_cmds(t_mini *mini, char *s);
