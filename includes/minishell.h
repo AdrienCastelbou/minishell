@@ -82,6 +82,11 @@ typedef struct	s_sigcatch {
 
 t_sigcatch	sig_catcher;
 
+//INIT
+
+void	sig_handler(int signum);
+char	*get_shlvl(char *shlvl);
+
 //FREE
 void			ft_free_splited(char **splited_inputs);
 void			free_inputs(t_mini *mini);
