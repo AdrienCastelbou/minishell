@@ -103,6 +103,13 @@ int				echo_builtin(char	**splited_inputs);
 int				env_builtin(t_list *env);
 void			add_env_var(char *env_var, t_list *env, char *key);
 int		is_valid_env_char(char c, int i);
+
+//EXPORT
+char	**get_env_tab_for_sort(t_list *env);
+void	ft_switch_strs(char **tab_var, int i, int j);
+void	add_env_var(char *env_var, t_list *env, char *key);
+void	print_ordered_var(char *str);
+void			print_export_var(t_list *env);
 int				export_builtin(t_mini *mini, char	**splited_inputs, t_list *env);
 
 //UNSET 
