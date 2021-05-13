@@ -1,7 +1,7 @@
 NAME=	minishell
 SRCS=	main.c historic.c prompt.c prompt_utils.c set_term.c instructions.c \
 		pipe.c run_cmd.c run_cmd_utils.c fds.c echo_builtin.c exit_builtin.c \
-		cd_builtin.c unset_builtin.c export_builtin.c \
+		cd_builtin.c unset_builtin.c export_builtin.c export_utils.c \
 		env_builtin.c pwd_builtin.c get_real_input.c \
 		get_real_input_utils.c get_tokens_size.c \
 		ft_free.c ft_free_utils.c errors.c history_utils.c ft_utils.c \

@@ -6,7 +6,7 @@
 /*   By: acastelb <acastelb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/12 14:26:28 by acastelb          #+#    #+#             */
-/*   Updated: 2021/05/13 13:59:50 by acastelb         ###   ########.fr       */
+/*   Updated: 2021/05/13 14:13:08 by acastelb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,36 +47,6 @@ void	add_env_var(char *env_var, t_list *env, char *key)
 	free(key);
 }
 
-void	concat_env_var(char *env_var, t_list *env, char *key, int start)
-{
-	char	*var1;
-	char	*var2;
-	char	*concat;
-
-	var1 = get_env_var(key, env);
-	var2 = ft_strdup(env_var + start);
-	if (!var1)
-		concat = var2;
-	else if (!var2)
-		concat = var1;
-	else
-	{
-		concat = ft_strjoin(var1, var2);
-		free(var1);
-		free(var2);
-	}
-	var1 = ft_strjoin(key, "=");
-	var2 = ft_strjoin(var1, concat);
-	add_env_var(var2, env, key);
-	if (var1)
-		free(var1);
-	if (var2)
-		free(var2);
-	if (concat)
-		free(concat);
-}
-
-
 void	print_ordered_var(char *str)
 {
 	int		key_len;
@@ -99,7 +69,7 @@ void	print_ordered_var(char *str)
 	free(key);
 }
 
-void	print_export_var(t_list *env)
+int		print_export_var(t_list *env)
 {
 	char	**tab_var;
 	int		i;
@@ -119,6 +89,7 @@ void	print_export_var(t_list *env)
 		print_ordered_var(tab_var[i]);
 	i = -1;
 	free(tab_var);
+	return (0);
 }
 
 int		export_builtin(t_mini *mini, char **splited_inputs, t_list *env)
@@ -128,10 +99,7 @@ int		export_builtin(t_mini *mini, char **splited_inputs, t_list *env)
 
 	i = -1;
 	if (!*splited_inputs)
-	{
-		print_export_var(env);
-		return (0);
-	}
+		return (print_export_var(env));
 	while (splited_inputs[++i])
 	{
 		mini->last_return = 0;
@@ -139,11 +107,10 @@ int		export_builtin(t_mini *mini, char **splited_inputs, t_list *env)
 		while (splited_inputs[i][++j] &&
 				is_valid_env_char(splited_inputs[i][j], j))
 			;
-		if (j > 0 && (splited_inputs[i][j] == '=' ||
-					(!splited_inputs[i][j])))
+		if (is_valid_export_decla(splited_inputs, i, j))
 			add_env_var(splited_inputs[i], env,
 					ft_strndup(splited_inputs[i], j));
-		else if (j > 0 && splited_inputs[i][j] == '+' && splited_inputs[i][j + 1] == '=')
+		else if (is_valid_concat_decla(splited_inputs, i, j))
 			concat_env_var(splited_inputs[i], env,
 					ft_strndup(splited_inputs[i], j), j + 2);
 		else
