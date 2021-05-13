@@ -6,11 +6,18 @@
 /*   By: acastelb <acastelb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/13 10:20:46 by acastelb          #+#    #+#             */
-/*   Updated: 2021/05/13 10:22:52 by acastelb         ###   ########.fr       */
+/*   Updated: 2021/05/13 18:13:28 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
+
+void	quit_parsing(t_mini *mini, char *cmd_input)
+{
+	if (mini->is_fd_err)
+		mini->last_return = 2;
+	free_current_cmd(mini, cmd_input);
+}
 
 int		ft_get_fd_token(const char *s)
 {

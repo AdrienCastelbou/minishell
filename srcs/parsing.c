@@ -6,7 +6,7 @@
 /*   By: acastelb <acastelb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/13 10:08:08 by acastelb          #+#    #+#             */
-/*   Updated: 2021/05/13 17:52:45 by user42           ###   ########.fr       */
+/*   Updated: 2021/05/13 18:13:58 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,7 +94,7 @@ void	parse_and_run(t_mini *mini, char *s, int cmd_nb)
 		mini->last_return = get_instructions(mini, cmd_input, 0, NULL);
 		if (mini->last_return || mini->is_fd_err)
 		{
-			free_current_cmd(mini, cmd_input);
+			quit_parsing(mini, cmd_input);
 			return ;
 		}
 		if (mini->is_pipe)
