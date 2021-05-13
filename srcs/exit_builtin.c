@@ -6,7 +6,7 @@
 /*   By: acastelb <acastelb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/12 13:56:27 by acastelb          #+#    #+#             */
-/*   Updated: 2021/05/12 14:00:46 by acastelb         ###   ########.fr       */
+/*   Updated: 2021/05/13 11:08:58 by acastelb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,13 +63,14 @@ int				exit_minishell(char **splited_inputs, t_mini *mini)
 {
 	long long int	return_value;
 
-	ft_putstr_fd("exit\n", STDERR_FILENO);
+	if (!mini->is_pipe)
+		ft_putstr_fd("exit\n", STDERR_FILENO);
 	return_value = mini->last_return;
 	if (splited_inputs)
 	{
 		if (splited_inputs[1] && !is_only_digit(splited_inputs[1]))
 			return_value = print_errors("exit",
-					splited_inputs[1], "numeric argument required", 255);
+					splited_inputs[1], "numeric argument required", 2);
 		else if (splited_inputs[1] && splited_inputs[2])
 			return (print_errors("exit", "too many arguments", NULL, 1));
 		else if (splited_inputs[1])
@@ -78,7 +79,8 @@ int				exit_minishell(char **splited_inputs, t_mini *mini)
 			return_value = print_errors("exit",
 					splited_inputs[1], "numeric argument required", 255);
 	}
-	free_mini(mini);
+	if (!mini->is_pipe)
+		free_mini(mini);
 	exit(return_value);
 	return (0);
 }
