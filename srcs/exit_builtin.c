@@ -6,7 +6,7 @@
 /*   By: acastelb <acastelb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/12 13:56:27 by acastelb          #+#    #+#             */
-/*   Updated: 2021/05/13 16:53:52 by user42           ###   ########.fr       */
+/*   Updated: 2021/05/13 17:04:54 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,12 +57,12 @@ int					exit_minishell(char **splited_inputs, t_mini *mini)
 	if (!mini->is_pipe)
 		ft_putstr_fd("exit\n", STDERR_FILENO);
 	return_value = mini->last_return;
-	if (splited_inputs)
+	if (splited_inputs[1])
 	{
-		if (splited_inputs[1] && !is_only_digit(splited_inputs[1]))
+		if (!is_only_digit(splited_inputs[1]))
 			return_value = print_errors("exit",
 					splited_inputs[1], "numeric argument required", 2);
-		else if (splited_inputs[1] && splited_inputs[2])
+		else if (splited_inputs[2])
 			return (print_errors("exit", "too many arguments", NULL, 1));
 		else if (ft_atolli(splited_inputs[1]) > EXIT_LIM &&
 				ft_strcmp(splited_inputs[1], "-9223372036854775808") != 0)

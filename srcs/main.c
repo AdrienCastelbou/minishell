@@ -6,7 +6,7 @@
 /*   By: acastelb <acastelb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/13 10:36:18 by acastelb          #+#    #+#             */
-/*   Updated: 2021/05/13 10:36:33 by acastelb         ###   ########.fr       */
+/*   Updated: 2021/05/13 17:02:44 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,8 +21,10 @@ int		interrupt_prompt(t_mini *mini)
 		exit_minishell(NULL, mini);
 	}
 	reset_input_mode();
-	ft_bzero(mini->input, ft_strlen(mini->input));
-	ft_bzero(mini->history->input, ft_strlen(mini->history->input));
+	if (mini->input && *(mini->input))
+		ft_bzero(mini->input, ft_strlen(mini->input));
+	if (mini->history->input && *(mini->history->input))
+		ft_bzero(mini->history->input, ft_strlen(mini->history->input));
 	return (1);
 }
 
@@ -35,13 +37,15 @@ int		ft_get_input(t_mini *mini)
 	else
 		ft_putstr_fd("\U0001F494 ", STDOUT_FILENO);
 	ft_putstr_fd("\033[0;34mminishell> \033[0m", STDOUT_FILENO);
-	if (!(read_prompt(mini)))
+	if (sig_catcher.should_run == 0)
+		return (interrupt_prompt(mini));
+	if ((read_prompt(mini)) == 0)
 	{
+		if (sig_catcher.should_run == 0)
+			return (interrupt_prompt(mini));
 		print_errors("prompt", strerror(errno), NULL, 1);
 		exit_minishell(NULL, mini);
 	}
-	if (sig_catcher.should_run == 0)
-		return (interrupt_prompt(mini));
 	if (ft_strchr(mini->input, '\n'))
 		*(ft_strchr(mini->input, '\n')) = '\0';
 	ft_lst_cmds(mini, mini->input);
