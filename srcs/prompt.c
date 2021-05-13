@@ -6,7 +6,7 @@
 /*   By: acastelb <acastelb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/12 11:13:15 by acastelb          #+#    #+#             */
-/*   Updated: 2021/05/12 11:22:27 by acastelb         ###   ########.fr       */
+/*   Updated: 2021/05/13 17:17:18 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,6 +91,7 @@ int		read_prompt(t_mini *mini)
 		return (0);
 	}
 	mini->current_hist = mini->history;
+	ret = 0;
 	top = 0;
 	ft_bzero(buff, 128);
 	ft_bzero(buffchar, 3);

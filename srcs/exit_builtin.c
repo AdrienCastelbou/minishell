@@ -6,7 +6,7 @@
 /*   By: acastelb <acastelb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/12 13:56:27 by acastelb          #+#    #+#             */
-/*   Updated: 2021/05/13 17:04:54 by user42           ###   ########.fr       */
+/*   Updated: 2021/05/13 17:14:00 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,7 +57,7 @@ int					exit_minishell(char **splited_inputs, t_mini *mini)
 	if (!mini->is_pipe)
 		ft_putstr_fd("exit\n", STDERR_FILENO);
 	return_value = mini->last_return;
-	if (splited_inputs[1])
+	if (splited_inputs && splited_inputs[1])
 	{
 		if (!is_only_digit(splited_inputs[1]))
 			return_value = print_errors("exit",
