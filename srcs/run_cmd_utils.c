@@ -6,7 +6,7 @@
 /*   By: acastelb <acastelb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/13 10:28:56 by acastelb          #+#    #+#             */
-/*   Updated: 2021/05/13 11:28:39 by acastelb         ###   ########.fr       */
+/*   Updated: 2021/05/13 10:34:36 by acastelb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ int		run_builtins(char **splited_inputs, t_mini *mini)
 	else if (ft_strcmp(splited_inputs[0], "cd") == 0)
 		mini->last_return = cd_builtin(mini, splited_inputs[1], splited_inputs);
 	else if (ft_strcmp(splited_inputs[0], "pwd") == 0)
-		mini->last_return = pwd_builtin(mini);
+		mini->last_return = pwd_builtin();
 	else if (ft_strcmp(splited_inputs[0], "export") == 0)
 		mini->last_return = export_builtin(mini, &splited_inputs[1], mini->env);
 	else if (ft_strcmp(splited_inputs[0], "unset") == 0)

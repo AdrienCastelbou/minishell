@@ -6,7 +6,7 @@
 /*   By: acastelb <acastelb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/12 14:05:54 by acastelb          #+#    #+#             */
-/*   Updated: 2021/05/12 14:09:41 by acastelb         ###   ########.fr       */
+/*   Updated: 2021/05/13 12:06:02 by acastelb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,8 +74,6 @@ int		cd_builtin(t_mini *mini, char *mov, char **inputs)
 {
 	int		mov_usr;
 
-	if (cwd_exist() == 0)
-		return (print_errors("error", GETCWD_ERR, NULL, 0));
 	if (mov && inputs[2])
 		return (print_errors("cd", "to many arguments", NULL, 1));
 	mov_usr = 0;
@@ -94,5 +92,7 @@ int		cd_builtin(t_mini *mini, char *mov, char **inputs)
 			print_errors("cd", mov, strerror(errno), 1);
 	if (mov_usr)
 		free(mov);
+	if (cwd_exist() == 0)
+		return (print_errors("error", GETCWD_ERR, NULL, 0));
 	return (mini->last_return);
 }
