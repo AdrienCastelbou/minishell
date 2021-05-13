@@ -6,7 +6,7 @@
 /*   By: acastelb <acastelb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/13 10:34:56 by acastelb          #+#    #+#             */
-/*   Updated: 2021/05/13 10:36:00 by acastelb         ###   ########.fr       */
+/*   Updated: 2021/05/13 17:53:26 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@ void	set_mini(t_mini *mini)
 	mini->cmds = NULL;
 	mini->bin = NULL;
 	mini->is_pipe = 0;
+	mini->is_fd_err = 0;
 }
 
 t_mini	*init_mini(t_list *env)

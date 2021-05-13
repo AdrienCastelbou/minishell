@@ -66,6 +66,7 @@ typedef struct	s_mini {
 		t_history		*current_hist;
 		t_list			*cmds;
 		t_list			*env;
+		int				is_fd_err;
 		int				stdin_copy;
 		int				stdout_copy;
 		int				is_pipe;

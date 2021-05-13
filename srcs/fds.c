@@ -6,7 +6,7 @@
 /*   By: acastelb <acastelb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/12 13:35:53 by acastelb          #+#    #+#             */
-/*   Updated: 2021/05/12 13:48:46 by acastelb         ###   ########.fr       */
+/*   Updated: 2021/05/13 17:49:01 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,6 +75,7 @@ int		get_fdout_file(t_instructions *instruct, char *s, t_mini *mini)
 	method = get_open_method(s, &i);
 	if (s[i] == 0)
 	{
+		mini->is_fd_err = 1;
 		free(s);
 		return (parsing_error('>'));
 	}
@@ -105,6 +106,7 @@ int		get_fdin_file(t_instructions *instruct, char *s, t_mini *mini)
 		i++;
 	if (s[i] == 0)
 	{
+		mini->is_fd_err = 1;
 		free(s);
 		return (parsing_error('>'));
 	}
