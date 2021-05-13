@@ -6,7 +6,7 @@
 /*   By: acastelb <acastelb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/12 15:31:52 by acastelb          #+#    #+#             */
-/*   Updated: 2021/05/12 15:33:18 by acastelb         ###   ########.fr       */
+/*   Updated: 2021/05/13 10:25:40 by acastelb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,12 +35,30 @@ int		print_errors(char *cmd, char *error, char *more, int nb)
 	return (nb);
 }
 
+int		termcaps_error(t_list *env, char *term_type)
+{
+	ft_lstclear(&env, free);
+	free(term_type);
+	return (print_errors("termcaps", "bad terminal type", NULL, 1));
+}
+
 int		quote_error_in_parsing(char c)
 {
 	ft_putstr_fd("\U0000274C minishell: quote ", STDERR_FILENO);
 	ft_putchar_fd(c, STDERR_FILENO);
 	ft_putstr_fd(" is not closed\n", STDERR_FILENO);
 	return (-1);
+}
+
+void	error_init_mini(t_mini *mini)
+{
+	free(mini->env);
+	if (mini->stdin_copy >= 0)
+		close(mini->stdin_copy);
+	if (mini->stdout_copy >= 0)
+		close(mini->stdout_copy);
+	free(mini);
+	mini = NULL;
 }
 
 int		parsing_error(char c)

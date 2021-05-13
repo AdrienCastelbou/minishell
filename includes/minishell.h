@@ -85,9 +85,11 @@ t_sigcatch	sig_catcher;
 
 //INIT
 
+int		termcaps_error(t_list *env, char *term_type);
+void	error_init_mini(t_mini *mini);
 void	sig_handler(int signum);
 char	*get_shlvl(char *shlvl);
-
+t_list	*set_basic_env(void);
 //FREE
 void		free_current_cmd(t_mini *mini, char *cmd_input);
 void	free_mini_cmd(t_mini *mini);
