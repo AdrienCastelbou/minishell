@@ -89,6 +89,7 @@ void	sig_handler(int signum);
 char	*get_shlvl(char *shlvl);
 
 //FREE
+void		free_current_cmd(t_mini *mini, char *cmd_input);
 void	free_mini_cmd(t_mini *mini);
 void	free_mini_tab(char **strs);
 void			ft_free_splited(char **splited_inputs);
@@ -130,6 +131,8 @@ int				cd_builtin(t_mini *mini, char *mov, char **inputs);
 int				run_builtins(char	**splited_inputs, t_mini *mini);
 
 //PARSING
+int		parse_fd(t_mini *mini, t_instructions *instruc, char *s, int len);
+int		ft_cmd_size(const char *s, char c);
 int				ft_get_fd_token(const char *s);
 int			quote_error_in_parsing(char c);
 int				ft_isenvchar(char c);
