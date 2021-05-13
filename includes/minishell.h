@@ -121,7 +121,7 @@ int				export_builtin(t_mini *mini, char	**splited_inputs, t_list *env);
 void	delete_env_var_elem(t_list **env, t_list **current, t_list **previous);
 void			delete_env_var(char *key, t_list **env);
 int				unset_builtin(t_mini *mini, char	**splited_inputs, t_list *env);
-int				pwd_builtin(t_mini *mini);
+int				pwd_builtin(void);
 
 //CD
 

@@ -6,7 +6,7 @@
 /*   By: acastelb <acastelb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/12 14:37:38 by acastelb          #+#    #+#             */
-/*   Updated: 2021/05/12 14:37:56 by acastelb         ###   ########.fr       */
+/*   Updated: 2021/05/13 12:25:58 by acastelb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,9 @@ int		pwd_builtin(void)
 		ft_putchar_fd('\n', STDOUT_FILENO);
 	}
 	else
+	{
+		print_errors("pwd", GETCWD_ERR, NULL, 0);
 		status = 1;
+	}
 	return (status);
 }
