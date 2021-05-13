@@ -6,7 +6,7 @@
 /*   By: acastelb <acastelb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/12 13:35:53 by acastelb          #+#    #+#             */
-/*   Updated: 2021/05/13 18:14:54 by user42           ###   ########.fr       */
+/*   Updated: 2021/05/13 19:09:44 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,8 +75,8 @@ int		get_fdout_file(t_instructions *instruct, char *s, t_mini *mini)
 	method = get_open_method(s, &i);
 	if (s[i] == 0 || s[i] == '<' || s[i] == '>')
 	{
-		err_in_fd_detec(mini, s);
-		return (parsing_error('>'));
+		parsing_error(s[i]);
+		return (err_in_fd_detec(mini, s));
 	}
 	size = ft_word_size(s + i);
 	if (instruct->fdout.name)
@@ -105,8 +105,8 @@ int		get_fdin_file(t_instructions *instruct, char *s, t_mini *mini)
 		i++;
 	if (s[i] == 0 || s[i] == '<' || s[i] == '>')
 	{
-		err_in_fd_detec(mini, s);
-		return (parsing_error('>'));
+		parsing_error(s[i]);
+		return (err_in_fd_detec(mini, s));
 	}
 	if (instruct->fdin.name)
 	{

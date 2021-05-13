@@ -6,15 +6,16 @@
 /*   By: user42 <user42@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/13 18:15:40 by user42            #+#    #+#             */
-/*   Updated: 2021/05/13 18:15:57 by user42           ###   ########.fr       */
+/*   Updated: 2021/05/13 19:08:29 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-void	err_in_fd_detec(t_mini *mini, char *s)
+int		err_in_fd_detec(t_mini *mini, char *s)
 {
 	mini->is_fd_err = 1;
 	free(s);
 	s = NULL;
+	return (2);
 }

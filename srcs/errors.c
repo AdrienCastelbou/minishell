@@ -6,7 +6,7 @@
 /*   By: acastelb <acastelb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/12 15:31:52 by acastelb          #+#    #+#             */
-/*   Updated: 2021/05/13 10:25:40 by acastelb         ###   ########.fr       */
+/*   Updated: 2021/05/13 19:05:24 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,9 +67,13 @@ int		parsing_error(char c)
 	ft_putstr_fd("syntax error near unexpected token", STDERR_FILENO);
 	if (c == '|')
 		ft_putstr_fd(" \'|\'\n", STDERR_FILENO);
-	else if (c == '>')
+	else if (c == 0)
 		ft_putstr_fd(" \'newline\'\n", STDERR_FILENO);
 	else if (c == ';')
 		ft_putstr_fd(" \';\'\n", STDERR_FILENO);
+	else if (c == '>')
+		ft_putstr_fd(" \'>\'\n", STDERR_FILENO);
+	else if (c == '<')
+		ft_putstr_fd(" \'<\'\n", STDERR_FILENO);
 	return (258);
 }
