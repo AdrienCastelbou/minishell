@@ -6,7 +6,7 @@
 /*   By: acastelb <acastelb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/12 11:49:50 by acastelb          #+#    #+#             */
-/*   Updated: 2021/05/12 12:01:15 by acastelb         ###   ########.fr       */
+/*   Updated: 2021/05/13 18:51:34 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,14 +16,14 @@ void	sig_handler(int signum)
 {
 	if (signum == SIGINT)
 	{
-		sig_catcher.should_run = 0;
+		g_sig_catcher.should_run = 0;
 		close(STDIN_FILENO);
 	}
-	else if (signum == SIGQUIT && sig_catcher.pid > -1)
+	else if (signum == SIGQUIT && g_sig_catcher.pid > -1)
 	{
-		sig_catcher.should_run = 0;
+		g_sig_catcher.should_run = 0;
 		ft_putstr_fd("Quit\n", STDERR_FILENO);
-		kill(sig_catcher.pid, SIGQUIT);
+		kill(g_sig_catcher.pid, SIGQUIT);
 	}
 }
 
@@ -75,7 +75,7 @@ int		set_mode(void)
 	struct termios	t;
 	int				r;
 
-	tcgetattr(STDIN_FILENO, &sig_catcher.saved_attributes);
+	tcgetattr(STDIN_FILENO, &g_sig_catcher.saved_attributes);
 	r = tcgetattr(STDIN_FILENO, &t);
 	if (r)
 		return (0);
@@ -92,7 +92,7 @@ int		reset_input_mode(void)
 {
 	int	r;
 
-	r = tcsetattr(STDIN_FILENO, TCSAFLUSH, &sig_catcher.saved_attributes);
+	r = tcsetattr(STDIN_FILENO, TCSAFLUSH, &g_sig_catcher.saved_attributes);
 	if (r)
 		return (0);
 	return (1);

@@ -6,7 +6,7 @@
 /*   By: acastelb <acastelb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/12 12:32:40 by acastelb          #+#    #+#             */
-/*   Updated: 2021/05/12 12:39:47 by acastelb         ###   ########.fr       */
+/*   Updated: 2021/05/13 18:53:39 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,8 +17,8 @@ void	run_exec(t_mini *mini, char **cmd)
 	char	*path_list;
 
 	path_list = get_env_var("PATH", mini->env);
-	sig_catcher.pid = fork();
-	if (sig_catcher.pid == 0)
+	g_sig_catcher.pid = fork();
+	if (g_sig_catcher.pid == 0)
 	{
 		if (!ft_strchr(cmd[0], '/'))
 			run_bin(cmd, mini, path_list);
@@ -29,11 +29,11 @@ void	run_exec(t_mini *mini, char **cmd)
 	}
 	else
 	{
-		if (0 < waitpid(sig_catcher.pid, &(mini->last_return), 0)
+		if (0 < waitpid(g_sig_catcher.pid, &(mini->last_return), 0)
 				&& WIFEXITED(mini->last_return))
 			mini->last_return = WEXITSTATUS(mini->last_return);
 		if ((mini->last_return == 2 || mini->last_return == 3)
-				&& sig_catcher.should_run == 0)
+				&& g_sig_catcher.should_run == 0)
 			mini->last_return += 128;
 		if (path_list)
 			free(path_list);

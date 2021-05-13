@@ -6,7 +6,7 @@
 /*   By: acastelb <acastelb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/12 12:16:25 by acastelb          #+#    #+#             */
-/*   Updated: 2021/05/12 12:19:45 by acastelb         ###   ########.fr       */
+/*   Updated: 2021/05/13 18:56:11 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,12 +37,13 @@ void	run_piped_parent(t_mini *mini, t_instructions *instruc,
 		{
 			mini->last_return = WEXITSTATUS(status);
 			if ((mini->last_return == 2 ||
-						mini->last_return == 3) && sig_catcher.should_run == 0)
+						mini->last_return == 3) &&
+					g_sig_catcher.should_run == 0)
 				mini->last_return += 128;
 		}
 	}
 	close(fds.pfd[0]);
-	sig_catcher.should_run = 1;
+	g_sig_catcher.should_run = 1;
 	close(STDIN_FILENO);
 	close(STDOUT_FILENO);
 	dup2(mini->stdin_copy, STDIN_FILENO);
@@ -85,7 +86,7 @@ void	pipe_loop(t_mini *mini, t_instructions *instruc, int fdin)
 	define_pipe_in_out(&fds, instruc);
 	if ((pid = fork()) < 0)
 		return ;
-	sig_catcher.pid = pid;
+	g_sig_catcher.pid = pid;
 	if (pid == 0)
 		run_piped_child(mini, instruc, fds.fdin, fds.pfd);
 	else

@@ -6,7 +6,7 @@
 /*   By: acastelb <acastelb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/12 11:13:15 by acastelb          #+#    #+#             */
-/*   Updated: 2021/05/13 17:17:18 by user42           ###   ########.fr       */
+/*   Updated: 2021/05/13 18:50:14 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,7 +95,7 @@ int		read_prompt(t_mini *mini)
 	top = 0;
 	ft_bzero(buff, 128);
 	ft_bzero(buffchar, 3);
-	while (read(STDIN_FILENO, buffchar, 3) && sig_catcher.should_run)
+	while (read(STDIN_FILENO, buffchar, 3) && g_sig_catcher.should_run)
 		if ((ret = check_prompt_input(mini, &top, buffchar, buff)) < 1)
 			break ;
 	write(1, "\n", 1);

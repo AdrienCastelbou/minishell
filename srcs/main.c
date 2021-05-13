@@ -6,7 +6,7 @@
 /*   By: acastelb <acastelb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/13 10:36:18 by acastelb          #+#    #+#             */
-/*   Updated: 2021/05/13 17:16:21 by user42           ###   ########.fr       */
+/*   Updated: 2021/05/13 18:49:19 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,18 +32,18 @@ int		ft_get_input(t_mini *mini)
 {
 	int	ret;
 
-	sig_catcher.should_run = 1;
-	sig_catcher.pid = -1;
+	g_sig_catcher.should_run = 1;
+	g_sig_catcher.pid = -1;
 	if (!mini->last_return)
 		ft_putstr_fd("\U0001F49A ", STDOUT_FILENO);
 	else
 		ft_putstr_fd("\U0001F494 ", STDOUT_FILENO);
 	ft_putstr_fd("\033[0;34mminishell> \033[0m", STDOUT_FILENO);
-	if (sig_catcher.should_run == 0)
+	if (g_sig_catcher.should_run == 0)
 		return (interrupt_prompt(mini));
 	if ((ret = read_prompt(mini)) == 0)
 	{
-		if (sig_catcher.should_run == 0)
+		if (g_sig_catcher.should_run == 0)
 			return (interrupt_prompt(mini));
 		print_errors("prompt", strerror(errno), NULL, 1);
 		exit_minishell(NULL, mini);
