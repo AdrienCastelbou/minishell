@@ -170,17 +170,15 @@ char		**get_cmd_tab(t_list *cmd)
 	return (cmd_tab);
 }
 
-int		get_instructions(t_mini *mini, char *s)
+int		get_instructions(t_mini *mini, char *s, int len, t_list *cmd)
 {
 	char			*instruction;
 	t_instructions	*current;
-	t_list			*cmd;
-	int				len;
 
 	mini->instructions = NULL;
 	if (*s == '|')
 		return (parsing_error('|'));
-	while (*s)
+	while (*(s += len))
 	{
 		if (*s == '|')
 			s += 1;
@@ -197,7 +195,6 @@ int		get_instructions(t_mini *mini, char *s)
 		if (mini->is_pipe && current->is_empty &&
 				(!cmd || !*((char *)cmd->content)))
 			return (parsing_error('|'));
-		s += len;
 	}
 	return (0);
 }
@@ -224,7 +221,7 @@ void	parse_and_run(t_mini *mini, char *s, int cmd_nb)
 	{
 		len = ft_cmd_size(s, ';');
 		cmd_input = ft_strndup(s, len);
-		mini->last_return = get_instructions(mini, cmd_input);
+		mini->last_return = get_instructions(mini, cmd_input, 0, NULL);
 		if (mini->last_return)
 		{
 			free_current_cmd(mini, cmd_input);
