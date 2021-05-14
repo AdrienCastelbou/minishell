@@ -6,7 +6,7 @@
 /*   By: acastelb <acastelb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/12 15:21:12 by acastelb          #+#    #+#             */
-/*   Updated: 2021/05/12 15:22:39 by acastelb         ###   ########.fr       */
+/*   Updated: 2021/05/14 09:49:22 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,6 +77,10 @@ void	free_mini(t_mini *mini)
 		ft_free_splited(mini->envp);
 	if (mini->instructions)
 		ft_instruclear(&mini->instructions);
+	if (mini->bin)
+		free(mini->bin);
+	if (mini->path_list)
+		free(mini->path_list);
 	close(mini->stdin_copy);
 	close(mini->stdout_copy);
 	free(mini);

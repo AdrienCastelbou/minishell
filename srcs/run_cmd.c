@@ -6,7 +6,7 @@
 /*   By: acastelb <acastelb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/12 12:32:40 by acastelb          #+#    #+#             */
-/*   Updated: 2021/05/14 09:09:51 by user42           ###   ########.fr       */
+/*   Updated: 2021/05/14 09:48:55 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,17 +14,17 @@
 
 void	run_exec(t_mini *mini, char **cmd)
 {
-	char	*path_list;
-
-	path_list = get_env_var("PATH", mini->env);
+	mini->path_list = get_env_var("PATH", mini->env);
 	g_sig_catcher.pid = fork();
 	if (g_sig_catcher.pid == 0)
 	{
 		if (!ft_strchr(cmd[0], '/'))
-			run_bin(cmd, mini, path_list);
+			run_bin(cmd, mini, mini->path_list);
 		else
 			execve(cmd[0], cmd, mini->envp);
-		exit(print_errors(cmd[0], strerror(errno), NULL, 127));
+		print_errors(cmd[0], strerror(errno), NULL, 127);
+		free_mini(mini);
+		exit(127);
 	}
 	else
 	{
@@ -36,8 +36,8 @@ void	run_exec(t_mini *mini, char **cmd)
 			mini->last_return += 128;
 		if (g_sig_catcher.should_run == -1)
 			ft_putstr_fd("Quit\n", STDERR_FILENO);
-		if (path_list)
-			free(path_list);
+		if (mini->path_list)
+			free(mini->path_list);
 	}
 }
 
@@ -75,6 +75,7 @@ int		run_bin(char **cmd, t_mini *mini, char *path_list)
 	ft_putstr_fd("\U0000274C minishell: ", STDERR_FILENO);
 	ft_putstr_fd(mini->bin, STDERR_FILENO);
 	ft_putstr_fd(": command not found\n", STDERR_FILENO);
+	free_mini(mini);
 	exit(127);
 	return (0);
 }

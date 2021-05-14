@@ -6,7 +6,7 @@
 /*   By: acastelb <acastelb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/13 10:08:08 by acastelb          #+#    #+#             */
-/*   Updated: 2021/05/13 18:13:58 by user42           ###   ########.fr       */
+/*   Updated: 2021/05/14 09:34:20 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,7 +80,7 @@ int		get_instructions(t_mini *mini, char *s, int len, t_list *cmd)
 	return (0);
 }
 
-void	parse_and_run(t_mini *mini, char *s, int cmd_nb)
+int		parse_and_run(t_mini *mini, char *s, int cmd_nb)
 {
 	char	*cmd_input;
 	int		i;
@@ -92,11 +92,9 @@ void	parse_and_run(t_mini *mini, char *s, int cmd_nb)
 		len = ft_cmd_size(s, ';');
 		cmd_input = ft_strndup(s, len);
 		mini->last_return = get_instructions(mini, cmd_input, 0, NULL);
+		free(cmd_input);
 		if (mini->last_return || mini->is_fd_err)
-		{
-			quit_parsing(mini, cmd_input);
-			return ;
-		}
+			return (quit_parsing(mini, NULL));
 		if (mini->is_pipe)
 			make_pipe(mini, mini->instructions);
 		else if (mini->instructions)
@@ -104,9 +102,10 @@ void	parse_and_run(t_mini *mini, char *s, int cmd_nb)
 			mini->cmd = get_cmd_tab(mini->instructions->cmds);
 			run_cmd(mini, mini->cmd, mini->instructions);
 		}
-		free_current_cmd(mini, cmd_input);
+		free_current_cmd(mini, NULL);
 		s += len + 1;
 	}
+	return (1);
 }
 
 t_list	*ft_lst_cmds(t_mini *mini, char *s)

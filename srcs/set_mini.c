@@ -6,7 +6,7 @@
 /*   By: acastelb <acastelb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/13 10:34:56 by acastelb          #+#    #+#             */
-/*   Updated: 2021/05/13 17:53:26 by user42           ###   ########.fr       */
+/*   Updated: 2021/05/14 09:46:50 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@ void	set_mini(t_mini *mini)
 	mini->envp = NULL;
 	mini->cmds = NULL;
 	mini->bin = NULL;
+	mini->path_list = NULL;
 	mini->is_pipe = 0;
 	mini->is_fd_err = 0;
 }

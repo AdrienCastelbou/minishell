@@ -6,7 +6,7 @@
 /*   By: user42 <user42@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/13 18:21:13 by user42            #+#    #+#             */
-/*   Updated: 2021/05/13 19:08:59 by user42           ###   ########.fr       */
+/*   Updated: 2021/05/14 09:36:23 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -147,7 +147,7 @@ int				cd_oldpwd(t_mini *mini);
 int				cwd_exist(void);
 int				cd_builtin(t_mini *mini, char *mov, char **inputs);
 int				run_builtins(char	**splited_inputs, t_mini *mini);
-void			quit_parsing(t_mini *mini, char *cmd_input);
+int				quit_parsing(t_mini *mini, char *cmd_input);
 int				parse_fd(t_mini *mini,
 				t_instructions *instruc, char *s, int len);
 int				err_in_fd_detec(t_mini *mini, char *s);
