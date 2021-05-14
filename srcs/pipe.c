@@ -6,7 +6,7 @@
 /*   By: acastelb <acastelb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/12 12:16:25 by acastelb          #+#    #+#             */
-/*   Updated: 2021/05/13 18:56:11 by user42           ###   ########.fr       */
+/*   Updated: 2021/05/14 09:05:35 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ void	run_piped_parent(t_mini *mini, t_instructions *instruc,
 	close(fds.pfd[1]);
 	close(fds.fdin);
 	fds.fdin = fds.pfd[0];
-	if (instruc)
+	if (instruc && g_sig_catcher.should_run != -1)
 		pipe_loop(mini, instruc->next, fds.fdin);
 	if (0 < waitpid(pid, &status, 0) && WIFEXITED(status))
 	{
@@ -43,7 +43,6 @@ void	run_piped_parent(t_mini *mini, t_instructions *instruc,
 		}
 	}
 	close(fds.pfd[0]);
-	g_sig_catcher.should_run = 1;
 	close(STDIN_FILENO);
 	close(STDOUT_FILENO);
 	dup2(mini->stdin_copy, STDIN_FILENO);
@@ -98,6 +97,9 @@ void	make_pipe(t_mini *mini, t_instructions *instruc)
 	mini->envp = transform_env_lst_in_tab(mini->env);
 	mini->path_list = get_env_var("PATH", mini->env);
 	pipe_loop(mini, instruc, STDIN_FILENO);
+	if (g_sig_catcher.should_run == -1)
+		ft_putstr_fd("Quit\n", STDERR_FILENO);
+	g_sig_catcher.should_run = 1;
 	if (mini->path_list)
 		free(mini->path_list);
 	mini->path_list = NULL;

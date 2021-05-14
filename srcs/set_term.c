@@ -6,7 +6,7 @@
 /*   By: acastelb <acastelb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/12 11:49:50 by acastelb          #+#    #+#             */
-/*   Updated: 2021/05/13 18:51:34 by user42           ###   ########.fr       */
+/*   Updated: 2021/05/14 09:16:15 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,10 +19,9 @@ void	sig_handler(int signum)
 		g_sig_catcher.should_run = 0;
 		close(STDIN_FILENO);
 	}
-	else if (signum == SIGQUIT && g_sig_catcher.pid > -1)
+	if (signum == SIGQUIT && g_sig_catcher.pid > 0)
 	{
-		g_sig_catcher.should_run = 0;
-		ft_putstr_fd("Quit\n", STDERR_FILENO);
+		g_sig_catcher.should_run = -1;
 		kill(g_sig_catcher.pid, SIGQUIT);
 	}
 }

@@ -6,7 +6,7 @@
 /*   By: acastelb <acastelb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/12 12:32:40 by acastelb          #+#    #+#             */
-/*   Updated: 2021/05/13 18:53:39 by user42           ###   ########.fr       */
+/*   Updated: 2021/05/14 09:09:51 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,8 +24,7 @@ void	run_exec(t_mini *mini, char **cmd)
 			run_bin(cmd, mini, path_list);
 		else
 			execve(cmd[0], cmd, mini->envp);
-		print_errors(cmd[0], strerror(errno), NULL, 127);
-		exit(127);
+		exit(print_errors(cmd[0], strerror(errno), NULL, 127));
 	}
 	else
 	{
@@ -33,8 +32,10 @@ void	run_exec(t_mini *mini, char **cmd)
 				&& WIFEXITED(mini->last_return))
 			mini->last_return = WEXITSTATUS(mini->last_return);
 		if ((mini->last_return == 2 || mini->last_return == 3)
-				&& g_sig_catcher.should_run == 0)
+				&& g_sig_catcher.should_run <= 0)
 			mini->last_return += 128;
+		if (g_sig_catcher.should_run == -1)
+			ft_putstr_fd("Quit\n", STDERR_FILENO);
 		if (path_list)
 			free(path_list);
 	}
