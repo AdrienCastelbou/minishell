@@ -6,7 +6,7 @@
 /*   By: acastelb <acastelb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/12 13:56:27 by acastelb          #+#    #+#             */
-/*   Updated: 2021/05/13 17:14:00 by user42           ###   ########.fr       */
+/*   Updated: 2021/05/14 10:22:40 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,26 +15,20 @@
 unsigned long long	ft_atolli(const char *str)
 {
 	int					i;
-	int					is_neg;
 	unsigned long long	result;
 
 	i = 0;
 	while ((str[i] >= 9 && str[i] <= 13) || str[i] == ' ')
 		i++;
-	is_neg = 1;
 	if (str[i] == '+' || str[i] == '-')
-	{
-		if (str[i] == '-')
-			is_neg *= -1;
 		i++;
-	}
 	result = 0;
 	while (str[i] >= '0' && str[i] <= '9')
 	{
 		result = result * 10 + (str[i] - '0');
 		i++;
 	}
-	return (result * is_neg);
+	return (result);
 }
 
 int					is_only_digit(char *s)
