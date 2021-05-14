@@ -6,7 +6,7 @@
 /*   By: acastelb <acastelb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/12 12:32:40 by acastelb          #+#    #+#             */
-/*   Updated: 2021/05/14 09:48:55 by user42           ###   ########.fr       */
+/*   Updated: 2021/05/14 09:54:56 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -100,6 +100,7 @@ int		run(t_mini *mini, int fdin, int fdout)
 		else
 			execve(cmd[0], cmd, mini->envp);
 		print_errors(cmd[0], strerror(errno), NULL, 127);
+		free_mini(mini);
 		exit(127);
 	}
 	exit(mini->last_return);
