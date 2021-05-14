@@ -6,7 +6,7 @@
 /*   By: user42 <user42@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/13 18:21:13 by user42            #+#    #+#             */
-/*   Updated: 2021/05/14 09:36:23 by user42           ###   ########.fr       */
+/*   Updated: 2021/05/14 10:14:33 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 # define MINISHELL_H
 # define GETCWD_ERR "getcwd cant access to parents directories"
-# define EXIT_LIM 9223372036854775806
+# define EXIT_LIM 9223372036854775807
 # include "libft.h"
 # include <stdlib.h>
 # include <stdio.h>
