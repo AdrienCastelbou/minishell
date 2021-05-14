@@ -6,7 +6,7 @@
 /*   By: acastelb <acastelb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/12 13:56:27 by acastelb          #+#    #+#             */
-/*   Updated: 2021/05/14 10:22:40 by user42           ###   ########.fr       */
+/*   Updated: 2021/05/14 10:36:45 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,7 +63,7 @@ int					exit_minishell(char **splited_inputs, t_mini *mini)
 			return_value = print_errors("exit",
 					splited_inputs[1], "numeric argument required", 2);
 		else if (splited_inputs[1])
-			return_value = ft_atolli(splited_inputs[1]);
+			return_value = ft_atoi(splited_inputs[1]) % 256;
 	}
 	if (!mini->is_pipe)
 		free_mini(mini);
