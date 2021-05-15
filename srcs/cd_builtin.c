@@ -6,7 +6,7 @@
 /*   By: acastelb <acastelb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/12 14:05:54 by acastelb          #+#    #+#             */
-/*   Updated: 2021/05/13 12:06:02 by acastelb         ###   ########.fr       */
+/*   Updated: 2021/05/15 13:00:16 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,12 +14,9 @@
 
 char	*get_user_dir(t_mini *mini)
 {
-	char	*user;
 	char	*user_path;
 
-	user = get_env_var("USER", mini->env);
-	user_path = ft_strjoin_path("/home", user);
-	free(user);
+	user_path = get_env_var("HOME", mini->env);
 	return (user_path);
 }
 
@@ -79,7 +76,8 @@ int		cd_builtin(t_mini *mini, char *mov, char **inputs)
 	mov_usr = 0;
 	if (mov == NULL)
 	{
-		mov = get_user_dir(mini);
+		if (!(mov = get_user_dir(mini)))
+			return (print_errors("cd", "HOME not set", NULL, 1));
 		mov_usr = 1;
 	}
 	else if (ft_strcmp(mov, "-") == 0)
@@ -90,7 +88,7 @@ int		cd_builtin(t_mini *mini, char *mov, char **inputs)
 	else if (mini->last_return == -1)
 		mini->last_return =
 			print_errors("cd", mov, strerror(errno), 1);
-	if (mov_usr)
+	if (mov_usr && mov)
 		free(mov);
 	if (cwd_exist() == 0)
 		return (print_errors("error", GETCWD_ERR, NULL, 0));
